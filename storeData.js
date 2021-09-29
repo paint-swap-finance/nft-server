@@ -10,8 +10,12 @@ function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 }
 
-function timestamp(){
+function timestamp() {
     return Math.round(Date.now()/1000)
+}
+
+function roundUsd(num) {
+    return Math.round(num)
 }
 
 async function getEthPrice() {
@@ -22,28 +26,39 @@ async function getEthPrice() {
     return usd
 }
 
+async function getNFTData(collection, ethInUsd) {
+    const url = `https://api.opensea.io/api/v1/asset/${collection.contract}/${collection.item}/`
+    const data = await axios.get(url)
+    const { one_day_volume, num_owners, floor_price, total_volume, total_supply } = data.data.collection.stats
+    return {
+        dailyVolume: one_day_volume,
+        dailyVolumeUsd: roundUsd(one_day_volume * ethInUsd),
+        owners: num_owners,
+        floor: floor_price,
+        floorUsd: roundUsd(floor_price * ethInUsd),
+        totalVolume: total_volume,
+        totalVolumeUsd: roundUsd(total_volume * ethInUsd),
+        marketCap: roundUsd(floor_price * ethInUsd * total_supply),
+    }
+}
+
+async function storeData(id, nftData) {
+    await ddb.put({
+        TableName,
+        'Item': {
+            PK: `nfts#${id}`,
+            SK: timestamp(),
+            ...nftData,
+        },
+    }).promise();
+}
+
 async function getNFTDataAndStore() {
     while (true) {
         for (const collection of collections) {
-            const url = `https://api.opensea.io/api/v1/asset/${collection.contract}/${collection.item}/`
-            const data = await axios.get(url)
-            const { one_day_volume, num_owners, floor_price, total_volume, total_supply } = data.data.collection.stats
             const ethInUsd = await getEthPrice()
-            await ddb.put({
-                TableName,
-                'Item': {
-                    PK: `nfts#${collection.id}`,
-                    SK: timestamp(),
-                    dailyVolume: one_day_volume,
-                    dailyVolumeUsd: one_day_volume * ethInUsd,
-                    owners: num_owners,
-                    floor: floor_price,
-                    floorUsd: floor_price * ethInUsd,
-                    totalVolume: total_volume,
-                    totalVolumeUsd: total_volume * ethInUsd,
-                    marketCap: floor_price * ethInUsd * total_supply,
-                },
-            }).promise();
+            const nftData = await getNFTData(collection, ethInUsd)
+            await storeData(collection.id, nftData)
             await sleep(30)
         }
         await sleep(30*60)
@@ -53,4 +68,5 @@ async function getNFTDataAndStore() {
 module.exports = {
     getNFTDataAndStore,
     getEthPrice,
+    getNFTData
 }
