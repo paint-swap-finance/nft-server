@@ -1,5 +1,11 @@
 module.exports = [
     {
+        id: "crypto-punks",
+        contract: "0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb",
+        item: "4402",
+        name: "CryptoPunks"
+    },
+    {
         id: "bayc",
         contract: "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d",
         item: "5212",
@@ -34,5 +40,47 @@ module.exports = [
         contract: "0x1a92f7381b9f03921564a437210bb9396471050c",
         item: "5847",
         name: "Cool Cats"
+    },
+    {
+        id: "0n1-force",
+        contract: "0x3bf2922f4520a8ba0c2efc3d2a1539678dad5e9d",
+        item: "3789",
+        name: "0N1 Force"
+    },
+    {
+        id: "pudgy-penguins",
+        contract: "0xbd3531da5cf5857e7cfaa92426877b022e612cf8",
+        item: "7373",
+        name: "Pudgy Penguins"
+    },
+    {
+        id: "parallel-alpha",
+        contract: "0x76be3b62873462d2142405439777e971754e8e77",
+        item: "10089",
+        name: "Parallel Alpha"
+    },
+    {
+        id: "cryp-toadz",
+        contract: "0x1cb1a5e65610aeff2551a50f76a87a7d3fb649c6",
+        item: "1683",
+        name: "CrypToadz"
+    },
+    {
+        id: "creature-world-nft",
+        contract: "0xc92ceddfb8dd984a89fb494c376f9a48b999aafc",
+        item: "4952",
+        name: "Creature World NFT"
+    },
+    {
+        id: "sup-ducks",
+        contract: "0x3fe1a4c1481c8351e91b64d5c398b159de07cbc5",
+        item: "5536",
+        name: "SupDucks"
+    },
+    {
+        id: "sorare",
+        contract: "0x629a673a8242c2ac4b7b8c5d8735fbeac21a6205",
+        item: "93413048755406577872706166263267868455781906435673030502405621390756186649773",
+        name: "Sorare"
     },
 ]
