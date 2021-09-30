@@ -29,7 +29,7 @@ async function getEthPrice() {
 async function getNFTData(collection, ethInUsd) {
     const url = `https://api.opensea.io/api/v1/asset/${collection.contract}/${collection.item}/`
     const data = await axios.get(url)
-    const { one_day_volume, num_owners, floor_price, total_volume, total_supply } = data.data.collection.stats
+    const { one_day_volume, num_owners, floor_price, total_volume, market_cap } = data.data.collection.stats
     return {
         dailyVolume: one_day_volume,
         dailyVolumeUsd: roundUsd(one_day_volume * ethInUsd),
@@ -38,7 +38,8 @@ async function getNFTData(collection, ethInUsd) {
         floorUsd: roundUsd(floor_price * ethInUsd),
         totalVolume: total_volume,
         totalVolumeUsd: roundUsd(total_volume * ethInUsd),
-        marketCap: roundUsd(floor_price * ethInUsd * total_supply),
+        marketCap: market_cap,
+        marketCapUsd: roundUsd(market_cap * ethInUsd),
     }
 }
 
