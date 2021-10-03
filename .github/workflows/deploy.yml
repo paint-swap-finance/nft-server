@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build bundle
-      run: zip -r deploy.zip . -x '*.git*'
+      run: npm install && npm run build && npm run dist
     - name: Deploy to EB
       uses: einaregilsson/beanstalk-deploy@v18
       with:
