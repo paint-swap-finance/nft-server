@@ -21,4 +21,4 @@ jobs:
         environment_name: Nftrunner-env
         version_label: ${{github.run_number}}
         region: eu-central-1
-        deployment_package: deploy.zip
+        deployment_package: dist/deploy.zip
