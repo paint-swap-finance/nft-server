@@ -12,11 +12,8 @@ interface Filters {
 
 @Decorator.Table({ name: 'nft-collections-prod' })
 export class Collection extends Table {
-  @Decorator.FullPrimaryKey('address', 'nameLowercase')
-  public static readonly primaryKey: Query.FullPrimaryKey<Collection, string, string> 
-
-  @Decorator.LocalSecondaryIndex('symbol')
-  public static readonly symbolIndex: Query.LocalSecondaryIndex<Collection, Query.FullPrimaryKey<Collection, string, string>, string>
+  @Decorator.HashPrimaryKey('address')
+  public static readonly primaryKey: Query.HashPrimaryKey<Collection, string> 
 
   @Decorator.Writer()
   public static readonly writer: Query.Writer<Collection>
@@ -32,9 +29,6 @@ export class Collection extends Table {
 
   @Decorator.Attribute()
   public name: string
-
-  @Decorator.Attribute()
-  public nameLowercase: string
 
   @Decorator.Attribute()
   public symbol: string

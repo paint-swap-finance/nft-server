@@ -3,6 +3,7 @@ import {
   Query,
   Table,
 } from '@serverless-seoul/dynamorm';
+import { Collection } from '.';
 import { Blockchain } from '../types'
 
 enum MetricName {
@@ -51,9 +52,16 @@ export class Metric extends Table {
     }).promise()
 
     return results.Items.map(item => {
-      const statEntry = new Metric()
-      statEntry.setAttributes({...item})
-      return statEntry
+      const metric = new Metric()
+      metric.setAttributes({...item})
+      return metric
     })
+  }
+
+  public static async getTopCollectionsByMetric(metric: MetricName, limit: number | undefined): Promise<Collection[]> {
+    const results = await Metric.nameIndex.query({ hash: metric, rangeOrder: 'DESC', limit: limit })
+    const collectionAddresses = results.records.map(metric => metric.address)
+    const collectionResults = await Collection.primaryKey.batchGet(collectionAddresses)
+    return collectionResults.records
   }
 }
