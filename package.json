@@ -3,14 +3,20 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@serverless-seoul/dynamorm": "^2.11.0",
     "aws-sdk": "^2.981.0",
-    "axios": "^0.21.1"
+    "axios": "^0.21.1",
+    "dotenv": "^10.0.0",
+    "ethers": "^5.4.7",
+    "moralis": "^0.0.78"
   },
   "scripts": {
     "build": "tsc",
     "dist": "sh ./scripts/dist.sh",
     "start": "node dist/app.js",
-    "test": "npx ts-node test/test.ts"
+    "test": "AWS_SDK_LOAD_CONFIG=true DYNAMO_TYPES_ENDPOINT=http://127.0.0.1:8000 npx ts-node test/test.ts",
+    "create-tables": "npx ts-node scripts/init-dynamo-tables.ts",
+    "dynamodb": "docker run --rm --name catch-dynamo -p 8000:8000 -d amazon/dynamodb-local"
   },
   "devDependencies": {
     "@types/node": "^16.10.2",
