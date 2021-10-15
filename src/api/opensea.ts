@@ -1,6 +1,6 @@
 import axios from "axios";
+import { OPENSEA_API_KEY } from "../../env";
 import { roundUSD } from "../utils";
-import { Coingecko } from "./coingecko";
 
 interface OpenseaCollectionData {
   metadata: {
@@ -29,20 +29,23 @@ interface OpenseaCollectionData {
 }
 
 export class Opensea {
-  public static async getCollection(address: string, itemId: string): Promise<OpenseaCollectionData> {
-    const url = `https://api.opensea.io/api/v1/asset/${address}/${itemId}/`;
-    const ethInUSD = await Coingecko.getEthPrice();
-    const response = await axios.get(url);
-    const { one_day_volume, num_owners, floor_price, total_volume, market_cap } = response.data.collection.stats;
-    const { discord_url, slug, telegram_url, twitter_username, medium_username } = response.data.collection;
-    const { name, symbol, description, external_link, image_url } = response.data.collection.primary_asset_contracts[0];
+  public static async getCollection(address: string, tokenId: string, ethInUSD: number): Promise<OpenseaCollectionData> {
+    const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/`;
+    const response = await axios.get(url, {
+      headers: { 'X-API-KEY': OPENSEA_API_KEY }
+    });
+    const { collection } = response.data;
+    const contractMetadata = collection.primary_asset_contracts[0] || [];
+    const { name, symbol, description, external_link, image_url } = contractMetadata;
+    const { one_day_volume, num_owners, floor_price, total_volume, market_cap } = collection.stats;
+    const { discord_url, slug, telegram_url, twitter_username, medium_username, image_url: tokenUrl } = collection;
     return {
       metadata: {
         name,
         slug,
         symbol,
         description,
-        logo: image_url,
+        logo: image_url || tokenUrl,
         website: external_link,
         discord_url,
         telegram_url,
