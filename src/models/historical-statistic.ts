@@ -19,25 +19,25 @@ export class HistoricalStatistic extends BaseEntity {
   collection: Collection;
 
   @Column({ type: "timestamp" })
-  timestamp: number;
+  timestamp: Date;
 
   @Column({ type: "double precision" })
   dailyVolume: number;
 
   @Column({ type: "bigint" })
-  dailyVolumeUSD: number;
+  dailyVolumeUSD: bigint;
 
   @Column({ type: "double precision" })
   totalVolume: number;
 
   @Column({ type: "bigint" })
-  totalVolumeUSD: number;
+  totalVolumeUSD: bigint;
 
   @Column({ type: "double precision" })
   marketCap: number;
 
   @Column({ type: "bigint" })
-  marketCapUSD: number;
+  marketCapUSD: bigint;
 
   @Column({ type: "double precision" })
   floor: number;

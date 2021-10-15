@@ -17,14 +17,14 @@ interface OpenseaCollectionData {
   },
   stats: {
     dailyVolume: number,
-    dailyVolumeUSD: number,
+    dailyVolumeUSD: bigint,
     owners: number,
     floor: number,
     floorUSD: number,
     totalVolume: number,
-    totalVolumeUSD: number,
+    totalVolumeUSD: bigint,
     marketCap: number,
-    marketCapUSD: number,
+    marketCapUSD: bigint,
   }
 }
 
@@ -54,14 +54,14 @@ export class Opensea {
       },
       stats: {
         dailyVolume: one_day_volume,
-        dailyVolumeUSD: roundUSD(one_day_volume * ethInUSD),
+        dailyVolumeUSD: BigInt(one_day_volume) * BigInt(ethInUSD),
         owners: num_owners,
         floor: floor_price,
         floorUSD: roundUSD(floor_price * ethInUSD),
         totalVolume: total_volume,
-        totalVolumeUSD: roundUSD(total_volume * ethInUSD),
+        totalVolumeUSD: BigInt(total_volume) * BigInt(ethInUSD),
         marketCap: market_cap,
-        marketCapUSD: roundUSD(market_cap * ethInUSD),
+        marketCapUSD: BigInt(market_cap) * BigInt(ethInUSD),
       }
     }
   }
