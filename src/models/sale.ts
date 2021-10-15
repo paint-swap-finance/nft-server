@@ -22,7 +22,7 @@ export class Sale extends BaseEntity {
   collection: Collection;
 
   @Column({ type: "timestamp" })
-  timestamp: number;
+  timestamp: Date;
 
   @Column()
   fromAddress: string;
