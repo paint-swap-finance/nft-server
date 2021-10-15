@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  postgres:
+    container_name: pg
+    image: "postgres:latest"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "local"
+      POSTGRES_PASSWORD: "local"
+      POSTGRES_DB: "nfts"
+    volumes:
+      - pg_data:/var/lib/postgresql/data/
+volumes:
+  pg_data:
