@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsc",
     "dist": "sh ./scripts/dist.sh",
-    "start": "node dist/app.js",
+    "start": "node dist/src/app.js",
     "test": "npx ts-node test/test.ts"
   },
   "devDependencies": {

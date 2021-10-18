@@ -9,7 +9,7 @@ import { Collection } from "./models/collection"
 import { HistoricalStatistic } from "./models/historical-statistic"
 import { Sale } from "./models/sale"
 import { Statistic } from "./models/statistic"
-import { DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from "../env";
+import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from "../env";
 
 const html = fs.readFileSync("index.html")
 const port = process.env.PORT || 3000
@@ -21,7 +21,7 @@ createConnection({
   port: DB_PORT,
   username: DB_USER,
   password: DB_PASSWORD,
-  database: "nfts",
+  database: DB_NAME,
   entities: [
     AdapterState,
     Collection,
