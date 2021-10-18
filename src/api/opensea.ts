@@ -54,14 +54,14 @@ export class Opensea {
       },
       stats: {
         dailyVolume: one_day_volume,
-        dailyVolumeUSD: BigInt(one_day_volume) * BigInt(ethInUSD),
+        dailyVolumeUSD: BigInt(roundUSD(one_day_volume * ethInUSD)),
         owners: num_owners,
         floor: floor_price,
         floorUSD: roundUSD(floor_price * ethInUSD),
         totalVolume: total_volume,
-        totalVolumeUSD: BigInt(total_volume) * BigInt(ethInUSD),
+        totalVolumeUSD: BigInt(roundUSD(total_volume * ethInUSD)),
         marketCap: market_cap,
-        marketCapUSD: BigInt(market_cap) * BigInt(ethInUSD),
+        marketCapUSD: BigInt(roundUSD(market_cap * ethInUSD)),
       }
     }
   }
