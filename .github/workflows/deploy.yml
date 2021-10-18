@@ -17,8 +17,8 @@
 #       with:
 #         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
 #         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#         application_name: nft-runner
-#         environment_name: Nftrunner-env
+#         application_name: nft-server-app
+#         environment_name: production
 #         version_label: ${{github.run_number}}
 #         region: eu-central-1
 #         deployment_package: dist/deploy.zip
