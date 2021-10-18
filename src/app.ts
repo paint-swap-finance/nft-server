@@ -64,10 +64,23 @@ createConnection({
     res.status(200);
   });
 
+  app.get('/search', async (req, res) => {
+    const searchTerm = (req.query.searchTerm as string).toLowerCase();
+    // .where("to_tsvector(collection.name) @@ to_tsquery(:searchTerm)", { searchTerm })
+    const collections = await Collection.createQueryBuilder("collection")
+                        .where(
+                          "lower(collection.name) LIKE :term OR lower(collection.symbol) LIKE :term",
+                          { term: `%${searchTerm}%` }
+                        )
+                        .limit(5)
+                        .getMany();
+
+                        console.log(collections)
+    res.send(serialize(collections));
+    res.status(200);
+  })
+
   app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
   });
-
-
-  console.log("Server running at http://127.0.0.1:" + port + "/")
 }).catch(error => console.log(error));
