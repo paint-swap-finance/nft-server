@@ -54,6 +54,16 @@ createConnection({
     res.status(200);
   });
 
+  app.get('/collection/:address', async (req, res) => {
+    const collection = await Collection.findOne(req.params.address);
+    if (!collection) {
+      res.status(404);
+      return;
+    }
+    res.send(serialize(collection));
+    res.status(200);
+  });
+
   app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
   });
