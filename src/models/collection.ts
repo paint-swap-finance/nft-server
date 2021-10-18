@@ -67,12 +67,12 @@ export class Collection extends BaseEntity {
   @Column({ default: "" })
   mediumUsername: string;
 
-  @Column({ type: "timestamp" })
+  @Column({ type: "timestamp", default: () => "make_timestamp(1970, 1, 1, 0, 0, 0)" })
   lastFetched: Date;
 
   static findNotFetched() {
     return this.createQueryBuilder("collection")
-      .where("collection.lastFetched = make_timestamp(1970, 1, 1, 1, 0, 0)")
+      .where("collection.lastFetched = make_timestamp(1970, 1, 1, 0, 0, 0)")
       .getMany();
     }
 }

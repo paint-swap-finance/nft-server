@@ -32,7 +32,6 @@ async function fetchCollectionAddresses() {
           address: nextCollection.address.toLowerCase(),
           defaultTokenId: nextCollection.tokenId.toLowerCase(),
           chain: Blockchain.Ethereum,
-          lastFetched: new Date(0),
         }),
       }), collections);
 
