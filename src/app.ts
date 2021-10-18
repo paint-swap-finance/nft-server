@@ -1,6 +1,7 @@
-import * as http from "http"
+import express from "express";
 import * as fs from "fs"
 import { createConnection } from "typeorm";
+import { serialize } from "class-transformer";
 import "reflect-metadata";
 
 import { adapters } from "./adapters"
@@ -33,32 +34,30 @@ createConnection({
   logging: false,
 }).then(connection => {
   adapters.forEach(adapter => adapter.run());
+
+  const app = express();
+  app.get('/', (req, res) => res.send(html));
+
+  app.get('/collections', async (req, res) => {
+    const page = parseInt(req.query.page as string) || 0;
+    const limit = parseInt(req.query.limit as string) || 100;
+    const sortBy = req.query.sort as string || "dailyVolume";
+    const sortDirection = req.query.direction as string || "DESC";
+    if (sortDirection !== "ASC" && sortDirection !== "DESC") {
+      res.status(400);
+      res.send(JSON.stringify({ error: "Invalid sort direction" }));
+      return;
+    }
+
+    const collections = await Collection.getSorted(sortBy, sortDirection, page, limit);
+    res.send(collections.map(collection => serialize(collection)));
+    res.status(200);
+  });
+
+  app.listen(port, () => {
+    console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
+  });
+
+
+  console.log("Server running at http://127.0.0.1:" + port + "/")
 }).catch(error => console.log(error));
-
-const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
-  if (req.method === "POST") {
-    let body = ""
-    req.on("data", (chunk) => body += chunk)
-
-    req.on("end", () => {
-      if (req.url === "/") {
-        log("Received message: " + body)
-      } else if (req.url = "/scheduled") {
-        log("Received task " + req.headers["x-aws-sqsd-taskname"] + " scheduled at " + req.headers["x-aws-sqsd-scheduled-at"])
-      }
-
-      res.writeHead(200, "OK", {"Content-Type": "text/plain"})
-      res.end()
-    })
-  } else {
-    res.writeHead(200)
-    res.write(html)
-    res.end()
-  }
-})
-
-// Listen on port 3000, IP defaults to 127.0.0.1
-server.listen(port)
-
-// Put a friendly message on the terminal
-console.log("Server running at http://127.0.0.1:" + port + "/")
