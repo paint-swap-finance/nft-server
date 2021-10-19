@@ -81,6 +81,22 @@ export class Collection extends BaseEntity {
       .getMany();
   }
 
+
+  static async search(term: string): Promise<Collection[]> {
+    // .where("to_tsvector(collection.name) @@ to_tsquery(:searchTerm)", { searchTerm })
+    return this.createQueryBuilder("collection")
+      .innerJoinAndSelect("collection.statistic", "statistic", )
+      .where(
+        "lower(collection.name) LIKE :term OR lower(collection.symbol) LIKE :term",
+        { term: `%${term}%` }
+      )
+      .orderBy({
+        "statistic.dailyVolume": "DESC",
+      })
+      .limit(13)
+      .getMany();
+  }
+
   static findNotFetched(): Promise<Collection[]> {
     return this.createQueryBuilder("collection")
       .where("collection.lastFetched = make_timestamp(1970, 1, 1, 0, 0, 0)")

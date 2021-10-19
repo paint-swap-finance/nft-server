@@ -1,7 +1,8 @@
 import express from "express";
+import cors from "cors";
 import * as fs from "fs"
 import { createConnection } from "typeorm";
-import { serialize } from "class-transformer";
+import { classToPlain, serialize } from "class-transformer";
 import "reflect-metadata";
 
 import { adapters } from "./adapters"
@@ -36,6 +37,13 @@ createConnection({
   adapters.forEach(adapter => adapter.run());
 
   const app = express();
+  app.use(cors());
+  app.use((req, res, next) => {
+    res.setHeader("Content-Type", "application/json");
+    next();
+});
+
+
   app.get('/', (req, res) => res.send(html));
 
   app.get('/collections', async (req, res) => {
@@ -50,7 +58,17 @@ createConnection({
     }
 
     const collections = await Collection.getSorted(sortBy, sortDirection, page, limit);
-    res.send(collections.map(collection => serialize(collection)));
+    const flattenedCollections = collections.map((collection) => {
+      const obj = classToPlain(collection);
+      const statObj = collection.statistic;
+      delete obj.statistic;
+      delete statObj.id;
+      return {
+        ...obj,
+        ...statObj,
+      }
+    });
+    res.send(serialize(flattenedCollections));
     res.status(200);
   });
 
@@ -65,17 +83,13 @@ createConnection({
   });
 
   app.get('/search', async (req, res) => {
+    if (!req.query.searchTerm || req.query.searchTerm === '') {
+      res.send([]);
+      res.status(200);
+      return;
+    }
     const searchTerm = (req.query.searchTerm as string).toLowerCase();
-    // .where("to_tsvector(collection.name) @@ to_tsquery(:searchTerm)", { searchTerm })
-    const collections = await Collection.createQueryBuilder("collection")
-                        .where(
-                          "lower(collection.name) LIKE :term OR lower(collection.symbol) LIKE :term",
-                          { term: `%${searchTerm}%` }
-                        )
-                        .limit(5)
-                        .getMany();
-
-                        console.log(collections)
+    const collections = await Collection.search(searchTerm);
     res.send(serialize(collections));
     res.status(200);
   })
