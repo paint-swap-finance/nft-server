@@ -21,7 +21,7 @@ export class Sale extends BaseEntity {
   @JoinColumn()
   collection: Collection;
 
-  @Column({ type: "timestamp" })
+  @Column({ type: "timestamptz" })
   timestamp: Date;
 
   @Column()

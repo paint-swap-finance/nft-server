@@ -18,7 +18,7 @@ export class HistoricalStatistic extends BaseEntity {
   @JoinColumn()
   collection: Collection;
 
-  @Column({ type: "timestamp" })
+  @Column({ type: "timestamptz" })
   timestamp: Date;
 
   @Column({ type: "double precision" })

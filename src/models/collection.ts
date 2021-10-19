@@ -67,10 +67,37 @@ export class Collection extends BaseEntity {
   @Column({ default: "" })
   mediumUsername: string;
 
-  @Column({ type: "timestamp", default: () => "make_timestamp(1970, 1, 1, 0, 0, 0)" })
+  @Column({ type: "timestamptz", default: () => "make_timestamp(1970, 1, 1, 0, 0, 0)" })
   lastFetched: Date;
 
-  static findNotFetched() {
+  static async getSorted(column: string, direction: "ASC" | "DESC", page: number, limit: number): Promise<Collection[]> {
+    return this.createQueryBuilder("collection")
+      .innerJoinAndSelect("collection.statistic", "statistic", )
+      .orderBy({
+        [`statistic.${column}`]: direction,
+      })
+      .limit(limit)
+      .offset(page*limit)
+      .getMany();
+  }
+
+
+  static async search(term: string): Promise<Collection[]> {
+    // .where("to_tsvector(collection.name) @@ to_tsquery(:searchTerm)", { searchTerm })
+    return this.createQueryBuilder("collection")
+      .innerJoinAndSelect("collection.statistic", "statistic", )
+      .where(
+        "lower(collection.name) LIKE :term OR lower(collection.symbol) LIKE :term",
+        { term: `%${term}%` }
+      )
+      .orderBy({
+        "statistic.dailyVolume": "DESC",
+      })
+      .limit(13)
+      .getMany();
+  }
+
+  static findNotFetched(): Promise<Collection[]> {
     return this.createQueryBuilder("collection")
       .where("collection.lastFetched = make_timestamp(1970, 1, 1, 0, 0, 0)")
       .getMany();

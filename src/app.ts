@@ -1,6 +1,8 @@
-import * as http from "http"
+import express from "express";
+import cors from "cors";
 import * as fs from "fs"
 import { createConnection } from "typeorm";
+import { classToPlain, serialize } from "class-transformer";
 import "reflect-metadata";
 
 import { adapters } from "./adapters"
@@ -33,32 +35,66 @@ createConnection({
   logging: false,
 }).then(connection => {
   adapters.forEach(adapter => adapter.run());
-}).catch(error => console.log(error));
 
-const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
-  if (req.method === "POST") {
-    let body = ""
-    req.on("data", (chunk) => body += chunk)
+  const app = express();
+  app.use(cors());
+  app.use((req, res, next) => {
+    res.setHeader("Content-Type", "application/json");
+    next();
+});
 
-    req.on("end", () => {
-      if (req.url === "/") {
-        log("Received message: " + body)
-      } else if (req.url = "/scheduled") {
-        log("Received task " + req.headers["x-aws-sqsd-taskname"] + " scheduled at " + req.headers["x-aws-sqsd-scheduled-at"])
+
+  app.get('/', (req, res) => res.send(html));
+
+  app.get('/collections', async (req, res) => {
+    const page = parseInt(req.query.page as string) || 0;
+    const limit = parseInt(req.query.limit as string) || 100;
+    const sortBy = req.query.sort as string || "dailyVolume";
+    const sortDirection = req.query.direction as string || "DESC";
+    if (sortDirection !== "ASC" && sortDirection !== "DESC") {
+      res.status(400);
+      res.send(JSON.stringify({ error: "Invalid sort direction" }));
+      return;
+    }
+
+    const collections = await Collection.getSorted(sortBy, sortDirection, page, limit);
+    const flattenedCollections = collections.map((collection) => {
+      const obj = classToPlain(collection);
+      const statObj = collection.statistic;
+      delete obj.statistic;
+      delete statObj.id;
+      return {
+        ...obj,
+        ...statObj,
       }
+    });
+    res.send(serialize(flattenedCollections));
+    res.status(200);
+  });
 
-      res.writeHead(200, "OK", {"Content-Type": "text/plain"})
-      res.end()
-    })
-  } else {
-    res.writeHead(200)
-    res.write(html)
-    res.end()
-  }
-})
+  app.get('/collection/:address', async (req, res) => {
+    const collection = await Collection.findOne(req.params.address);
+    if (!collection) {
+      res.status(404);
+      return;
+    }
+    res.send(serialize(collection));
+    res.status(200);
+  });
 
-// Listen on port 3000, IP defaults to 127.0.0.1
-server.listen(port)
+  app.get('/search', async (req, res) => {
+    if (!req.query.searchTerm || req.query.searchTerm === '') {
+      res.send([]);
+      res.status(200);
+      return;
+    }
+    const searchTerm = (req.query.searchTerm as string).toLowerCase();
+    const collections = await Collection.search(searchTerm);
+    res.send(serialize(collections));
+    res.status(200);
+  })
 
-// Put a friendly message on the terminal
-console.log("Server running at http://127.0.0.1:" + port + "/")
+  app.listen(port, () => {
+    console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
+  });
+}).catch(error => console.log(error));
