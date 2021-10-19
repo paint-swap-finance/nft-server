@@ -67,7 +67,7 @@ export class Collection extends BaseEntity {
   @Column({ default: "" })
   mediumUsername: string;
 
-  @Column({ type: "timestamp", default: () => "make_timestamp(1970, 1, 1, 0, 0, 0)" })
+  @Column({ type: "timestamptz", default: () => "make_timestamp(1970, 1, 1, 0, 0, 0)" })
   lastFetched: Date;
 
   static async getSorted(column: string, direction: "ASC" | "DESC", page: number, limit: number): Promise<Collection[]> {
