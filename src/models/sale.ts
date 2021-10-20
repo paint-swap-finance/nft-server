@@ -4,18 +4,15 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryColumn,
 } from "typeorm";
 import { Collection } from "./collection";
-
-enum Marketplace {
-  Opensea = "opensea",
-}
+import { Marketplace } from "../types";
 
 @Entity()
 export class Sale extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  txnHash: string;
 
   @ManyToOne(() => Collection, collection => collection.sales)
   @JoinColumn()
@@ -25,10 +22,10 @@ export class Sale extends BaseEntity {
   timestamp: Date;
 
   @Column()
-  fromAddress: string;
+  sellerAddress: string;
 
   @Column()
-  toAddress: string;
+  buyerAddress: string;
 
   @Column()
   marketplace: Marketplace;
