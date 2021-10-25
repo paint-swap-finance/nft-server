@@ -17,6 +17,7 @@ export class Statistic extends BaseEntity {
 
   @OneToOne(() => Collection, collection => collection.statistic, {
     nullable: false,
+    onDelete: "CASCADE",
   })
   @JoinColumn()
   collection: Collection;

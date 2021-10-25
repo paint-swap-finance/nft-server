@@ -14,7 +14,9 @@ export class Sale extends BaseEntity {
   @PrimaryColumn()
   txnHash: string;
 
-  @ManyToOne(() => Collection, collection => collection.sales)
+  @ManyToOne(() => Collection, collection => collection.sales, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn()
   collection: Collection;
 
