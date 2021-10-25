@@ -9,6 +9,7 @@ import { Coingecko } from "../api/coingecko";
 import { Marketplace } from "../types";
 
 async function run(): Promise<void> {
+  await Collection.removeDuplicates();
   while (true) {
     await runSales();
     await runCollections();
@@ -47,7 +48,12 @@ async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
   const collections = await Collection.getSorted("totalVolume", "DESC", 0, MAX_INT);
   console.log("Fetching Sales for collections:", collections.length)
+  let skip = true;
   for (const collection of collections) {
+    if (skip && collection.slug !== 'hashmasks') {
+      continue;
+    }
+    skip = false;
     console.log("Fetching Sales for collection:", collection.name)
     await fetchSales(collection);
   }
@@ -71,20 +77,21 @@ async function fetchSales(collection: Collection): Promise<void> {
   while(offset <= 10000) {
     try {
       const salesEvents = await Opensea.getSales(collection.address, offset, limit);
-      const sales = salesEvents.map((sale) => {
-        return Sale.create({
+      const sales = salesEvents.filter(event => event !== undefined).reduce((allSales, nextSale) => ({
+        ...allSales,
+        [nextSale.txnHash]: Sale.create({
           collection: collection,
           marketplace: Marketplace.Opensea,
-          ...sale,
-        });
-      })
-      Sale.save(sales);
+          ...nextSale,
+        })
+      }), {});
+      Sale.save(Object.values(sales));
       offset += limit;
       await sleep(1);
     } catch (e) {
       console.log("Error retrieving sales data:", e.message);
       if (axios.isAxiosError(e)) {
-        if (e.response.status === 404) {
+        if (e.response.status === 404 || e.response.status === 500 || e.response.status === 504) {
           console.log("Error retrieving sales data:", e.message);
           return;
         }
