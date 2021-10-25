@@ -43,7 +43,7 @@ async function fetchCollectionAddresses() {
         console.log("Finished syncing collections from blockNumber", blockNumber);
       }
     } catch (e) {
-      console.log("Error retrieving data from Moralis:", JSON.stringify(e.message))
+      console.error("Error retrieving data from Moralis:", JSON.stringify(e.message))
     }
   }
   adapterState.lastSyncedBlockNumber = BigInt(startBlock);

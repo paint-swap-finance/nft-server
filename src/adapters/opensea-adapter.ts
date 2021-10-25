@@ -38,7 +38,7 @@ async function runCollections(): Promise<void> {
           await sleep(60);
         }
       }
-      console.log("Error retrieving collection data:", e.message);
+      console.error("Error retrieving collection data:", e.message);
     }
     await sleep(1);
   }
@@ -60,7 +60,6 @@ async function runSales(): Promise<void> {
 }
 
 async function fetchCollection(address: string, tokenId: string, ethInUSD: number) {
-  // console.log("Calling Opensea API for", address, tokenId);
   const { metadata, stats } = await Opensea.getCollection(address, tokenId, ethInUSD);
   const filteredMetadata = Object.fromEntries(Object.entries(metadata).filter(([_, v]) => v != null));
 
@@ -89,10 +88,10 @@ async function fetchSales(collection: Collection): Promise<void> {
       offset += limit;
       await sleep(1);
     } catch (e) {
-      console.log("Error retrieving sales data:", e.message);
+      console.error("Error retrieving sales data:", e.message);
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404 || e.response.status === 500 || e.response.status === 504) {
-          console.log("Error retrieving sales data:", e.message);
+          console.error("Error retrieving sales data:", e.message);
           return;
         }
         if (e.response.status === 429) {
