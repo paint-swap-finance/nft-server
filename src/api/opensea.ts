@@ -75,13 +75,16 @@ export class Opensea {
       }
     }
   }
-  public static async getSales(address: string, offset: number, limit: number): Promise<OpenseaSaleData[]> {
+  public static async getSales(address: string, offset: number, limit: number): Promise<(OpenseaSaleData|undefined)[]> {
     const url = `https://api.opensea.io/api/v1/events?asset_contract_address=${address}&event_type=successful&only_opensea=false&offset=${offset}&limit=${limit}`;
     console.log(url);
     const response = await axios.get(url, {
       headers: { 'X-API-KEY': OPENSEA_API_KEY }
     });
     return response.data.asset_events.map((sale: any) => {
+      if (!sale.transaction) {
+        return undefined;
+      }
       const { transaction_hash: txnHash, timestamp } = sale.transaction;
       const { address: paymentTokenAddress, decimals } = sale.payment_token;
       const { total_price, winner_account, seller, created_date } = sale;
@@ -90,8 +93,8 @@ export class Opensea {
         timestamp: timestamp || created_date,
         paymentTokenAddress,
         price: BigNumber.from(total_price).div(BigNumber.from(10).pow(decimals)).toNumber(),
-        buyerAddress: winner_account.address,
-        sellerAddress: seller.address,
+        buyerAddress: winner_account?.address || '',
+        sellerAddress: seller?.address || '',
       }
     })
   }
