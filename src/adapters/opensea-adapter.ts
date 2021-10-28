@@ -50,9 +50,9 @@ async function runSales(): Promise<void> {
   console.log("Fetching Sales for collections:", collections.length)
   let skip = true;
   for (const collection of collections) {
-    if (skip && collection.slug !== 'hashmasks') {
-      continue;
-    }
+    // if (skip && collection.slug !== 'hashmasks') {
+    //   continue;
+    // }
     skip = false;
     console.log("Fetching Sales for collection:", collection.name)
     await fetchSales(collection);

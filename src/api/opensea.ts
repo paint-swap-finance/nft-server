@@ -1,5 +1,5 @@
-import { BigNumber } from "@ethersproject/bignumber";
 import axios from "axios";
+import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { OPENSEA_API_KEY } from "../../env";
 import { roundUSD } from "../utils";
 
@@ -85,14 +85,20 @@ export class Opensea {
       if (!sale.transaction) {
         return undefined;
       }
+      const paymentToken = sale.payment_token || {
+        address: ETHEREUM_DEFAULT_TOKEN_ADDRESS,
+        decimals: 18,
+      }
+
       const { transaction_hash: txnHash, timestamp } = sale.transaction;
-      const { address: paymentTokenAddress, decimals } = sale.payment_token;
+      const { address: paymentTokenAddress, decimals } = paymentToken;
       const { total_price, winner_account, seller, created_date } = sale;
+
       return {
         txnHash: txnHash.toLowerCase(),
         timestamp: timestamp || created_date,
         paymentTokenAddress,
-        price: BigNumber.from(total_price).div(BigNumber.from(10).pow(decimals)).toNumber(),
+        price: parseFloat(total_price) / 10**decimals,
         buyerAddress: winner_account?.address || '',
         sellerAddress: seller?.address || '',
       }
