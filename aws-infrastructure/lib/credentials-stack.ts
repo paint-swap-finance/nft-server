@@ -5,6 +5,7 @@ export interface Credentials {
   username: ISecret;
   password: ISecret;
   openseaApiKey: ISecret;
+  secondaryOpenseaApiKey: ISecret;
   moralisAppId: ISecret;
   moralisServerURL: ISecret;
   ethereumRPC: ISecret;
@@ -34,6 +35,12 @@ export class CredentialsStack extends cdk.Stack {
       "arn:aws:secretsmanager:eu-central-1:856461987125:secret:prod/nfts/opensea/apiKey-Xerpex"
     );
 
+    const secretSecondaryOpenseaApiKey = Secret.fromSecretCompleteArn(
+      this,
+      "SecondaryOpenseaApiKey",
+      "arn:aws:secretsmanager:eu-central-1:856461987125:secret:prod/nfts/opensea/secondaryApiKey-4E1XhM"
+    );
+
     const secretMoralisAppId = Secret.fromSecretCompleteArn(
       this,
       "MoralisAppId",
@@ -56,6 +63,7 @@ export class CredentialsStack extends cdk.Stack {
       username: secretUsername,
       password: secretPassword,
       openseaApiKey: secretOpenseaApiKey,
+      secondaryOpenseaApiKey: secretOpenseaApiKey,
       moralisAppId: secretMoralisAppId,
       moralisServerURL: secretMoralisServerURL,
       ethereumRPC: secretEthereumRPC,
