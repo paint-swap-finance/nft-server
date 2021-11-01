@@ -15,8 +15,7 @@ async function fetchCollectionAddresses() {
 
   let collections = {};
   const provider = new ethers.providers.StaticJsonRpcProvider(process.env.ETHEREUM_RPC);
-  // const startBlock = await provider.getBlockNumber();
-  const startBlock = 11347908;
+  const startBlock = await provider.getBlockNumber();
   const endBlock = adapterState.lastSyncedBlockNumber; 
 
   console.log(`Retrieving NFT collections parsing backwards from blocks ${startBlock} --> ${endBlock}`);
