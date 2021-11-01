@@ -2,7 +2,7 @@ import axios from "axios";
 import { URLSearchParams } from "url";
 
 import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
-import { OPENSEA_API_KEY } from "../../env";
+import { OPENSEA_API_KEY, SECONDARY_OPENSEA_API_KEY } from "../../env";
 import { roundUSD } from "../utils";
 
 interface OpenseaCollectionData {
@@ -43,6 +43,7 @@ interface OpenseaSaleData {
 export class Opensea {
   public static async getCollection(address: string, tokenId: string, ethInUSD: number): Promise<OpenseaCollectionData> {
     const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/`;
+    console.log(url);
     const response = await axios.get(url, {
       headers: { 'X-API-KEY': OPENSEA_API_KEY }
     });
@@ -90,7 +91,7 @@ export class Opensea {
     const url = `https://api.opensea.io/api/v1/events?${searchParams.toString()}`;
     console.log(url);
     const response = await axios.get(url, {
-      headers: { 'X-API-KEY': OPENSEA_API_KEY }
+      headers: { 'X-API-KEY': SECONDARY_OPENSEA_API_KEY }
     });
     return response.data.asset_events.map((sale: any) => {
       if (!sale.transaction) {

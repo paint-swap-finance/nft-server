@@ -20,6 +20,7 @@ export class EbsStack extends cdk.Stack {
     const username = props.credentials.username.secretValue.toString();
     const password = props.credentials.password.secretValue;
     const openseaApiKey = props.credentials.openseaApiKey.secretValue.toString();
+    const secondaryOpenseaApiKey = props.credentials.secondaryOpenseaApiKey.secretValue.toString();
     const moralisAppId = props.credentials.moralisAppId.secretValue.toString();
     const moralisServerURL = props.credentials.moralisServerURL.secretValue.toString();
     const ethereumRPC = props.credentials.ethereumRPC.secretValue.toString();
@@ -32,6 +33,7 @@ export class EbsStack extends cdk.Stack {
       DB_PORT: props.dbPort,
       DB_SCHEMA: username,
       OPENSEA_API_KEY: openseaApiKey,
+      SECONDARY_OPENSEA_API_KEY: secondaryOpenseaApiKey,
       MORALIS_APP_ID: moralisAppId,
       MORALIS_SERVER_URL: moralisServerURL,
       ETHEREUM_RPC: ethereumRPC,

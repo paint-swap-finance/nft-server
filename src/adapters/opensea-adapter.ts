@@ -8,18 +8,18 @@ import { sleep } from "../utils";
 import { Coingecko } from "../api/coingecko";
 import { Marketplace } from "../types";
 
+const ONE_HOUR = 1;
+
 async function run(): Promise<void> {
-  await Collection.removeDuplicates();
   while (true) {
-    await runSales();
-    await runCollections();
+    await Promise.all([runCollections(), runSales()]);
   }
 }
 
 async function runCollections(): Promise<void> {
-  const collections = await Collection.findNotFetched();
+  const collections = await Collection.findNotFetchedSince(ONE_HOUR);
   if (collections.length === 0) {
-    console.log("No Collections to request. Sleeping for 60 seconds...");
+    console.log("No Collections to request...");
     return;
   }
   console.log("Collections to request:", collections.length);
@@ -42,18 +42,14 @@ async function runCollections(): Promise<void> {
     }
     await sleep(1);
   }
+  await Collection.removeDuplicates();
 }
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
   const collections = await Collection.getSorted("totalVolume", "DESC", 0, MAX_INT);
   console.log("Fetching Sales for collections:", collections.length)
-  let skip = true;
   for (const collection of collections) {
-    // if (skip && collection.slug !== 'hashmasks') {
-    //   continue;
-    // }
-    skip = false;
     console.log("Fetching Sales for collection:", collection.name)
     await fetchSales(collection);
   }
@@ -78,7 +74,7 @@ async function fetchSales(collection: Collection): Promise<void> {
     try {
       const salesEvents = await Opensea.getSales(collection.address, mostRecentSaleTime, offset, limit);
       if (salesEvents.length === 0) {
-        sleep(1);
+        sleep(3);
         return;
       }
       const sales = salesEvents.filter(event => event !== undefined).reduce((allSales, nextSale) => ({
