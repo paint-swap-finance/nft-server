@@ -73,9 +73,14 @@ async function fetchCollection(address: string, tokenId: string, ethInUSD: numbe
 async function fetchSales(collection: Collection): Promise<void> {
   let offset = 0;
   const limit = 100;
+  const mostRecentSaleTime = (await collection.getLastSale())?.timestamp?.getTime() || 0;
   while(offset <= 10000) {
     try {
-      const salesEvents = await Opensea.getSales(collection.address, offset, limit);
+      const salesEvents = await Opensea.getSales(collection.address, mostRecentSaleTime, offset, limit);
+      if (salesEvents.length === 0) {
+        sleep(1);
+        return;
+      }
       const sales = salesEvents.filter(event => event !== undefined).reduce((allSales, nextSale) => ({
         ...allSales,
         [nextSale.txnHash]: Sale.create({

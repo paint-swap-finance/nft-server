@@ -1,4 +1,6 @@
 import axios from "axios";
+import { URLSearchParams } from "url";
+
 import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { OPENSEA_API_KEY } from "../../env";
 import { roundUSD } from "../utils";
@@ -75,8 +77,17 @@ export class Opensea {
       }
     }
   }
-  public static async getSales(address: string, offset: number, limit: number): Promise<(OpenseaSaleData|undefined)[]> {
-    const url = `https://api.opensea.io/api/v1/events?asset_contract_address=${address}&event_type=successful&only_opensea=false&offset=${offset}&limit=${limit}`;
+  public static async getSales(address: string, occurredAfter: number, offset: number, limit: number): Promise<(OpenseaSaleData|undefined)[]> {
+    const params: Record<string, string> = {
+      asset_contract_address: address,
+      occurred_after: occurredAfter.toString(),
+      offset: offset.toString(),
+      limit: limit.toString(),
+      event_type: "successful",
+      only_opensea: "false",
+    }
+    const searchParams = new URLSearchParams(params);
+    const url = `https://api.opensea.io/api/v1/events?${searchParams.toString()}`;
     console.log(url);
     const response = await axios.get(url, {
       headers: { 'X-API-KEY': OPENSEA_API_KEY }

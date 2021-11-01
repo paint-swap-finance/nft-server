@@ -81,6 +81,16 @@ export class Collection extends BaseEntity {
       .getMany();
   }
 
+  public async getLastSale(): Promise<Sale | undefined > {
+    return Sale.createQueryBuilder("sale")
+      .where("sale.collectionAddress = :address", { address: this.address })
+      .orderBy({
+        "sale.timestamp": "DESC"
+      })
+      .limit(1)
+      .getOne()
+  }
+
   private static async getDuplicates(): Promise<Collection[]> {
     const slugs = (await this.createQueryBuilder("collection")
       .select('collection.slug')
