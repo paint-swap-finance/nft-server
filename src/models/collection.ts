@@ -136,9 +136,12 @@ export class Collection extends BaseEntity {
       .getMany();
   }
 
-  static findNotFetched(): Promise<Collection[]> {
+  static findNotFetchedSince(hours: number): Promise<Collection[]> {
+    const interval = `collection.lastFetched <= NOW() - interval '${hours} hours'`;
     return this.createQueryBuilder("collection")
-      .where("collection.lastFetched = make_timestamp(1970, 1, 1, 0, 0, 0)")
+      .leftJoinAndSelect("collection.statistic", "statistic")
+      .where(interval)
+      .orderBy("statistic.dailyVolume", "DESC", "NULLS LAST")
       .getMany();
     }
 }

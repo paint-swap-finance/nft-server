@@ -18,7 +18,7 @@ async function fetchCollectionAddresses() {
   const startBlock = await provider.getBlockNumber();
   const endBlock = adapterState.lastSyncedBlockNumber; 
 
-  console.log(`Retrieving NFT collections parsing backwards from blocks ${startBlock} --> ${endBlock}`);
+  console.log(`Retrieving NFT collections parsing txns between blocks ${startBlock} --> ${endBlock}`);
   for (let blockNumber = startBlock; blockNumber >= endBlock; blockNumber--) {
     try {
       const nftTransfers = await Moralis.Web3API.native.getNFTTransfersByBlock({ chain: 'eth', block_number_or_hash: blockNumber.toString() });
