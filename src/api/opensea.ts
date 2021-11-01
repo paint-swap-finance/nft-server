@@ -1,4 +1,7 @@
 import axios from "axios";
+import { URLSearchParams } from "url";
+
+import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { OPENSEA_API_KEY } from "../../env";
 import { roundUSD } from "../utils";
 
@@ -26,6 +29,15 @@ interface OpenseaCollectionData {
     marketCap: number,
     marketCapUSD: bigint,
   }
+}
+
+interface OpenseaSaleData {
+  txnHash: string,
+  timestamp: string,
+  paymentToken: string,
+  amount: number,
+  seller: string,
+  buyer: string,
 }
 
 export class Opensea {
@@ -64,5 +76,43 @@ export class Opensea {
         marketCapUSD: BigInt(roundUSD(market_cap * ethInUSD)),
       }
     }
+  }
+  public static async getSales(address: string, occurredAfter: number, offset: number, limit: number): Promise<(OpenseaSaleData|undefined)[]> {
+    const params: Record<string, string> = {
+      asset_contract_address: address,
+      occurred_after: occurredAfter.toString(),
+      offset: offset.toString(),
+      limit: limit.toString(),
+      event_type: "successful",
+      only_opensea: "false",
+    }
+    const searchParams = new URLSearchParams(params);
+    const url = `https://api.opensea.io/api/v1/events?${searchParams.toString()}`;
+    console.log(url);
+    const response = await axios.get(url, {
+      headers: { 'X-API-KEY': OPENSEA_API_KEY }
+    });
+    return response.data.asset_events.map((sale: any) => {
+      if (!sale.transaction) {
+        return undefined;
+      }
+      const paymentToken = sale.payment_token || {
+        address: ETHEREUM_DEFAULT_TOKEN_ADDRESS,
+        decimals: 18,
+      }
+
+      const { transaction_hash: txnHash, timestamp } = sale.transaction;
+      const { address: paymentTokenAddress, decimals } = paymentToken;
+      const { total_price, winner_account, seller, created_date } = sale;
+
+      return {
+        txnHash: txnHash.toLowerCase(),
+        timestamp: timestamp || created_date,
+        paymentTokenAddress,
+        price: parseFloat(total_price) / 10**decimals,
+        buyerAddress: winner_account?.address || '',
+        sellerAddress: seller?.address || '',
+      }
+    })
   }
 }

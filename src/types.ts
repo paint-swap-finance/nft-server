@@ -6,3 +6,7 @@ export enum Blockchain {
 export enum AdapterType {
   Moralis = 'moralis'
 }
+
+export enum Marketplace {
+  Opensea = "opensea",
+}

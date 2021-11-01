@@ -72,7 +72,7 @@ export class Collection extends BaseEntity {
 
   static async getSorted(column: string, direction: "ASC" | "DESC", page: number, limit: number): Promise<Collection[]> {
     return this.createQueryBuilder("collection")
-      .innerJoinAndSelect("collection.statistic", "statistic", )
+      .innerJoinAndSelect("collection.statistic", "statistic")
       .orderBy({
         [`statistic.${column}`]: direction,
       })
@@ -81,6 +81,45 @@ export class Collection extends BaseEntity {
       .getMany();
   }
 
+  public async getLastSale(): Promise<Sale | undefined > {
+    return Sale.createQueryBuilder("sale")
+      .where("sale.collectionAddress = :address", { address: this.address })
+      .orderBy({
+        "sale.timestamp": "DESC"
+      })
+      .limit(1)
+      .getOne()
+  }
+
+  private static async getDuplicates(): Promise<Collection[]> {
+    const slugs = (await this.createQueryBuilder("collection")
+      .select('collection.slug')
+      .groupBy('collection.slug')
+      .having('COUNT(collection.slug) > 1')
+      .getRawMany())
+      .map(result => result.collection_slug)
+      .filter(slug => slug != '');
+
+    if (slugs.length === 0) return [];
+
+    return this.createQueryBuilder("collection")
+      .select()
+      .where("collection.slug IN (:...slugs)", { slugs })
+      .getMany();
+  }
+
+  static async removeDuplicates(): Promise<void> {
+    const duplicates = await Collection.getDuplicates();
+    const shouldDelete: any = {};
+    duplicates.forEach(collection => {
+      if (shouldDelete[collection.slug]) {
+        console.log(collection.slug);
+        collection.remove();
+      } else {
+        shouldDelete[collection.slug] = true;
+      }
+    })
+  }
 
   static async search(term: string): Promise<Collection[]> {
     // .where("to_tsvector(collection.name) @@ to_tsquery(:searchTerm)", { searchTerm })
