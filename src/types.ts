@@ -10,3 +10,10 @@ export enum AdapterType {
 export enum Marketplace {
   Opensea = "opensea",
 }
+
+export class LowVolumeError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LowVolumeError";
+  }
+}

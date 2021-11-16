@@ -6,7 +6,7 @@ import { Sale } from "../models/sale";
 import { Statistic } from "../models/statistic";
 import { sleep } from "../utils";
 import { Coingecko } from "../api/coingecko";
-import { Marketplace } from "../types";
+import { LowVolumeError, Marketplace } from "../types";
 
 const ONE_HOUR = 1;
 
@@ -28,6 +28,9 @@ async function runCollections(): Promise<void> {
     try {
       await fetchCollection(collection.address, collection.defaultTokenId, ethInUSD);
     } catch (e) {
+      if (e instanceof LowVolumeError) {
+        collection.remove();
+      }
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404) {
           collection.remove();
@@ -89,6 +92,7 @@ async function fetchSales(collection: Collection): Promise<void> {
       await sleep(1);
     } catch (e) {
       console.error("Error retrieving sales data:", e.message);
+
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404 || e.response.status === 500 || e.response.status === 504) {
           console.error("Error retrieving sales data:", e.message);

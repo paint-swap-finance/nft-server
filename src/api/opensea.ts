@@ -4,6 +4,9 @@ import { URLSearchParams } from "url";
 import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { OPENSEA_API_KEY, SECONDARY_OPENSEA_API_KEY } from "../../env";
 import { roundUSD } from "../utils";
+import { LowVolumeError } from "../types";
+
+const TEN_ETHER = 10;
 
 interface OpenseaCollectionData {
   metadata: {
@@ -52,6 +55,11 @@ export class Opensea {
     const { name, symbol, description, external_link, image_url } = contractMetadata;
     const { one_day_volume, num_owners, floor_price, total_volume, market_cap } = collection.stats;
     const { discord_url, slug, telegram_url, twitter_username, medium_username, image_url: tokenUrl } = collection;
+
+    if (total_volume < TEN_ETHER) {
+      throw new LowVolumeError(`Collection ${name} has volume ${total_volume} < ${TEN_ETHER}`);
+    }
+
     return {
       metadata: {
         name,
