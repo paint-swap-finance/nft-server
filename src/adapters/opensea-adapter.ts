@@ -30,8 +30,7 @@ async function runCollections(): Promise<void> {
     } catch (e) {
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404) {
-          collection.lastFetched = new Date(Date.now());
-          collection.save();
+          collection.remove();
         }
         if (e.response.status === 429) {
           // Backoff for 1 minute if rate limited
