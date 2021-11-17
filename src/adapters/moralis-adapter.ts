@@ -4,6 +4,7 @@ import { DataAdapter } from ".";
 import { MORALIS_APP_ID, MORALIS_SERVER_URL } from "../../env";
 import { AdapterType, Blockchain } from "../types";
 import { AdapterState } from "../models/adapter-state";
+import { sleep } from "../utils";
 const Moralis = require("moralis/node");
 
 async function fetchCollectionAddresses() {
@@ -52,7 +53,11 @@ async function fetchCollectionAddresses() {
 async function run(): Promise<void> {
   Moralis.initialize(MORALIS_APP_ID);
   Moralis.serverURL = MORALIS_SERVER_URL;
-  await fetchCollectionAddresses();
+
+  while (true) {
+    await fetchCollectionAddresses();
+    await sleep(60*30);
+  }
 }
 
 const MoralisAdapter: DataAdapter = { run };

@@ -14,7 +14,10 @@ export class HistoricalStatistic extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Collection, collection => collection.historicalStatistics)
+  @ManyToOne(() => Collection, collection => collection.historicalStatistics, {
+    nullable: false,
+    onDelete: "CASCADE",
+  })
   @JoinColumn()
   collection: Collection;
 
