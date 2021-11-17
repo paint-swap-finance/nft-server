@@ -34,7 +34,9 @@ createConnection({
   synchronize: true,
   logging: false,
 }).then(connection => {
-  adapters.forEach(adapter => adapter.run());
+  if (!process.env.API_ONLY) {
+    adapters.forEach(adapter => adapter.run());
+  }
 
   const app = express();
   app.use(cors());
