@@ -10,29 +10,33 @@ import { LowVolumeError } from "../types";
 const TEN_ETHER = 10;
 
 interface OpenseaCollectionData {
-  metadata: {
-    name: string;
-    slug: string;
-    symbol: string;
-    description: string;
-    logo: string;
-    website: string;
-    discord_url: string;
-    telegram_url: string;
-    twitter_username: string;
-    medium_username: string;
-  };
-  stats: {
-    dailyVolume: number;
-    dailyVolumeUSD: bigint;
-    owners: number;
-    floor: number;
-    floorUSD: number;
-    totalVolume: number;
-    totalVolumeUSD: bigint;
-    marketCap: number;
-    marketCapUSD: bigint;
-  };
+  name: string;
+  slug: string;
+  symbol: string;
+  description: string;
+  logo: string;
+  website: string;
+  discord_url: string;
+  telegram_url: string;
+  twitter_username: string;
+  medium_username: string;
+}
+
+interface OpenseaStatisticData {
+  dailyVolume: number;
+  dailyVolumeUSD: bigint;
+  owners: number;
+  floor: number;
+  floorUSD: number;
+  totalVolume: number;
+  totalVolumeUSD: bigint;
+  marketCap: number;
+  marketCapUSD: bigint;
+}
+
+interface OpenseaCollectionAndStatisticData {
+  metadata: OpenseaCollectionData;
+  statistics: OpenseaStatisticData;
 }
 
 interface OpenseaSaleData {
@@ -46,19 +50,26 @@ interface OpenseaSaleData {
 
 export class Opensea {
   public static async getCollection(
-    address: string,
-    tokenId: string,
+    slug: string,
     ethInUSD: number
-  ): Promise<OpenseaCollectionData> {
-    const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/`;
+  ): Promise<OpenseaCollectionAndStatisticData> {
+    const url = `https://api.opensea.io/api/v1/collection/${slug}/`;
     console.log(url);
     const response = await axios.get(url, {
       headers: { "X-API-KEY": OPENSEA_API_KEY },
     });
     const { collection } = response.data;
-    const contractMetadata = collection.primary_asset_contracts[0] || [];
-    const { name, symbol, description, external_link, image_url } =
-      contractMetadata;
+    const {
+      description,
+      name,
+      discord_url,
+      external_url,
+      image_url,
+      medium_username,
+      telegram_url,
+      twitter_username,
+    } = collection;
+    const { symbol } = collection.primary_asset_contracts[0] || {};
     const {
       one_day_volume,
       num_owners,
@@ -66,6 +77,51 @@ export class Opensea {
       total_volume,
       market_cap,
     } = collection.stats;
+
+    if (total_volume < TEN_ETHER) {
+      throw new LowVolumeError(
+        `Collection ${name} has volume ${total_volume} < ${TEN_ETHER}`
+      );
+    }
+    return {
+      metadata: {
+        name,
+        slug,
+        symbol,
+        description,
+        logo: image_url,
+        website: external_url,
+        discord_url,
+        telegram_url,
+        twitter_username,
+        medium_username,
+      },
+      statistics: {
+        dailyVolume: one_day_volume,
+        dailyVolumeUSD: BigInt(roundUSD(one_day_volume * ethInUSD)),
+        owners: num_owners,
+        floor: floor_price || 0,
+        floorUSD: roundUSD(floor_price * ethInUSD),
+        totalVolume: total_volume,
+        totalVolumeUSD: BigInt(roundUSD(total_volume * ethInUSD)),
+        marketCap: market_cap,
+        marketCapUSD: BigInt(roundUSD(market_cap * ethInUSD)),
+      },
+    };
+  }
+
+  public static async getContract(
+    address: string,
+    tokenId: string
+  ): Promise<OpenseaCollectionData> {
+    const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/`;
+    console.log(url);
+    const response = await axios.get(url, {
+      headers: { "X-API-KEY": OPENSEA_API_KEY },
+    });
+    const { collection, name, symbol, description, external_link, image_url } =
+      response.data;
+
     const {
       discord_url,
       slug,
@@ -75,36 +131,17 @@ export class Opensea {
       image_url: tokenUrl,
     } = collection;
 
-    if (total_volume < TEN_ETHER) {
-      throw new LowVolumeError(
-        `Collection ${name} has volume ${total_volume} < ${TEN_ETHER}`
-      );
-    }
-
     return {
-      metadata: {
-        name,
-        slug,
-        symbol,
-        description,
-        logo: image_url || tokenUrl,
-        website: external_link,
-        discord_url,
-        telegram_url,
-        twitter_username,
-        medium_username,
-      },
-      stats: {
-        dailyVolume: one_day_volume,
-        dailyVolumeUSD: BigInt(roundUSD(one_day_volume * ethInUSD)),
-        owners: num_owners,
-        floor: floor_price,
-        floorUSD: roundUSD(floor_price * ethInUSD),
-        totalVolume: total_volume,
-        totalVolumeUSD: BigInt(roundUSD(total_volume * ethInUSD)),
-        marketCap: market_cap,
-        marketCapUSD: BigInt(roundUSD(market_cap * ethInUSD)),
-      },
+      name,
+      slug,
+      symbol,
+      description,
+      logo: image_url || tokenUrl,
+      website: external_link,
+      discord_url,
+      telegram_url,
+      twitter_username,
+      medium_username,
     };
   }
 

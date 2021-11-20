@@ -27,6 +27,7 @@ async function runCollections(): Promise<void> {
   for (const collection of collections) {
     try {
       await fetchCollection(
+        collection.slug,
         collection.address,
         collection.defaultTokenId,
         ethInUSD
@@ -67,13 +68,17 @@ async function runSales(): Promise<void> {
 }
 
 async function fetchCollection(
+  slug: string,
   address: string,
   tokenId: string,
   ethInUSD: number
 ) {
-  const { metadata, stats } = await Opensea.getCollection(
-    address,
-    tokenId,
+  let fetchedSlug = "";
+  if (!slug) {
+    fetchedSlug = (await Opensea.getContract(address, tokenId)).slug;
+  }
+  const { metadata, statistics } = await Opensea.getCollection(
+    slug || fetchedSlug,
     ethInUSD
   );
   const filteredMetadata = Object.fromEntries(
@@ -84,7 +89,7 @@ async function fetchCollection(
     await Collection.findOne(address, { relations: ["statistic"] })
   ).statistic?.id;
   const collection = Collection.create({ address, ...filteredMetadata });
-  collection.statistic = Statistic.create({ id: statisticId, ...stats });
+  collection.statistic = Statistic.create({ id: statisticId, ...statistics });
   collection.lastFetched = new Date(Date.now());
   collection.save();
 }
