@@ -1,15 +1,10 @@
-import MoralisAdapter from "./moralis-adapter"
-import OpenseaAdapter from "./opensea-adapter"
+import MoralisAdapter from "./moralis-adapter";
+import OpenseaAdapter from "./opensea-adapter";
 
 export interface DataAdapter {
-  run: () => Promise<void>
+  run: () => Promise<void>;
 }
 
-const adapters: DataAdapter[] = [
-  MoralisAdapter,
-  OpenseaAdapter,
-]
+const adapters: DataAdapter[] = [MoralisAdapter, OpenseaAdapter];
 
-export {
-  adapters
-}
+export { adapters };

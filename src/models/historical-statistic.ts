@@ -4,7 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
 } from "typeorm";
 
 import { Collection } from "./collection";
@@ -14,10 +14,14 @@ export class HistoricalStatistic extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Collection, collection => collection.historicalStatistics, {
-    nullable: false,
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => Collection,
+    (collection) => collection.historicalStatistics,
+    {
+      nullable: false,
+      onDelete: "CASCADE",
+    }
+  )
   @JoinColumn()
   collection: Collection;
 
@@ -50,4 +54,26 @@ export class HistoricalStatistic extends BaseEntity {
 
   @Column()
   owners: number;
+
+  static async getStatisticTimeseries(
+    statistic: string,
+    slug: string
+  ): Promise<any[]> {
+    if (statistic !== "dailyVolume") {
+      return [];
+    }
+    let query = this.createQueryBuilder("historical-statistic")
+      .select(`SUM(historical-statistic.${statistic})`, statistic)
+      .addSelect("extract(epoch from timestamp)", "date")
+      .groupBy("historical-statistic.timestamp")
+      .orderBy({
+        "historical-statistic.timestamp": "ASC",
+      });
+    if (slug !== "all") {
+      query = query
+        .innerJoin("historical-statistic.collection", "collection")
+        .where("collection.slug = :slug", { slug });
+    }
+    return query.getRawMany();
+  }
 }
