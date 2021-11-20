@@ -2,6 +2,7 @@ import {
   BaseEntity,
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -10,6 +11,8 @@ import {
 import { Collection } from "./collection";
 
 @Entity()
+// One entry per collection per day
+@Index(["collection", "timestamp"], { unique: true })
 export class HistoricalStatistic extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
