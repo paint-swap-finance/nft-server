@@ -62,7 +62,7 @@ export class HistoricalStatistic extends BaseEntity {
     statistic: string,
     slug: string
   ): Promise<any[]> {
-    if (statistic !== "dailyVolume") {
+    if (!["dailyVolume", "floor"].includes(statistic)) {
       return [];
     }
     let query = this.createQueryBuilder("historical-statistic")
