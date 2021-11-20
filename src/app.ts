@@ -74,15 +74,29 @@ createConnection({
     res.status(200);
   });
 
-  app.get('/collection/:address', async (req, res) => {
-    const collection = await Collection.findOne(req.params.address);
+  app.get('/collection/:slug', async (req, res) => {
+    const collection = await Collection.findOne({ where: { slug: req.params.slug }});
     if (!collection) {
-      res.status(404);
+      res.status(404).send(JSON.stringify({ error: "Collection not found" }));
       return;
     }
     res.send(serialize(collection));
     res.status(200);
   });
+
+  app.get('/statistics', async (req, res) => {
+    const data = await Statistic.getSummary();
+    res.send(serialize(data));
+    res.status(200);
+  })
+
+  app.get('/historical-statistic/:collection/:statistic', async (req, res) => {
+    if (req.params.collection === "total") {
+      const data = await HistoricalStatistic.getStatisticTimeseries(req.params.statistic)
+      res.send(serialize(data));
+      res.status(200);
+    }
+  })
 
   app.get('/search', async (req, res) => {
     if (!req.query.searchTerm || req.query.searchTerm === '') {

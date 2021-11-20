@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 
 import { Collection } from "./collection";
+import { HistoricalStatistic } from "./historical-statistic";
 
 @Entity()
 export class Statistic extends BaseEntity {
@@ -53,4 +54,23 @@ export class Statistic extends BaseEntity {
   @Column()
   @Index()
   owners: number;
+
+  static async getSummary(): Promise<any> {
+    const stats = await this.createQueryBuilder("statistic")
+      .select("SUM(statistic.totalVolumeUSD)", "totalVolumeUSD")
+      .addSelect("SUM(statistic.dailyVolumeUSD)", "dailyVolumeUSD")
+      .getRawOne()
+
+    const [today, yesterday] = await HistoricalStatistic.createQueryBuilder("historical-statistic")
+      .select("SUM(historical-statistic.dailyVolume)", "dailyVolume")
+      .groupBy("historical-statistic.timestamp")
+      .orderBy({
+        "historical-statistic.timestamp": "DESC"
+      })
+      .limit(2)
+      .getRawMany();
+
+      const percentChange = (today.dailyVolume - yesterday.dailyVolume) / yesterday.dailyVolume * 100;
+      return {...stats, dailyChange: percentChange };
+  }
 }
