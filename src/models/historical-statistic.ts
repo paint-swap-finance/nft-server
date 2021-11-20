@@ -4,7 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
 } from "typeorm";
 
 import { Collection } from "./collection";
@@ -14,10 +14,14 @@ export class HistoricalStatistic extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Collection, collection => collection.historicalStatistics, {
-    nullable: false,
-    onDelete: "CASCADE",
-  })
+  @ManyToOne(
+    () => Collection,
+    (collection) => collection.historicalStatistics,
+    {
+      nullable: false,
+      onDelete: "CASCADE",
+    }
+  )
   @JoinColumn()
   collection: Collection;
 

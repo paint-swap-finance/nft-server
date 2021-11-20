@@ -1,10 +1,10 @@
 export enum Blockchain {
-  Any = 'any',
-  Ethereum = 'ethereum' 
+  Any = "any",
+  Ethereum = "ethereum",
 }
 
 export enum AdapterType {
-  Moralis = 'moralis'
+  Moralis = "moralis",
 }
 
 export enum Marketplace {

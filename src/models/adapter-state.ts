@@ -24,5 +24,5 @@ export class AdapterState extends BaseEntity {
     return this.createQueryBuilder("adapterState")
       .where("adapterState.name = :name", { name })
       .getOne();
-    }
+  }
 }

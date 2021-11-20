@@ -1,5 +1,5 @@
-import { ethers } from "ethers"
-import { ETHEREUM_RPC } from "../../env"
+import { ethers } from "ethers";
+import { ETHEREUM_RPC } from "../../env";
 
 export class ERC721 {
   private static provider = new ethers.providers.JsonRpcProvider(ETHEREUM_RPC);
@@ -11,5 +11,5 @@ export class ERC721 {
       ERC721.provider
     );
     return await contract.tokenByIndex(0);
-  } 
+  }
 }

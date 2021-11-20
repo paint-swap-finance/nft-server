@@ -10,54 +10,74 @@ const TEN_ETHER = 10;
 
 interface OpenseaCollectionData {
   metadata: {
-    name: string,
-    slug: string,
-    symbol: string,
-    description: string,
-    logo: string,
-    website: string,
-    discord_url: string,
-    telegram_url: string,
-    twitter_username: string,
-    medium_username: string,
-  },
+    name: string;
+    slug: string;
+    symbol: string;
+    description: string;
+    logo: string;
+    website: string;
+    discord_url: string;
+    telegram_url: string;
+    twitter_username: string;
+    medium_username: string;
+  };
   stats: {
-    dailyVolume: number,
-    dailyVolumeUSD: bigint,
-    owners: number,
-    floor: number,
-    floorUSD: number,
-    totalVolume: number,
-    totalVolumeUSD: bigint,
-    marketCap: number,
-    marketCapUSD: bigint,
-  }
+    dailyVolume: number;
+    dailyVolumeUSD: bigint;
+    owners: number;
+    floor: number;
+    floorUSD: number;
+    totalVolume: number;
+    totalVolumeUSD: bigint;
+    marketCap: number;
+    marketCapUSD: bigint;
+  };
 }
 
 interface OpenseaSaleData {
-  txnHash: string,
-  timestamp: string,
-  paymentToken: string,
-  amount: number,
-  seller: string,
-  buyer: string,
+  txnHash: string;
+  timestamp: string;
+  paymentToken: string;
+  amount: number;
+  seller: string;
+  buyer: string;
 }
 
 export class Opensea {
-  public static async getCollection(address: string, tokenId: string, ethInUSD: number): Promise<OpenseaCollectionData> {
+  public static async getCollection(
+    address: string,
+    tokenId: string,
+    ethInUSD: number
+  ): Promise<OpenseaCollectionData> {
     const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/`;
     console.log(url);
     const response = await axios.get(url, {
-      headers: { 'X-API-KEY': OPENSEA_API_KEY }
+      headers: { "X-API-KEY": OPENSEA_API_KEY },
     });
     const { collection } = response.data;
     const contractMetadata = collection.primary_asset_contracts[0] || [];
-    const { name, symbol, description, external_link, image_url } = contractMetadata;
-    const { one_day_volume, num_owners, floor_price, total_volume, market_cap } = collection.stats;
-    const { discord_url, slug, telegram_url, twitter_username, medium_username, image_url: tokenUrl } = collection;
+    const { name, symbol, description, external_link, image_url } =
+      contractMetadata;
+    const {
+      one_day_volume,
+      num_owners,
+      floor_price,
+      total_volume,
+      market_cap,
+    } = collection.stats;
+    const {
+      discord_url,
+      slug,
+      telegram_url,
+      twitter_username,
+      medium_username,
+      image_url: tokenUrl,
+    } = collection;
 
     if (total_volume < TEN_ETHER) {
-      throw new LowVolumeError(`Collection ${name} has volume ${total_volume} < ${TEN_ETHER}`);
+      throw new LowVolumeError(
+        `Collection ${name} has volume ${total_volume} < ${TEN_ETHER}`
+      );
     }
 
     return {
@@ -83,10 +103,16 @@ export class Opensea {
         totalVolumeUSD: BigInt(roundUSD(total_volume * ethInUSD)),
         marketCap: market_cap,
         marketCapUSD: BigInt(roundUSD(market_cap * ethInUSD)),
-      }
-    }
+      },
+    };
   }
-  public static async getSales(address: string, occurredAfter: number, offset: number, limit: number): Promise<(OpenseaSaleData|undefined)[]> {
+
+  public static async getSales(
+    address: string,
+    occurredAfter: number,
+    offset: number,
+    limit: number
+  ): Promise<(OpenseaSaleData | undefined)[]> {
     const params: Record<string, string> = {
       asset_contract_address: address,
       occurred_after: occurredAfter.toString(),
@@ -94,12 +120,12 @@ export class Opensea {
       limit: limit.toString(),
       event_type: "successful",
       only_opensea: "false",
-    }
+    };
     const searchParams = new URLSearchParams(params);
     const url = `https://api.opensea.io/api/v1/events?${searchParams.toString()}`;
     console.log(url);
     const response = await axios.get(url, {
-      headers: { 'X-API-KEY': SECONDARY_OPENSEA_API_KEY }
+      headers: { "X-API-KEY": SECONDARY_OPENSEA_API_KEY },
     });
     return response.data.asset_events.map((sale: any) => {
       if (!sale.transaction) {
@@ -108,7 +134,7 @@ export class Opensea {
       const paymentToken = sale.payment_token || {
         address: ETHEREUM_DEFAULT_TOKEN_ADDRESS,
         decimals: 18,
-      }
+      };
 
       const { transaction_hash: txnHash, timestamp } = sale.transaction;
       const { address: paymentTokenAddress, decimals } = paymentToken;
@@ -118,10 +144,10 @@ export class Opensea {
         txnHash: txnHash.toLowerCase(),
         timestamp: timestamp || created_date,
         paymentTokenAddress,
-        price: parseFloat(total_price) / 10**decimals,
-        buyerAddress: winner_account?.address || '',
-        sellerAddress: seller?.address || '',
-      }
-    })
+        price: parseFloat(total_price) / 10 ** decimals,
+        buyerAddress: winner_account?.address || "",
+        sellerAddress: seller?.address || "",
+      };
+    });
   }
 }

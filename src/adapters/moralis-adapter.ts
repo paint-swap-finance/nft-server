@@ -10,44 +10,61 @@ const Moralis = require("moralis/node");
 async function fetchCollectionAddresses() {
   let adapterState = await AdapterState.findByName(AdapterType.Moralis);
   if (!adapterState) {
-    adapterState = AdapterState.create({ name: AdapterType.Moralis })
-    adapterState.save()
+    adapterState = AdapterState.create({ name: AdapterType.Moralis });
+    adapterState.save();
   }
 
   let collections = {};
-  const provider = new ethers.providers.StaticJsonRpcProvider(process.env.ETHEREUM_RPC);
+  const provider = new ethers.providers.StaticJsonRpcProvider(
+    process.env.ETHEREUM_RPC
+  );
   const startBlock = await provider.getBlockNumber();
-  const endBlock = adapterState.lastSyncedBlockNumber; 
+  const endBlock = adapterState.lastSyncedBlockNumber;
 
-  console.log(`Retrieving NFT collections parsing txns between blocks ${startBlock} --> ${endBlock}`);
+  console.log(
+    `Retrieving NFT collections parsing txns between blocks ${startBlock} --> ${endBlock}`
+  );
   for (let blockNumber = startBlock; blockNumber >= endBlock; blockNumber--) {
     try {
-      const nftTransfers = await Moralis.Web3API.native.getNFTTransfersByBlock({ chain: 'eth', block_number_or_hash: blockNumber.toString() });
-      collections = nftTransfers.result.map((nft: any) => ({
-        address: nft.token_address,
-        tokenId: nft.token_id
-      }))
-      .reduce((allCollections: any, nextCollection: any) => ({
-        ...allCollections,
-        [nextCollection.address]: Collection.create({
-          address: nextCollection.address.toLowerCase(),
-          defaultTokenId: nextCollection.tokenId.toLowerCase(),
-          chain: Blockchain.Ethereum,
-        }),
-      }), collections);
+      const nftTransfers = await Moralis.Web3API.native.getNFTTransfersByBlock({
+        chain: "eth",
+        block_number_or_hash: blockNumber.toString(),
+      });
+      collections = nftTransfers.result
+        .map((nft: any) => ({
+          address: nft.token_address,
+          tokenId: nft.token_id,
+        }))
+        .reduce(
+          (allCollections: any, nextCollection: any) => ({
+            ...allCollections,
+            [nextCollection.address]: Collection.create({
+              address: nextCollection.address.toLowerCase(),
+              defaultTokenId: nextCollection.tokenId.toLowerCase(),
+              chain: Blockchain.Ethereum,
+            }),
+          }),
+          collections
+        );
 
       const entryCount = Object.keys(collections).length;
       if (entryCount > 100) {
         Collection.save(Object.values(collections));
         collections = {};
-        console.log("Finished syncing collections from blockNumber", blockNumber);
+        console.log(
+          "Finished syncing collections from blockNumber",
+          blockNumber
+        );
       }
     } catch (e) {
-      console.error("Error retrieving data from Moralis:", JSON.stringify(e.message))
+      console.error(
+        "Error retrieving data from Moralis:",
+        JSON.stringify(e.message)
+      );
     }
   }
   adapterState.lastSyncedBlockNumber = BigInt(startBlock);
-  adapterState.save()
+  adapterState.save();
 }
 
 async function run(): Promise<void> {
@@ -56,7 +73,7 @@ async function run(): Promise<void> {
 
   while (true) {
     await fetchCollectionAddresses();
-    await sleep(60*30);
+    await sleep(60 * 30);
   }
 }
 
