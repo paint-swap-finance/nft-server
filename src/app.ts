@@ -75,6 +75,7 @@ createConnection({
     app.get("/collection/:slug", async (req, res) => {
       const collection = await Collection.findOne({
         where: { slug: req.params.slug },
+        relations: ["statistic"],
       });
       if (!collection) {
         res.status(404).send(JSON.stringify({ error: "Collection not found" }));
@@ -90,18 +91,14 @@ createConnection({
       res.status(200);
     });
 
-    app.get(
-      "/historical-statistic/:collection/:statistic",
-      async (req, res) => {
-        if (req.params.collection === "total") {
-          const data = await HistoricalStatistic.getStatisticTimeseries(
-            req.params.statistic
-          );
-          res.send(serialize(data));
-          res.status(200);
-        }
-      }
-    );
+    app.get("/historical-statistic/:slug/:statistic", async (req, res) => {
+      const data = await HistoricalStatistic.getStatisticTimeseries(
+        req.params.statistic,
+        req.params.slug
+      );
+      res.send(serialize(data));
+      res.status(200);
+    });
 
     app.get("/search", async (req, res) => {
       if (!req.query.searchTerm || req.query.searchTerm === "") {

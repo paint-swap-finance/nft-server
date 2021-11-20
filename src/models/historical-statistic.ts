@@ -55,17 +55,25 @@ export class HistoricalStatistic extends BaseEntity {
   @Column()
   owners: number;
 
-  static async getStatisticTimeseries(statistic: string): Promise<any[]> {
+  static async getStatisticTimeseries(
+    statistic: string,
+    slug: string
+  ): Promise<any[]> {
     if (statistic !== "dailyVolume") {
       return [];
     }
-    return this.createQueryBuilder("historical-statistic")
+    let query = this.createQueryBuilder("historical-statistic")
       .select(`SUM(historical-statistic.${statistic})`, statistic)
       .addSelect("extract(epoch from timestamp)", "date")
       .groupBy("historical-statistic.timestamp")
       .orderBy({
         "historical-statistic.timestamp": "ASC",
-      })
-      .getRawMany();
+      });
+    if (slug !== "all") {
+      query = query
+        .innerJoin("historical-statistic.collection", "collection")
+        .where("collection.slug = :slug", { slug });
+    }
+    return query.getRawMany();
   }
 }
