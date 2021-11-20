@@ -15,11 +15,6 @@ import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from "../env";
 
 const html = fs.readFileSync("index.html");
 const port = process.env.PORT || 3000;
-const log = (entry: string) =>
-  fs.appendFileSync(
-    "/tmp/sample-app.log",
-    new Date().toISOString() + " - " + entry + "\n"
-  );
 
 createConnection({
   type: "postgres",

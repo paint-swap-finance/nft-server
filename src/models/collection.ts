@@ -111,7 +111,7 @@ export class Collection extends BaseEntity {
         .getRawMany()
     )
       .map((result) => result.collection_slug)
-      .filter((slug) => slug != "");
+      .filter((slug) => slug !== "");
 
     if (slugs.length === 0) return [];
 

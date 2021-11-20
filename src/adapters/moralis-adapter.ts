@@ -5,6 +5,7 @@ import { MORALIS_APP_ID, MORALIS_SERVER_URL } from "../../env";
 import { AdapterType, Blockchain } from "../types";
 import { AdapterState } from "../models/adapter-state";
 import { sleep } from "../utils";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Moralis = require("moralis/node");
 
 async function fetchCollectionAddresses() {
