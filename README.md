@@ -13,8 +13,24 @@ docker-compose up
 
 Then you can run the app, which runs a webserver and the data collection adapters:
 ```bash
-npx ts-node src/app.ts 
+npm start
+```
+
+You can also run just the API without the data collection adapters:
+```bash
+npm run api
 ```
 
 # Dependencies
 We use [TypeORM](https://github.com/typeorm/typeorm)for interacting with the database
+
+# Deployment
+
+The infrastructure of the app consists of an EC2 server running through Elastic Beanstalk, as well as a Postgresql instance running through RDS.
+
+The infrastructure is written as code using [AWS CDK](https://github.com/aws/aws-cdk)
+
+You can deploy code changes and any infrastructure changes by running
+```bash
+npm run deploy
+```
