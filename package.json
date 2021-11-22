@@ -17,10 +17,10 @@
   },
   "scripts": {
     "build": "tsc",
-    "dist": "sh ./scripts/dist.sh",
-    "start": "node dist/src/app.js",
-    "lint": "eslint -c .eslintrc.js --ext .ts src",
-    "test": "npx ts-node test/test.ts"
+    "deploy": "sh ./scripts/deploy.sh",
+    "start": "PORT=3001 ts-node src/app.ts",
+    "api": "API_ONLY=true PORT=3001 ts-node src/app.ts",
+    "lint": "eslint -c .eslintrc.js --ext .ts src"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
