@@ -8,7 +8,8 @@ insert into historical_statistic (
   "collectionAddress",
   "dailyVolume",
   floor,
-  "marketCap", "dailyVolumeUSD", "marketCapUSD", "floorUSD", "totalVolume", "totalVolumeUSD", "owners"
+  "marketCap", "dailyVolumeUSD", "marketCapUSD", "floorUSD", "totalVolume", "totalVolumeUSD", "owners",
+  "tokenAddress"
 )
 (
   select
@@ -18,13 +19,14 @@ insert into historical_statistic (
     "collectionAddress",
     sum(price) as dailyVolume,
     percentile_cont(0.20) within group (order by price) as floor,
-    0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0,
+    "paymentTokenAddress"
   from sale
   join collection on sale."collectionAddress" = collection.address
   where price != 0
   and "paymentTokenAddress" = '0x0000000000000000000000000000000000000000'
   or "paymentTokenAddress" = '11111111111111111111111111111111'
-  group by "collectionAddress", day
+  group by "collectionAddress", day, "paymentTokenAddress"
 )
 on conflict("collectionAddress", timestamp)
 do update set

@@ -7,7 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-
+import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { Collection } from "./collection";
 
 @Entity()
@@ -57,6 +57,9 @@ export class HistoricalStatistic extends BaseEntity {
 
   @Column()
   owners: number;
+
+  @Column({ default: "" })
+  tokenAddress: string;
 
   static async getStatisticTimeseries(
     statistic: string,
