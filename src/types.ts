@@ -1,6 +1,7 @@
 export enum Blockchain {
   Any = "any",
   Ethereum = "ethereum",
+  Solana = "solana",
 }
 
 export enum AdapterType {
@@ -9,6 +10,7 @@ export enum AdapterType {
 
 export enum Marketplace {
   Opensea = "opensea",
+  MagicEden = "magic-eden",
 }
 
 export class LowVolumeError extends Error {
