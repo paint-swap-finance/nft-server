@@ -83,15 +83,19 @@ export class Collection extends BaseEntity {
     limit: number,
     chain: Blockchain,
   ): Promise<Collection[]> {
-    return this.createQueryBuilder("collection")
-      .innerJoinAndSelect("collection.statistic", "statistic")
-      .where("collection.chain = :chain", { chain })
-      .orderBy({
-        [`statistic.${column}`]: direction,
-      })
-      .limit(limit)
-      .offset(page * limit)
-      .getMany();
+    const qb = this.createQueryBuilder("collection")
+    .innerJoinAndSelect("collection.statistic", "statistic")
+    .orderBy({
+      [`statistic.${column}`]: direction,
+    })
+    .limit(limit)
+    .offset(page * limit)
+
+    if (chain === Blockchain.Any) {
+      return qb.getMany();
+    }    
+
+    return qb.where("collection.chain = :chain", { chain }).getMany();
   }
 
   public async getLastSale(marketplace: Marketplace): Promise<Sale | undefined> {

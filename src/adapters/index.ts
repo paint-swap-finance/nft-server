@@ -8,8 +8,8 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
-  //MoralisAdapter,
-  //OpenseaAdapter,
+  MoralisAdapter,
+  OpenseaAdapter,
   MagicEdenAdapter,
   HistoricalStatisticCalculatorAdapter,
 ];

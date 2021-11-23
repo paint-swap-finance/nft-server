@@ -58,7 +58,7 @@ createConnection({
         sortDirection,
         page,
         limit,
-        Blockchain.Any //TODO fix
+        Blockchain.Any
       );
       const flattenedCollections = collections.map((collection) => {
         const obj = classToPlain(collection);
