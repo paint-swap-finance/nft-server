@@ -6,7 +6,7 @@ import { Sale } from "../models/sale";
 import { Statistic } from "../models/statistic";
 import { sleep } from "../utils";
 import { Coingecko } from "../api/coingecko";
-import { LowVolumeError, Marketplace } from "../types";
+import { Blockchain, LowVolumeError, Marketplace } from "../types";
 
 const ONE_HOUR = 1;
 
@@ -17,7 +17,9 @@ async function run(): Promise<void> {
 }
 
 async function runCollections(): Promise<void> {
-  const collections = await Collection.findNotFetchedSince(ONE_HOUR);
+  const allCollections = await Collection.findNotFetchedSince(ONE_HOUR);
+  const collections = allCollections.filter(collection => collection.chain === Blockchain.Ethereum);
+
   if (collections.length === 0) {
     console.log("No Collections to request...");
     return;
