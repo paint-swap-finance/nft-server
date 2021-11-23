@@ -2,8 +2,8 @@ import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Statistic } from "../models/statistic";
 import { Sale } from "../models/sale";
-import { Blockchain, LowVolumeError, Marketplace } from "../types";
-import { MagicEden } from "../api/magic-eden";
+import { Blockchain, Marketplace } from "../types";
+import { MagicEden, MagicEdenCollectionData } from "../api/magic-eden";
 import { Coingecko } from "../api/coingecko";
 import { sleep } from "../utils";
 import axios from "axios";
@@ -24,17 +24,11 @@ async function runCollections(): Promise<void> {
 
   for (const collection of collections) {
     try {
-      await fetchCollection(
-        {
-          slug: collection.symbol,
-          ...collection,
-        },
-        solInUSD
-      );
+      await fetchCollection(collection, solInUSD);
     } catch (e) {
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404) {
-          console.log("other error"); // TODO remove collection
+          console.error("Collection not found:", e.message);
         }
         if (e.response.status === 429) {
           // Backoff for 1 minute if rate limited
@@ -65,14 +59,14 @@ async function runSales(): Promise<void> {
 }
 
 async function fetchCollection(
-  collection: any, // TODO add type
+  collection: MagicEdenCollectionData,
   solInUSD: number
 ): Promise<void> {
-  const existingCollection = await Collection.findBySlug(collection.slug);
+  const existingCollection = await Collection.findBySlug(collection.symbol);
 
   if (existingCollection) {
-    // TODO update statistics
-    console.log("collection already exists, called", existingCollection.name);
+    // TODO Update metadata
+    // console.log("Collection already exists, called", existingCollection.name);
     return;
   }
 
@@ -96,7 +90,7 @@ async function fetchCollection(
       ...filteredMetadata,
     });
 
-    storedCollection.statistic = Statistic.create({ ...statistics }) as any; //TODO fix
+    storedCollection.statistic = Statistic.create({ ...statistics });
     storedCollection.lastFetched = new Date(Date.now());
     storedCollection.save();
   }
@@ -104,9 +98,14 @@ async function fetchCollection(
 
 async function fetchSales(collection: Collection): Promise<void> {
   const mostRecentSaleTime =
-    (await collection.getLastSale(Marketplace.MagicEden))?.timestamp?.getTime() || 0; 
+    (
+      await collection.getLastSale(Marketplace.MagicEden)
+    )?.timestamp?.getTime() || 0;
   try {
-    const salesEvents = await MagicEden.getSales(collection, mostRecentSaleTime);
+    const salesEvents = await MagicEden.getSales(
+      collection,
+      mostRecentSaleTime
+    );
 
     if (salesEvents.length === 0) {
       sleep(3);

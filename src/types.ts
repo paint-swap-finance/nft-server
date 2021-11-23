@@ -19,3 +19,42 @@ export class LowVolumeError extends Error {
     this.name = "LowVolumeError";
   }
 }
+
+export interface CollectionData {
+  name: string;
+  slug: string;
+  symbol: string;
+  description: string;
+  logo: string;
+  website: string;
+  discord_url: string;
+  telegram_url: string;
+  twitter_username: string;
+  medium_username: string;
+}
+
+export interface StatisticData {
+  dailyVolume: number;
+  dailyVolumeUSD: bigint;
+  owners: number;
+  floor: number;
+  floorUSD: number;
+  totalVolume: number;
+  totalVolumeUSD: bigint;
+  marketCap: number;
+  marketCapUSD: bigint;
+}
+
+export interface CollectionAndStatisticData {
+  metadata: CollectionData;
+  statistics: StatisticData;
+}
+
+export interface SaleData {
+  txnHash: string;
+  timestamp: string;
+  paymentToken: string;
+  amount: number;
+  seller: string;
+  buyer: string;
+}

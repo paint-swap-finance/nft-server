@@ -2,39 +2,76 @@
 import axios from "axios";
 import { roundUSD } from "../utils";
 import { SOLANA_DEFAULT_TOKEN_ADDRESS } from "../constants";
+import { CollectionAndStatisticData, CollectionData, SaleData } from "../types";
+import { Collection } from "../models/collection";
 
-const MAGIC_EDEN_MULTIPLIER = 1000000000;
+const MAGIC_EDEN_MULTIPLIER = 1_000_000_000;
+
+interface MagicEdenParsedTransaction {
+  txType: string;
+  transaction_id: string;
+  blockTime: number;
+  slot: number;
+  collection_symbol: string;
+  mint: string;
+  total_amount: number;
+  platform_fees_amount: number;
+  seller_fee_amount: number;
+  creator_fees_amount: number;
+  seller_address: string;
+  buyer_address: string;
+}
+
+interface MagicEdenTransactionData {
+  _id: string;
+  transaction_id: string;
+  blockTime: number;
+  buyer_address: string;
+  collection_symbol: string;
+  createdAt: string;
+  mint: string;
+  seller_address: string;
+  slot: number;
+  source: string;
+  txType: string;
+  parsedTransaction: MagicEdenParsedTransaction;
+}
+
+export interface MagicEdenCollectionData {
+  symbol: string;
+  candyMachineIds: string[];
+  name: string;
+  image: string;
+  description: string;
+  createdAt: string;
+  enabledAttributesFilters: boolean;
+  isDraft: boolean;
+}
 
 export class MagicEden {
-
-  public static async getAllCollections(): Promise<any> { // TODO add type
+  public static async getAllCollections(): Promise<MagicEdenCollectionData[]> {
     const url = `https://api-mainnet.magiceden.io/all_collections`;
     const response = await axios.get(url);
     const { collections } = response.data;
 
-    return collections
+    return collections;
   }
 
   public static async getCollection(
-    collection: any, // TODO add type
+    collection: MagicEdenCollectionData,
     solInUSD: number
-  ): Promise<any> { // TODO add type
-    const url = `https://api-mainnet.magiceden.io/rpc/getCollectionEscrowStats/${collection.slug}`;
+  ): Promise<CollectionAndStatisticData> {
+    const url = `https://api-mainnet.magiceden.io/rpc/getCollectionEscrowStats/${collection.symbol}`;
     const response = await axios.get(url);
 
-    const { 
+    const {
       floorPrice: floor_price,
       volume24hr: one_day_volume,
       volumeAll: total_volume,
       listedTotalValue: market_cap,
     } = response.data?.results;
 
-    const {
-        name,
-        image: logo,
-        description,
-        symbol: slug,
-    } = collection;
+    const { name, image: logo, description, symbol: slug } = collection;
 
     return {
       metadata: {
@@ -51,47 +88,60 @@ export class MagicEden {
       },
       statistics: {
         dailyVolume: one_day_volume / MAGIC_EDEN_MULTIPLIER,
-        dailyVolumeUSD: BigInt(roundUSD(one_day_volume / MAGIC_EDEN_MULTIPLIER * solInUSD)),
-        owners: 0, // TODO add owners
+        dailyVolumeUSD: BigInt(
+          roundUSD((one_day_volume / MAGIC_EDEN_MULTIPLIER) * solInUSD)
+        ),
+        owners: 0, // TODO add owners, data is not available from Magic Eden
         floor: floor_price / MAGIC_EDEN_MULTIPLIER || 0,
-        floorUSD: roundUSD(floor_price / MAGIC_EDEN_MULTIPLIER * solInUSD),
+        floorUSD: roundUSD((floor_price / MAGIC_EDEN_MULTIPLIER) * solInUSD),
         totalVolume: total_volume / MAGIC_EDEN_MULTIPLIER,
-        totalVolumeUSD: BigInt(roundUSD(total_volume / MAGIC_EDEN_MULTIPLIER * solInUSD)),
+        totalVolumeUSD: BigInt(
+          roundUSD((total_volume / MAGIC_EDEN_MULTIPLIER) * solInUSD)
+        ),
         marketCap: market_cap / MAGIC_EDEN_MULTIPLIER,
-        marketCapUSD: BigInt(roundUSD(market_cap / MAGIC_EDEN_MULTIPLIER * solInUSD)),
+        marketCapUSD: BigInt(
+          roundUSD((market_cap / MAGIC_EDEN_MULTIPLIER) * solInUSD)
+        ),
       },
     };
   }
 
-  public static async getSales(collection: any, occurredAfter: number): Promise<(any | undefined)[]> { //TODO add types
-    const url = `https://api-mainnet.magiceden.io/rpc/getGlobalActivitiesByQuery?q={"$match":{"collection_symbol":"${collection.slug}"}}`
-    const response = await axios.get(url)
+  public static async getSales(
+    collection: Collection,
+    occurredAfter: number
+  ): Promise<(SaleData | undefined)[]> {
+    const url = `https://api-mainnet.magiceden.io/rpc/getGlobalActivitiesByQuery?q={"$match":{"collection_symbol":"${collection.slug}"}}`;
+    const response = await axios.get(url);
     const results = response.data?.results;
 
     if (!results) {
-        return []
+      return [];
     }
 
-    return response.data.results.map((sale: any) => {
-        if (sale.txType !== "exchange") {
-            return undefined;
-        }
-        if (new Date(sale.createdAt).getTime() < occurredAfter) {
-            return undefined;
-        }
+    return response.data.results.map((sale: MagicEdenTransactionData) => {
+      if (sale.txType !== "exchange") {
+        return undefined;
+      }
+      if (new Date(sale.createdAt).getTime() < occurredAfter) {
+        return undefined;
+      }
 
-        const paymentTokenAddress = SOLANA_DEFAULT_TOKEN_ADDRESS;
-        const { transaction_id: txnHash, createdAt: timestamp } = sale;
-        const { total_amount: total_price, buyer_address, seller_address, createdAt: created_date} = sale.parsedTransaction;
+      const paymentTokenAddress = SOLANA_DEFAULT_TOKEN_ADDRESS;
+      const { transaction_id: txnHash, createdAt: timestamp } = sale;
+      const {
+        total_amount: total_price,
+        buyer_address,
+        seller_address,
+      } = sale.parsedTransaction;
 
-        return {
-            txnHash: txnHash.toLowerCase(),
-            timestamp: timestamp || created_date,
-            paymentTokenAddress,
-            price: parseFloat(total_price) / MAGIC_EDEN_MULTIPLIER,
-            buyerAddress: buyer_address || "",
-            sellerAddress: seller_address || "",
-        }
-    })
+      return {
+        txnHash: txnHash.toLowerCase(),
+        timestamp: timestamp,
+        paymentTokenAddress,
+        price: (total_price / MAGIC_EDEN_MULTIPLIER).toString(),
+        buyerAddress: buyer_address || "",
+        sellerAddress: seller_address || "",
+      };
+    });
   }
 }
