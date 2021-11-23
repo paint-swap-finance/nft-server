@@ -1,10 +1,8 @@
 /* eslint-disable camelcase */
 import axios from "axios";
 import { roundUSD } from "../utils";
-import { LowVolumeError } from "../types";
 import { SOLANA_DEFAULT_TOKEN_ADDRESS } from "../constants";
 
-const TEN_SOL = 10;
 const MAGIC_EDEN_MULTIPLIER = 1000000000;
 
 export class MagicEden {
@@ -37,12 +35,6 @@ export class MagicEden {
         description,
         symbol: slug,
     } = collection;
-
-    if (total_volume / MAGIC_EDEN_MULTIPLIER < TEN_SOL) {
-      throw new LowVolumeError(
-        `Collection ${name} has volume ${total_volume / MAGIC_EDEN_MULTIPLIER} < ${TEN_SOL}`
-      );
-    }
 
     return {
       metadata: {
@@ -85,7 +77,6 @@ export class MagicEden {
             return undefined;
         }
         if (new Date(sale.createdAt).getTime() < occurredAfter) {
-            console.log(sale.createdAt, "is earlier than", occurredAfter)
             return undefined;
         }
 

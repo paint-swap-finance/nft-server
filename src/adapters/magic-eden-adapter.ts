@@ -32,9 +32,6 @@ async function runCollections(): Promise<void> {
         solInUSD
       );
     } catch (e) {
-      if (e instanceof LowVolumeError) {
-        console.log("low volume error"); // TODO remove collection
-      }
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404) {
           console.log("other error"); // TODO remove collection
@@ -110,7 +107,7 @@ async function fetchSales(collection: Collection): Promise<void> {
     (await collection.getLastSale(Marketplace.MagicEden))?.timestamp?.getTime() || 0; 
   try {
     const salesEvents = await MagicEden.getSales(collection, mostRecentSaleTime);
-    
+
     if (salesEvents.length === 0) {
       sleep(3);
       return;
