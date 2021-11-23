@@ -101,7 +101,7 @@ async function fetchSales(collection: Collection): Promise<void> {
   let offset = 0;
   const limit = 100;
   const mostRecentSaleTime =
-    (await collection.getLastSale(Marketplace.Opensea))?.timestamp?.getTime() || 0;
+    (await collection.getLastSale(Marketplace.Opensea))?.timestamp?.getTime() || 0; 
   while (offset <= 10000) {
     try {
       const salesEvents = await Opensea.getSales(
