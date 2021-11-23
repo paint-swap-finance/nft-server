@@ -8,7 +8,7 @@ import {
   PrimaryColumn,
 } from "typeorm";
 
-import { Blockchain } from "../types";
+import { Blockchain, Marketplace } from "../types";
 import { HistoricalStatistic } from "./historical-statistic";
 import { Sale } from "./sale";
 import { Statistic } from "./statistic";
@@ -80,10 +80,12 @@ export class Collection extends BaseEntity {
     column: string,
     direction: "ASC" | "DESC",
     page: number,
-    limit: number
+    limit: number,
+    chain: Blockchain,
   ): Promise<Collection[]> {
     return this.createQueryBuilder("collection")
       .innerJoinAndSelect("collection.statistic", "statistic")
+      .where("collection.chain = :chain", { chain })
       .orderBy({
         [`statistic.${column}`]: direction,
       })
@@ -92,9 +94,10 @@ export class Collection extends BaseEntity {
       .getMany();
   }
 
-  public async getLastSale(): Promise<Sale | undefined> {
+  public async getLastSale(marketplace: Marketplace): Promise<Sale | undefined> {
     return Sale.createQueryBuilder("sale")
       .where("sale.collectionAddress = :address", { address: this.address })
+      .andWhere("sale.marketplace = :marketplace", { marketplace })
       .orderBy({
         "sale.timestamp": "DESC",
       })

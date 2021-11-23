@@ -12,6 +12,7 @@ import { HistoricalStatistic } from "./models/historical-statistic";
 import { Sale } from "./models/sale";
 import { Statistic } from "./models/statistic";
 import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from "../env";
+import { Blockchain } from "./types";
 
 const html = fs.readFileSync("index.html");
 const port = process.env.PORT || 3000;
@@ -56,7 +57,8 @@ createConnection({
         sortBy,
         sortDirection,
         page,
-        limit
+        limit,
+        Blockchain.Any //TODO fix
       );
       const flattenedCollections = collections.map((collection) => {
         const obj = classToPlain(collection);

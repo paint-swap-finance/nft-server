@@ -60,7 +60,8 @@ async function runSales(): Promise<void> {
     "totalVolume",
     "DESC",
     0,
-    MAX_INT
+    MAX_INT,
+    Blockchain.Ethereum,
   );
   console.log("Fetching Sales for collections:", collections.length);
   for (const collection of collections) {
@@ -100,7 +101,7 @@ async function fetchSales(collection: Collection): Promise<void> {
   let offset = 0;
   const limit = 100;
   const mostRecentSaleTime =
-    (await collection.getLastSale())?.timestamp?.getTime() || 0;
+    (await collection.getLastSale(Marketplace.Opensea))?.timestamp?.getTime() || 0;
   while (offset <= 10000) {
     try {
       const salesEvents = await Opensea.getSales(
