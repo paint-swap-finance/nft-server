@@ -157,4 +157,10 @@ export class Collection extends BaseEntity {
       .orderBy("statistic.dailyVolume", "DESC", "NULLS LAST")
       .getMany();
   }
+
+  static findBySlug(slug: string): Promise<Collection> {
+    return this.createQueryBuilder("collection")
+      .where("collection.slug = :slug", { slug })
+      .getOne();
+  }
 }
