@@ -21,7 +21,9 @@ insert into historical_statistic (
     0, 0, 0, 0, 0, 0, 0
   from sale
   join collection on sale."collectionAddress" = collection.address
-  where price != 0 and "paymentTokenAddress" = '0x0000000000000000000000000000000000000000'
+  where price != 0
+  and "paymentTokenAddress" = '0x0000000000000000000000000000000000000000'
+  or "paymentTokenAddress" = '11111111111111111111111111111111'
   group by "collectionAddress", day
 )
 on conflict("collectionAddress", timestamp)
