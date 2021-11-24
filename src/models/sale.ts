@@ -36,7 +36,7 @@ export class Sale extends BaseEntity {
   price: number;
 
   @Column({ type: "double precision", default: 0 })
-  priceUSD: number;
+  priceUSD: bigint;
 
   @Column()
   paymentTokenAddress: string;

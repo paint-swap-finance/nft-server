@@ -2,7 +2,7 @@
 import axios from "axios";
 import { roundUSD } from "../utils";
 import { SOLANA_DEFAULT_TOKEN_ADDRESS } from "../constants";
-import { CollectionAndStatisticData, CollectionData, SaleData } from "../types";
+import { CollectionAndStatisticData, SaleData } from "../types";
 import { Collection } from "../models/collection";
 
 const MAGIC_EDEN_MULTIPLIER = 1_000_000_000;
@@ -109,7 +109,7 @@ export class MagicEden {
   public static async getSales(
     collection: Collection,
     occurredAfter: number,
-    solInUSD: number,
+    solInUSD: number
   ): Promise<(SaleData | undefined)[]> {
     const url = `https://api-mainnet.magiceden.io/rpc/getGlobalActivitiesByQuery?q={"$match":{"collection_symbol":"${collection.slug}"}}`;
     const response = await axios.get(url);
@@ -139,8 +139,10 @@ export class MagicEden {
         txnHash: txnHash.toLowerCase(),
         timestamp: timestamp,
         paymentTokenAddress,
-        price: (total_price / MAGIC_EDEN_MULTIPLIER),
-        priceUSD: (total_price / MAGIC_EDEN_MULTIPLIER * solInUSD),
+        price: total_price / MAGIC_EDEN_MULTIPLIER,
+        priceUSD: BigInt(
+          roundUSD((total_price / MAGIC_EDEN_MULTIPLIER) * solInUSD)
+        ),
         buyerAddress: buyer_address || "",
         sellerAddress: seller_address || "",
       };

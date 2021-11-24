@@ -63,7 +63,7 @@ export class HistoricalStatistic extends BaseEntity {
 
   static async getAllStatisticTimeseries(statistic: string): Promise<any[]> {
     //TODO type
-    if (statistic !== "dailyVolume") {
+    if (statistic !== "dailyVolumeUSD") {
       return [];
     }
     return this.createQueryBuilder("historical-statistic")
@@ -79,7 +79,8 @@ export class HistoricalStatistic extends BaseEntity {
   static async getCollectionsStatisticTimeseries(
     statistic: string,
     slug: string
-  ): Promise<any[]> { //TODO type
+  ): Promise<any[]> {
+    //TODO type
     if (statistic !== "dailyVolume") {
       return [];
     }
@@ -98,7 +99,8 @@ export class HistoricalStatistic extends BaseEntity {
   static async getChainsStatisticTimeseries(
     statistic: string,
     chain: string
-  ): Promise<any[]> { //TODO type
+  ): Promise<any[]> {
+    //TODO type
     if (statistic !== "dailyVolume") {
       return [];
     }
@@ -112,5 +114,12 @@ export class HistoricalStatistic extends BaseEntity {
       .innerJoin("historical-statistic.collection", "collection")
       .where("collection.chain = :chain", { chain })
       .getRawMany();
+  }
+
+  static async getIncompleteHistoricalStatistics(): Promise<HistoricalStatistic[]> {
+    return this.createQueryBuilder("historical-statistic")
+      .select('historical-statistic')
+      .where('historical-statistic.dailyVolumeUSD = 0')
+      .getMany()
   }
 }
