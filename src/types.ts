@@ -54,7 +54,10 @@ export interface SaleData {
   txnHash: string;
   timestamp: string;
   paymentToken: string;
-  amount: number;
-  seller: string;
-  buyer: string;
+  price: number;
+  priceUSD: number;
+  sellerAddress: string;
+  buyerAddress: string;
+  marketplace: Marketplace;
+  collection: any; //TODO fix
 }

@@ -44,6 +44,7 @@ async function runCollections(): Promise<void> {
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
+  const solInUSD = await Coingecko.getSolPrice();
   const collections = await Collection.getSorted(
     "totalVolume",
     "DESC",
@@ -51,10 +52,11 @@ async function runSales(): Promise<void> {
     MAX_INT,
     Blockchain.Solana
   );
+
   console.log("Fetching Sales for collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching Sales for collection:", collection.name);
-    await fetchSales(collection);
+    await fetchSales(collection, solInUSD);
   }
 }
 
@@ -80,7 +82,7 @@ async function fetchCollection(
   );
 
   const address =
-    collection.candyMachineIds?.length && collection.candyMachineIds[0];
+    collection.candyMachineIds?.length && collection.candyMachineIds[0]; //TODO Fix
 
   if (address) {
     const storedCollection = Collection.create({
@@ -96,7 +98,10 @@ async function fetchCollection(
   }
 }
 
-async function fetchSales(collection: Collection): Promise<void> {
+async function fetchSales(
+  collection: Collection,
+  solInUSD: number
+): Promise<void> {
   const mostRecentSaleTime =
     (
       await collection.getLastSale(Marketplace.MagicEden)
@@ -104,7 +109,8 @@ async function fetchSales(collection: Collection): Promise<void> {
   try {
     const salesEvents = await MagicEden.getSales(
       collection,
-      mostRecentSaleTime
+      mostRecentSaleTime,
+      solInUSD
     );
 
     if (salesEvents.length === 0) {

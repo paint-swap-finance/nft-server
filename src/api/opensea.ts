@@ -115,7 +115,8 @@ export class Opensea {
     address: string,
     occurredAfter: number,
     offset: number,
-    limit: number
+    limit: number,
+    ethInUSD: number
   ): Promise<(SaleData | undefined)[]> {
     const params: Record<string, string> = {
       asset_contract_address: address,
@@ -149,6 +150,7 @@ export class Opensea {
         timestamp: timestamp || created_date,
         paymentTokenAddress,
         price: parseFloat(total_price) / 10 ** decimals,
+        priceUSD: parseFloat(total_price) * ethInUSD / 10 ** decimals,
         buyerAddress: winner_account?.address || "",
         sellerAddress: seller?.address || "",
       };

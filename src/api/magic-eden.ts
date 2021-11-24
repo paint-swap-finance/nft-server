@@ -108,7 +108,8 @@ export class MagicEden {
 
   public static async getSales(
     collection: Collection,
-    occurredAfter: number
+    occurredAfter: number,
+    solInUSD: number,
   ): Promise<(SaleData | undefined)[]> {
     const url = `https://api-mainnet.magiceden.io/rpc/getGlobalActivitiesByQuery?q={"$match":{"collection_symbol":"${collection.slug}"}}`;
     const response = await axios.get(url);
@@ -138,7 +139,8 @@ export class MagicEden {
         txnHash: txnHash.toLowerCase(),
         timestamp: timestamp,
         paymentTokenAddress,
-        price: (total_price / MAGIC_EDEN_MULTIPLIER).toString(),
+        price: (total_price / MAGIC_EDEN_MULTIPLIER),
+        priceUSD: (total_price / MAGIC_EDEN_MULTIPLIER * solInUSD),
         buyerAddress: buyer_address || "",
         sellerAddress: seller_address || "",
       };

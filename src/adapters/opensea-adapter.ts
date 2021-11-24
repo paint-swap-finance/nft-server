@@ -18,7 +18,9 @@ async function run(): Promise<void> {
 
 async function runCollections(): Promise<void> {
   const allCollections = await Collection.findNotFetchedSince(ONE_HOUR);
-  const collections = allCollections.filter(collection => collection.chain === Blockchain.Ethereum);
+  const collections = allCollections.filter(
+    (collection) => collection.chain === Blockchain.Ethereum
+  );
 
   if (collections.length === 0) {
     console.log("No Collections to request...");
@@ -56,17 +58,18 @@ async function runCollections(): Promise<void> {
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
+  const ethInUSD = await Coingecko.getEthPrice();
   const collections = await Collection.getSorted(
     "totalVolume",
     "DESC",
     0,
     MAX_INT,
-    Blockchain.Ethereum,
+    Blockchain.Ethereum
   );
   console.log("Fetching Sales for collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching Sales for collection:", collection.name);
-    await fetchSales(collection);
+    await fetchSales(collection, ethInUSD);
   }
 }
 
@@ -97,18 +100,23 @@ async function fetchCollection(
   collection.save();
 }
 
-async function fetchSales(collection: Collection): Promise<void> {
+async function fetchSales(
+  collection: Collection,
+  ethInUSD: number
+): Promise<void> {
   let offset = 0;
   const limit = 100;
   const mostRecentSaleTime =
-    (await collection.getLastSale(Marketplace.Opensea))?.timestamp?.getTime() || 0; 
+    (await collection.getLastSale(Marketplace.Opensea))?.timestamp?.getTime() ||
+    0;
   while (offset <= 10000) {
     try {
       const salesEvents = await Opensea.getSales(
         collection.address,
         mostRecentSaleTime,
         offset,
-        limit
+        limit,
+        ethInUSD
       );
       if (salesEvents.length === 0) {
         sleep(3);
