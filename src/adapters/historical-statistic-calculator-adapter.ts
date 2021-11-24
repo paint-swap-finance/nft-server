@@ -19,7 +19,13 @@ insert into historical_statistic (
     "collectionAddress",
     sum(price) as dailyVolume,
     percentile_cont(0.20) within group (order by price) as floor,
-    0, 0, 0, 0, 0, 0, 0,
+    0,
+    sum("priceUSD") as dailyVolumeUSD,
+    0,
+    0,
+    0,
+    0,
+    0,
     "paymentTokenAddress"
   from sale
   join collection on sale."collectionAddress" = collection.address
