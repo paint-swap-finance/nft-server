@@ -61,25 +61,56 @@ export class HistoricalStatistic extends BaseEntity {
   @Column({ default: "" })
   tokenAddress: string;
 
-  static async getStatisticTimeseries(
-    statistic: string,
-    slug: string
-  ): Promise<any[]> {
+  static async getAllStatisticTimeseries(statistic: string): Promise<any[]> {
+    //TODO type
     if (statistic !== "dailyVolume") {
       return [];
     }
-    let query = this.createQueryBuilder("historical-statistic")
+    return this.createQueryBuilder("historical-statistic")
       .select(`SUM(historical-statistic.${statistic})`, statistic)
       .addSelect("extract(epoch from timestamp)", "date")
       .groupBy("historical-statistic.timestamp")
       .orderBy({
         "historical-statistic.timestamp": "ASC",
-      });
-    if (slug !== "all") {
-      query = query
-        .innerJoin("historical-statistic.collection", "collection")
-        .where("collection.slug = :slug", { slug });
+      })
+      .getRawMany();
+  }
+
+  static async getCollectionsStatisticTimeseries(
+    statistic: string,
+    slug: string
+  ): Promise<any[]> { //TODO type
+    if (statistic !== "dailyVolume") {
+      return [];
     }
-    return query.getRawMany();
+    return this.createQueryBuilder("historical-statistic")
+      .select(`SUM(historical-statistic.${statistic})`, statistic)
+      .addSelect("extract(epoch from timestamp)", "date")
+      .groupBy("historical-statistic.timestamp")
+      .orderBy({
+        "historical-statistic.timestamp": "ASC",
+      })
+      .innerJoin("historical-statistic.collection", "collection")
+      .where("collection.slug = :slug", { slug })
+      .getRawMany();
+  }
+
+  static async getChainsStatisticTimeseries(
+    statistic: string,
+    chain: string
+  ): Promise<any[]> { //TODO type
+    if (statistic !== "dailyVolume") {
+      return [];
+    }
+    return this.createQueryBuilder("historical-statistic")
+      .select(`SUM(historical-statistic.${statistic})`, statistic)
+      .addSelect("extract(epoch from timestamp)", "date")
+      .groupBy("historical-statistic.timestamp")
+      .orderBy({
+        "historical-statistic.timestamp": "ASC",
+      })
+      .innerJoin("historical-statistic.collection", "collection")
+      .where("collection.chain = :chain", { chain })
+      .getRawMany();
   }
 }

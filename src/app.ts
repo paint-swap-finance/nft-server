@@ -93,14 +93,38 @@ createConnection({
       res.status(200);
     });
 
-    app.get("/historical-statistic/:slug/:statistic", async (req, res) => {
-      const data = await HistoricalStatistic.getStatisticTimeseries(
-        req.params.statistic,
-        req.params.slug
+    app.get("/historical-statistic/all/:statistic", async (req, res) => {
+      const data = await HistoricalStatistic.getAllStatisticTimeseries(
+        req.params.statistic
       );
       res.send(serialize(data));
       res.status(200);
     });
+
+    app.get(
+      "/historical-statistic/collections/:slug/:statistic",
+      async (req, res) => {
+        const data =
+          await HistoricalStatistic.getCollectionsStatisticTimeseries(
+            req.params.statistic,
+            req.params.slug
+          );
+        res.send(serialize(data));
+        res.status(200);
+      }
+    );
+
+    app.get(
+      "/historical-statistic/chains/:chain/:statistic",
+      async (req, res) => {
+        const data = await HistoricalStatistic.getChainsStatisticTimeseries(
+          req.params.statistic,
+          req.params.chain
+        );
+        res.send(serialize(data));
+        res.status(200);
+      }
+    );
 
     app.get("/search", async (req, res) => {
       if (!req.query.searchTerm || req.query.searchTerm === "") {
