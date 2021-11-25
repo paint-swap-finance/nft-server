@@ -12,7 +12,7 @@ import { ONE_HOUR } from "../constants";
 async function run(): Promise<void> {
   while (true) {
     await Promise.all([runCollections(), runSales()]);
-    await sleep(60 * 30);
+    await sleep(60 * 60);
   }
 }
 
