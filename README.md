@@ -17,4 +17,4 @@ npx ts-node src/app.ts
 ```
 
 # Dependencies
-We use [TypeORM](https://github.com/typeorm/typeorm)for interacting with the database
+We use [TypeORM](https://github.com/typeorm/typeorm) for interacting with the database
