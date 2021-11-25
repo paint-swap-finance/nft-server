@@ -7,7 +7,6 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-
 import { Collection } from "./collection";
 import { HistoricalStatistic } from "./historical-statistic";
 
@@ -64,7 +63,7 @@ export class Statistic extends BaseEntity {
     const [today, yesterday] = await HistoricalStatistic.createQueryBuilder(
       "historical-statistic"
     )
-      .select("SUM(historical-statistic.dailyVolume)", "dailyVolume")
+      .select("SUM(historical-statistic.dailyVolumeUSD)", "dailyVolumeUSD")
       .groupBy("historical-statistic.timestamp")
       .orderBy({
         "historical-statistic.timestamp": "DESC",
@@ -73,7 +72,7 @@ export class Statistic extends BaseEntity {
       .getRawMany();
 
     const percentChange =
-      ((today.dailyVolume - yesterday.dailyVolume) / yesterday.dailyVolume) *
+      ((today.dailyVolumeUSD - yesterday.dailyVolumeUSD) / yesterday.dailyVolumeUSD) *
       100;
     return { ...stats, dailyChange: percentChange };
   }
