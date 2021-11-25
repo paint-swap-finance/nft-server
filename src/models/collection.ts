@@ -81,24 +81,26 @@ export class Collection extends BaseEntity {
     direction: "ASC" | "DESC",
     page: number,
     limit: number,
-    chain: Blockchain,
+    chain: Blockchain
   ): Promise<Collection[]> {
     const qb = this.createQueryBuilder("collection")
-    .innerJoinAndSelect("collection.statistic", "statistic")
-    .orderBy({
-      [`statistic.${column}`]: direction,
-    })
-    .limit(limit)
-    .offset(page * limit)
+      .innerJoinAndSelect("collection.statistic", "statistic")
+      .orderBy({
+        [`statistic.${column}`]: direction,
+      })
+      .limit(limit)
+      .offset(page * limit);
 
     if (chain === Blockchain.Any) {
       return qb.getMany();
-    }    
+    }
 
     return qb.where("collection.chain = :chain", { chain }).getMany();
   }
 
-  public async getLastSale(marketplace: Marketplace): Promise<Sale | undefined> {
+  public async getLastSale(
+    marketplace: Marketplace
+  ): Promise<Sale | undefined> {
     return Sale.createQueryBuilder("sale")
       .where("sale.collectionAddress = :address", { address: this.address })
       .andWhere("sale.marketplace = :marketplace", { marketplace })
@@ -156,6 +158,18 @@ export class Collection extends BaseEntity {
       .getMany();
   }
 
+  static findSingleFetchedSince(
+    slug: string,
+    hours: number
+  ): Promise<Collection> {
+    const interval = `collection.lastFetched >= NOW() - interval '${hours} hours'`;
+    return this.createQueryBuilder("collection")
+      .leftJoinAndSelect("collection.statistic", "statistic")
+      .where("collection.slug = :slug", { slug })
+      .andWhere(interval)
+      .getOne();
+  }
+
   static findNotFetchedSince(hours: number): Promise<Collection[]> {
     const interval = `collection.lastFetched <= NOW() - interval '${hours} hours'`;
     return this.createQueryBuilder("collection")
@@ -168,6 +182,12 @@ export class Collection extends BaseEntity {
   static findBySlug(slug: string): Promise<Collection> {
     return this.createQueryBuilder("collection")
       .where("collection.slug = :slug", { slug })
+      .getOne();
+  }
+
+  static findByAddress(address: string): Promise<Collection> {
+    return this.createQueryBuilder("collection")
+      .where("collection.address = :address", { address })
       .getOne();
   }
 }

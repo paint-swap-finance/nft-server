@@ -21,6 +21,7 @@ export class LowVolumeError extends Error {
 }
 
 export interface CollectionData {
+  address: string;
   name: string;
   slug: string;
   symbol: string;

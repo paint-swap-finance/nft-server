@@ -4,11 +4,10 @@ import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Sale } from "../models/sale";
 import { Statistic } from "../models/statistic";
+import { ONE_HOUR } from "../constants"
 import { sleep } from "../utils";
 import { Coingecko } from "../api/coingecko";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
-
-const ONE_HOUR = 1;
 
 async function run(): Promise<void> {
   while (true) {
@@ -84,6 +83,7 @@ async function fetchCollection(
     fetchedSlug = (await Opensea.getContract(address, tokenId)).slug;
   }
   const { metadata, statistics } = await Opensea.getCollection(
+    address,
     slug || fetchedSlug,
     ethInUSD
   );
@@ -94,7 +94,7 @@ async function fetchCollection(
   const statisticId = (
     await Collection.findOne(address, { relations: ["statistic"] })
   ).statistic?.id;
-  const collection = Collection.create({ address, ...filteredMetadata });
+  const collection = Collection.create({ ...filteredMetadata });
   collection.statistic = Statistic.create({ id: statisticId, ...statistics });
   collection.lastFetched = new Date(Date.now());
   collection.save();

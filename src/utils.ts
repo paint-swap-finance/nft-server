@@ -16,3 +16,10 @@ export function isSameDay(d1: Date, d2: Date) {
     d1.getFullYear() === d2.getFullYear()
   );
 }
+
+export function getSlug(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/ /g, "-")
+    .replace(/[^\w-]+/g, "");
+}

@@ -1,3 +1,4 @@
+import axios from "axios";
 import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Statistic } from "../models/statistic";
@@ -6,7 +7,7 @@ import { Blockchain, Marketplace } from "../types";
 import { MagicEden, MagicEdenCollectionData } from "../api/magic-eden";
 import { Coingecko } from "../api/coingecko";
 import { sleep } from "../utils";
-import axios from "axios";
+import { ONE_HOUR } from "../constants";
 
 async function run(): Promise<void> {
   while (true) {
@@ -64,12 +65,11 @@ async function fetchCollection(
   collection: MagicEdenCollectionData,
   solInUSD: number
 ): Promise<void> {
-  const existingCollection = await Collection.findBySlug(collection.symbol);
+  const existingCollection = await Collection.findSingleFetchedSince(collection.symbol, ONE_HOUR);
 
   if (existingCollection) {
-    // TODO Update metadata
-    // console.log("Collection already exists, called", existingCollection.name);
-    return;
+    // Already exists and has been fetched under the last hour
+    return
   }
 
   const { metadata, statistics } = await MagicEden.getCollection(
@@ -86,13 +86,15 @@ async function fetchCollection(
 
   if (address) {
     const storedCollection = Collection.create({
+      ...filteredMetadata,
       address,
       chain: Blockchain.Solana,
       defaultTokenId: "",
-      ...filteredMetadata,
     });
-
-    storedCollection.statistic = Statistic.create({ ...statistics });
+    const statisticId = (
+      await Collection.findOne(address, { relations: ["statistic"] })
+    ).statistic?.id;
+    storedCollection.statistic = Statistic.create({ id: statisticId, ...statistics });
     storedCollection.lastFetched = new Date(Date.now());
     storedCollection.save();
   }

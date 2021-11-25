@@ -16,6 +16,7 @@ const TEN_ETHER = 10;
 
 export class Opensea {
   public static async getCollection(
+    address: string,
     slug: string,
     ethInUSD: number
   ): Promise<CollectionAndStatisticData> {
@@ -51,6 +52,7 @@ export class Opensea {
     }
     return {
       metadata: {
+        address,
         name,
         slug,
         symbol,
@@ -98,6 +100,7 @@ export class Opensea {
     } = collection;
 
     return {
+      address,
       name,
       slug,
       symbol,

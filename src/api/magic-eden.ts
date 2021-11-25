@@ -75,6 +75,7 @@ export class MagicEden {
 
     return {
       metadata: {
+        address: null,
         name,
         slug,
         description,
