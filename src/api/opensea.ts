@@ -5,54 +5,20 @@ import { URLSearchParams } from "url";
 import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { OPENSEA_API_KEY, SECONDARY_OPENSEA_API_KEY } from "../../env";
 import { roundUSD } from "../utils";
-import { LowVolumeError } from "../types";
+import {
+  CollectionAndStatisticData,
+  CollectionData,
+  SaleData,
+  LowVolumeError,
+} from "../types";
 
 const TEN_ETHER = 10;
-
-interface OpenseaCollectionData {
-  name: string;
-  slug: string;
-  symbol: string;
-  description: string;
-  logo: string;
-  website: string;
-  discord_url: string;
-  telegram_url: string;
-  twitter_username: string;
-  medium_username: string;
-}
-
-interface OpenseaStatisticData {
-  dailyVolume: number;
-  dailyVolumeUSD: bigint;
-  owners: number;
-  floor: number;
-  floorUSD: number;
-  totalVolume: number;
-  totalVolumeUSD: bigint;
-  marketCap: number;
-  marketCapUSD: bigint;
-}
-
-interface OpenseaCollectionAndStatisticData {
-  metadata: OpenseaCollectionData;
-  statistics: OpenseaStatisticData;
-}
-
-interface OpenseaSaleData {
-  txnHash: string;
-  timestamp: string;
-  paymentToken: string;
-  amount: number;
-  seller: string;
-  buyer: string;
-}
 
 export class Opensea {
   public static async getCollection(
     slug: string,
     ethInUSD: number
-  ): Promise<OpenseaCollectionAndStatisticData> {
+  ): Promise<CollectionAndStatisticData> {
     const url = `https://api.opensea.io/api/v1/collection/${slug}/`;
     console.log(url);
     const response = await axios.get(url, {
@@ -113,7 +79,7 @@ export class Opensea {
   public static async getContract(
     address: string,
     tokenId: string
-  ): Promise<OpenseaCollectionData> {
+  ): Promise<CollectionData> {
     const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/`;
     console.log(url);
     const response = await axios.get(url, {
@@ -149,8 +115,9 @@ export class Opensea {
     address: string,
     occurredAfter: number,
     offset: number,
-    limit: number
-  ): Promise<(OpenseaSaleData | undefined)[]> {
+    limit: number,
+    ethInUSD: number
+  ): Promise<(SaleData | undefined)[]> {
     const params: Record<string, string> = {
       asset_contract_address: address,
       occurred_after: occurredAfter.toString(),
@@ -183,6 +150,9 @@ export class Opensea {
         timestamp: timestamp || created_date,
         paymentTokenAddress,
         price: parseFloat(total_price) / 10 ** decimals,
+        priceUSD: BigInt(
+          roundUSD((parseFloat(total_price) * ethInUSD) / 10 ** decimals)
+        ),
         buyerAddress: winner_account?.address || "",
         sellerAddress: seller?.address || "",
       };

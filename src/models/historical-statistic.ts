@@ -7,7 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-
+import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { Collection } from "./collection";
 
 @Entity()
@@ -58,25 +58,68 @@ export class HistoricalStatistic extends BaseEntity {
   @Column()
   owners: number;
 
-  static async getStatisticTimeseries(
-    statistic: string,
-    slug: string
-  ): Promise<any[]> {
-    if (statistic !== "dailyVolume") {
+  @Column({ default: "" })
+  tokenAddress: string;
+
+  static async getAllStatisticTimeseries(statistic: string): Promise<any[]> {
+    //TODO type
+    if (statistic !== "dailyVolumeUSD") {
       return [];
     }
-    let query = this.createQueryBuilder("historical-statistic")
+    return this.createQueryBuilder("historical-statistic")
       .select(`SUM(historical-statistic.${statistic})`, statistic)
       .addSelect("extract(epoch from timestamp)", "date")
       .groupBy("historical-statistic.timestamp")
       .orderBy({
         "historical-statistic.timestamp": "ASC",
-      });
-    if (slug !== "all") {
-      query = query
-        .innerJoin("historical-statistic.collection", "collection")
-        .where("collection.slug = :slug", { slug });
+      })
+      .getRawMany();
+  }
+
+  static async getCollectionsStatisticTimeseries(
+    statistic: string,
+    slug: string
+  ): Promise<any[]> {
+    //TODO type
+    if (statistic !== "dailyVolume") {
+      return [];
     }
-    return query.getRawMany();
+    return this.createQueryBuilder("historical-statistic")
+      .select(`SUM(historical-statistic.${statistic})`, statistic)
+      .addSelect("extract(epoch from timestamp)", "date")
+      .groupBy("historical-statistic.timestamp")
+      .orderBy({
+        "historical-statistic.timestamp": "ASC",
+      })
+      .innerJoin("historical-statistic.collection", "collection")
+      .where("collection.slug = :slug", { slug })
+      .getRawMany();
+  }
+
+  static async getChainsStatisticTimeseries(
+    statistic: string,
+    chain: string
+  ): Promise<any[]> {
+    //TODO type
+    if (statistic !== "dailyVolume") {
+      return [];
+    }
+    return this.createQueryBuilder("historical-statistic")
+      .select(`SUM(historical-statistic.${statistic})`, statistic)
+      .addSelect("extract(epoch from timestamp)", "date")
+      .groupBy("historical-statistic.timestamp")
+      .orderBy({
+        "historical-statistic.timestamp": "ASC",
+      })
+      .innerJoin("historical-statistic.collection", "collection")
+      .where("collection.chain = :chain", { chain })
+      .getRawMany();
+  }
+
+  static async getIncompleteHistoricalStatistics(): Promise<HistoricalStatistic[]> {
+    return this.createQueryBuilder("historical-statistic")
+      .select('historical-statistic')
+      .where('historical-statistic.dailyVolumeUSD = 0')
+      .getMany()
   }
 }

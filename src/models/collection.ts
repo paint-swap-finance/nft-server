@@ -8,7 +8,7 @@ import {
   PrimaryColumn,
 } from "typeorm";
 
-import { Blockchain } from "../types";
+import { Blockchain, Marketplace } from "../types";
 import { HistoricalStatistic } from "./historical-statistic";
 import { Sale } from "./sale";
 import { Statistic } from "./statistic";
@@ -80,21 +80,28 @@ export class Collection extends BaseEntity {
     column: string,
     direction: "ASC" | "DESC",
     page: number,
-    limit: number
+    limit: number,
+    chain: Blockchain,
   ): Promise<Collection[]> {
-    return this.createQueryBuilder("collection")
-      .innerJoinAndSelect("collection.statistic", "statistic")
-      .orderBy({
-        [`statistic.${column}`]: direction,
-      })
-      .limit(limit)
-      .offset(page * limit)
-      .getMany();
+    const qb = this.createQueryBuilder("collection")
+    .innerJoinAndSelect("collection.statistic", "statistic")
+    .orderBy({
+      [`statistic.${column}`]: direction,
+    })
+    .limit(limit)
+    .offset(page * limit)
+
+    if (chain === Blockchain.Any) {
+      return qb.getMany();
+    }    
+
+    return qb.where("collection.chain = :chain", { chain }).getMany();
   }
 
-  public async getLastSale(): Promise<Sale | undefined> {
+  public async getLastSale(marketplace: Marketplace): Promise<Sale | undefined> {
     return Sale.createQueryBuilder("sale")
       .where("sale.collectionAddress = :address", { address: this.address })
+      .andWhere("sale.marketplace = :marketplace", { marketplace })
       .orderBy({
         "sale.timestamp": "DESC",
       })
@@ -156,5 +163,11 @@ export class Collection extends BaseEntity {
       .where(interval)
       .orderBy("statistic.dailyVolume", "DESC", "NULLS LAST")
       .getMany();
+  }
+
+  static findBySlug(slug: string): Promise<Collection> {
+    return this.createQueryBuilder("collection")
+      .where("collection.slug = :slug", { slug })
+      .getOne();
   }
 }
