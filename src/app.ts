@@ -87,6 +87,12 @@ createConnection({
       res.status(200);
     });
 
+    app.get("/chains", async (req, res) => {
+      const chains = await Collection.getChains();
+      res.send(serialize(chains))
+      res.status(200);
+    })
+
     app.get("/statistics", async (req, res) => {
       const data = await Statistic.getSummary();
       res.send(serialize(data));
