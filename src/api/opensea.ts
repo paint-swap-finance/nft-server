@@ -21,7 +21,6 @@ export class Opensea {
     ethInUSD: number
   ): Promise<CollectionAndStatisticData> {
     const url = `https://api.opensea.io/api/v1/collection/${slug}/`;
-    console.log(url);
     const response = await axios.get(url, {
       headers: { "X-API-KEY": OPENSEA_API_KEY },
     });
@@ -83,7 +82,6 @@ export class Opensea {
     tokenId: string
   ): Promise<CollectionData> {
     const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/`;
-    console.log(url);
     const response = await axios.get(url, {
       headers: { "X-API-KEY": OPENSEA_API_KEY },
     });
@@ -131,7 +129,6 @@ export class Opensea {
     };
     const searchParams = new URLSearchParams(params);
     const url = `https://api.opensea.io/api/v1/events?${searchParams.toString()}`;
-    console.log(url);
     const response = await axios.get(url, {
       headers: { "X-API-KEY": SECONDARY_OPENSEA_API_KEY },
     });

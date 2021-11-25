@@ -9,7 +9,7 @@ export function roundUSD(num: number): number {
   return Math.round(num);
 }
 
-export function isSameDay(d1: Date, d2: Date) {
+export function isSameDay(d1: Date, d2: Date): boolean {
   return (
     d1.getDate() === d2.getDate() &&
     d1.getMonth() === d2.getMonth() &&
@@ -17,9 +17,13 @@ export function isSameDay(d1: Date, d2: Date) {
   );
 }
 
-export function getSlug(text: string) {
+export function getSlug(text: string): string {
   return text
     .toLowerCase()
     .replace(/ /g, "-")
     .replace(/[^\w-]+/g, "");
+}
+
+export function weiToGwei(wei: number): number {
+  return wei / Math.pow(10, 18);
 }

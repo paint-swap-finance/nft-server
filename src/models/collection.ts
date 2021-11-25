@@ -135,7 +135,7 @@ export class Collection extends BaseEntity {
     const shouldDelete: any = {};
     duplicates.forEach((collection) => {
       if (shouldDelete[collection.slug]) {
-        console.log(collection.slug);
+        console.log("Removing duplicate:", collection.slug);
         collection.remove();
       } else {
         shouldDelete[collection.slug] = true;
