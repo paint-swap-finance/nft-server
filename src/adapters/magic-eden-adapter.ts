@@ -19,7 +19,7 @@ async function run(): Promise<void> {
 async function runCollections(): Promise<void> {
   const collections = await MagicEden.getAllCollections();
 
-  console.log("Collections to request:", collections.length);
+  console.log("Magic Eden collections to request:", collections.length);
 
   const solInUSD = await Coingecko.getSolPrice();
 
@@ -54,9 +54,9 @@ async function runSales(): Promise<void> {
     Blockchain.Solana
   );
 
-  console.log("Fetching Sales for collections:", collections.length);
+  console.log("Fetching sales for Magic Eden collections:", collections.length);
   for (const collection of collections) {
-    console.log("Fetching Sales for collection:", collection.name);
+    console.log("Fetching Sales for Magic Eden collection:", collection.name);
     await fetchSales(collection, solInUSD);
   }
 }
@@ -65,11 +65,14 @@ async function fetchCollection(
   collection: MagicEdenCollectionData,
   solInUSD: number
 ): Promise<void> {
-  const existingCollection = await Collection.findSingleFetchedSince(collection.symbol, ONE_HOUR);
+  const existingCollection = await Collection.findSingleFetchedSince(
+    collection.symbol,
+    ONE_HOUR
+  );
 
   if (existingCollection) {
     // Already exists and has been fetched under the last hour
-    return
+    return;
   }
 
   const { metadata, statistics } = await MagicEden.getCollection(
@@ -91,10 +94,20 @@ async function fetchCollection(
       chain: Blockchain.Solana,
       defaultTokenId: "",
     });
+
     const statisticId = (
       await Collection.findOne(address, { relations: ["statistic"] })
-    ).statistic?.id;
-    storedCollection.statistic = Statistic.create({ id: statisticId, ...statistics });
+    )?.statistic?.id;
+
+    if (statisticId) {
+      storedCollection.statistic = Statistic.create({
+        id: statisticId,
+        ...statistics,
+      });
+    } else {
+      storedCollection.statistic = Statistic.create({ ...statistics });
+    }
+    
     storedCollection.lastFetched = new Date(Date.now());
     storedCollection.save();
   }
@@ -126,9 +139,9 @@ async function fetchSales(
         (allSales, nextSale) => ({
           ...allSales,
           [nextSale.txnHash]: Sale.create({
+            ...nextSale,
             collection: collection,
             marketplace: Marketplace.MagicEden,
-            ...nextSale,
           }),
         }),
         {}
