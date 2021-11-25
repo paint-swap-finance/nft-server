@@ -76,4 +76,18 @@ export class Statistic extends BaseEntity {
       100;
     return { ...stats, dailyChange: percentChange };
   }
+
+  static async getChainsSummary(): Promise<any> {
+    const stats = await this.createQueryBuilder("statistic")
+      .select('collection.chain', 'chain')
+      .distinct(true)
+      .addSelect('COUNT(collection)', 'collections')
+      .addSelect('SUM(statistic.totalVolume)', 'totalVolume')
+      .addSelect('SUM(statistic.dailyVolume)', 'dailyVolume') 
+      .leftJoin('statistic.collection', 'collection')
+      .groupBy('collection.chain')
+      .getRawMany()
+
+    return stats
+  }
 }

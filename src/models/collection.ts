@@ -130,13 +130,6 @@ export class Collection extends BaseEntity {
       .getMany();
   }
 
-  static async getChains(): Promise<Blockchain[]> {
-    return this.createQueryBuilder("collection")
-      .select("chain")
-      .distinct(true)
-      .getRawMany()
-  }
-
   static async removeDuplicates(): Promise<void> {
     const duplicates = await Collection.getDuplicates();
     const shouldDelete: any = {};
