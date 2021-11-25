@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import axios from "axios";
-import { getSlug, roundUSD, weiToGwei, isSameDay } from "../utils";
+import { getSlug, roundUSD, weiToETH, isSameDay } from "../utils";
 import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { CollectionData, StatisticData, SaleData } from "../types";
 import { Collection } from "../models/collection";
@@ -129,16 +129,16 @@ export class ImmutableX {
     // TODO optimize
     const dailyVolume = filledOrders.reduce((a, b) => {
       if (isSameDay(new Date(b.timestamp), new Date())) {
-        return a + weiToGwei(parseFloat(b?.buy?.data?.quantity));
+        return a + weiToETH(parseFloat(b?.buy?.data?.quantity));
       }
       return a + 0;
     }, 0);
     const activeOrderPrices = activeOrders.map((order) =>
-      weiToGwei(parseFloat(order?.buy?.data?.quantity))
+      weiToETH(parseFloat(order?.buy?.data?.quantity))
     );
     const floor = activeOrderPrices.length && Math.min(...activeOrderPrices);
     const totalVolume = filledOrders.reduce(
-      (a, b) => a + weiToGwei(parseFloat(b?.buy?.data?.quantity)),
+      (a, b) => a + weiToETH(parseFloat(b?.buy?.data?.quantity)),
       0
     );
     const marketCap =
@@ -186,7 +186,7 @@ export class ImmutableX {
       } = sale;
       const { id: txnHash } = sellData as ImmutableXERC721Data;
       const { quantity } = buyData as ImmutableXERC20Data;
-      const total_price = weiToGwei(parseFloat(quantity));
+      const total_price = weiToETH(parseFloat(quantity));
 
       return {
         collection: null,

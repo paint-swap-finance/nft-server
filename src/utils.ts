@@ -24,6 +24,6 @@ export function getSlug(text: string): string {
     .replace(/[^\w-]+/g, "");
 }
 
-export function weiToGwei(wei: number): number {
+export function weiToETH(wei: number): number {
   return wei / Math.pow(10, 18);
 }
