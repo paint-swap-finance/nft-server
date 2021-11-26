@@ -74,6 +74,38 @@ createConnection({
       res.status(200);
     });
 
+    app.get("/collections/chain/:chain", async (req, res) => {
+      const page = parseInt(req.query.page as string) || 0;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const sortBy = (req.query.sort as string) || "dailyVolume";
+      const sortDirection = (req.query.direction as string) || "DESC";
+      if (sortDirection !== "ASC" && sortDirection !== "DESC") {
+        res.status(400);
+        res.send(JSON.stringify({ error: "Invalid sort direction" }));
+        return;
+      }
+
+      const collections = await Collection.getSorted(
+        sortBy,
+        sortDirection,
+        page,
+        limit,
+        req.params.chain as Blockchain
+      );
+      const flattenedCollections = collections.map((collection) => {
+        const obj = classToPlain(collection);
+        const statObj = collection.statistic;
+        delete obj.statistic;
+        delete statObj.id;
+        return {
+          ...obj,
+          ...statObj,
+        };
+      });
+      res.send(serialize(flattenedCollections));
+      res.status(200);
+    });
+
     app.get("/collection/:slug", async (req, res) => {
       const collection = await Collection.findOne({
         where: { slug: req.params.slug },
@@ -92,6 +124,12 @@ createConnection({
       res.send(serialize(data));
       res.status(200);
     });
+
+    app.get("/statistics/chains", async (req, res) => {
+      const data = await Statistic.getChainsSummary();
+      res.send(serialize(data))
+      res.status(200);
+    })
 
     app.get("/historical-statistic/all/:statistic", async (req, res) => {
       const data = await HistoricalStatistic.getAllStatisticTimeseries(

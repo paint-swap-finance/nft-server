@@ -22,10 +22,10 @@ async function runCollections(): Promise<void> {
   );
 
   if (collections.length === 0) {
-    console.log("No Collections to request...");
+    console.log("No OpenSea collections to request...");
     return;
   }
-  console.log("Collections to request:", collections.length);
+  console.log("OpenSea collections to request:", collections.length);
   const ethInUSD = await Coingecko.getEthPrice();
   for (const collection of collections) {
     try {
@@ -65,9 +65,9 @@ async function runSales(): Promise<void> {
     MAX_INT,
     Blockchain.Ethereum
   );
-  console.log("Fetching Sales for collections:", collections.length);
+  console.log("Fetching sales for OpenSea collections:", collections.length);
   for (const collection of collections) {
-    console.log("Fetching Sales for collection:", collection.name);
+    console.log("Fetching sales for OpenSea collection:", collection.name);
     await fetchSales(collection, ethInUSD);
   }
 }
@@ -128,9 +128,9 @@ async function fetchSales(
           (allSales, nextSale) => ({
             ...allSales,
             [nextSale.txnHash]: Sale.create({
+              ...nextSale,
               collection: collection,
               marketplace: Marketplace.Opensea,
-              ...nextSale,
             }),
           }),
           {}

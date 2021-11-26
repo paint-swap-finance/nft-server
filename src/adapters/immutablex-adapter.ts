@@ -1,12 +1,13 @@
 import axios from "axios";
+
 import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Statistic } from "../models/statistic";
 import { Sale } from "../models/sale";
 import { Blockchain, Marketplace } from "../types";
-import { MagicEden, MagicEdenCollectionData } from "../api/magic-eden";
+import { ImmutableX, ImmutableXCollectionData } from "../api/immutablex";
 import { Coingecko } from "../api/coingecko";
-import { sleep } from "../utils";
+import { sleep, getSlug } from "../utils";
 import { ONE_HOUR } from "../constants";
 
 async function run(): Promise<void> {
@@ -17,15 +18,15 @@ async function run(): Promise<void> {
 }
 
 async function runCollections(): Promise<void> {
-  const collections = await MagicEden.getAllCollections();
+  const collections = await ImmutableX.getAllCollections();
 
-  console.log("Magic Eden collections to request:", collections.length);
+  console.log("IMX collections to request:", collections.length);
 
-  const solInUSD = await Coingecko.getSolPrice();
+  const ethInUSD = await Coingecko.getEthPrice();
 
   for (const collection of collections) {
     try {
-      await fetchCollection(collection, solInUSD);
+      await fetchCollection(collection, ethInUSD);
     } catch (e) {
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404) {
@@ -45,28 +46,28 @@ async function runCollections(): Promise<void> {
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
-  const solInUSD = await Coingecko.getSolPrice();
+  const ethInUSD = await Coingecko.getEthPrice();
   const collections = await Collection.getSorted(
     "totalVolume",
     "DESC",
     0,
     MAX_INT,
-    Blockchain.Solana
+    Blockchain.ImmutableX
   );
 
-  console.log("Fetching sales for Magic Eden collections:", collections.length);
+  console.log("Fetching sales for IMX collections:", collections.length);
   for (const collection of collections) {
-    console.log("Fetching Sales for Magic Eden collection:", collection.name);
-    await fetchSales(collection, solInUSD);
+    console.log("Fetching sales for IMX collection:", collection.name);
+    await fetchSales(collection, ethInUSD);
   }
 }
 
 async function fetchCollection(
-  collection: MagicEdenCollectionData,
-  solInUSD: number
+  collection: ImmutableXCollectionData,
+  ethInUSD: number
 ): Promise<void> {
   const existingCollection = await Collection.findSingleFetchedSince(
-    collection.symbol,
+    getSlug(collection.name),
     ONE_HOUR
   );
 
@@ -75,57 +76,52 @@ async function fetchCollection(
     return;
   }
 
-  const { metadata, statistics } = await MagicEden.getCollection(
-    collection,
-    solInUSD
-  );
-
+  const collectionMetadata = await ImmutableX.getCollectionMetadata(collection);
   const filteredMetadata = Object.fromEntries(
-    Object.entries(metadata).filter(([_, v]) => v != null)
+    Object.entries(collectionMetadata).filter(([_, v]) => v != null)
+  );
+  const storedCollection = Collection.create({
+    chain: Blockchain.ImmutableX,
+    defaultTokenId: "",
+    ...filteredMetadata,
+  });
+
+  const collectionStatistics = await ImmutableX.getCollectionStatistics(
+    collection,
+    ethInUSD
   );
 
-  const address =
-    collection.candyMachineIds?.length && collection.candyMachineIds[0]; //TODO Fix
+  const statisticId = (
+    await Collection.findOne(collection.address, { relations: ["statistic"] })
+  )?.statistic?.id;
 
-  if (address) {
-    const storedCollection = Collection.create({
-      ...filteredMetadata,
-      address,
-      chain: Blockchain.Solana,
-      defaultTokenId: "",
+  if (statisticId) {
+    storedCollection.statistic = Statistic.create({
+      id: statisticId,
+      ...collectionStatistics,
     });
-
-    const statisticId = (
-      await Collection.findOne(address, { relations: ["statistic"] })
-    )?.statistic?.id;
-
-    if (statisticId) {
-      storedCollection.statistic = Statistic.create({
-        id: statisticId,
-        ...statistics,
-      });
-    } else {
-      storedCollection.statistic = Statistic.create({ ...statistics });
-    }
-    
-    storedCollection.lastFetched = new Date(Date.now());
-    storedCollection.save();
+  } else {
+    storedCollection.statistic = Statistic.create({
+      ...collectionStatistics,
+    });
   }
+  storedCollection.lastFetched = new Date(Date.now());
+  storedCollection.save();
 }
 
 async function fetchSales(
   collection: Collection,
-  solInUSD: number
+  ethInUSD: number
 ): Promise<void> {
   const mostRecentSaleTime =
     (
-      await collection.getLastSale(Marketplace.MagicEden)
+      await collection.getLastSale(Marketplace.ImmutableX)
     )?.timestamp?.getTime() || 0;
   try {
-    const salesEvents = await MagicEden.getSales(
+    const salesEvents = await ImmutableX.getSales(
       collection,
       mostRecentSaleTime,
-      solInUSD
+      ethInUSD
     );
 
     if (salesEvents.length === 0) {
@@ -141,7 +137,7 @@ async function fetchSales(
           [nextSale.txnHash]: Sale.create({
             ...nextSale,
             collection: collection,
-            marketplace: Marketplace.MagicEden,
+            marketplace: Marketplace.ImmutableX,
           }),
         }),
         {}
@@ -169,5 +165,5 @@ async function fetchSales(
   }
 }
 
-const MagicEdenAdapter: DataAdapter = { run };
-export default MagicEdenAdapter;
+const ImmutableXAdapter: DataAdapter = { run };
+export default ImmutableXAdapter;

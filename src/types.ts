@@ -2,6 +2,7 @@ export enum Blockchain {
   Any = "any",
   Ethereum = "ethereum",
   Solana = "solana",
+  ImmutableX = "immutablex",
 }
 
 export enum AdapterType {
@@ -11,6 +12,7 @@ export enum AdapterType {
 export enum Marketplace {
   Opensea = "opensea",
   MagicEden = "magic-eden",
+  ImmutableX = "immutablex",
 }
 
 export class LowVolumeError extends Error {
@@ -54,7 +56,7 @@ export interface CollectionAndStatisticData {
 export interface SaleData {
   txnHash: string;
   timestamp: string;
-  paymentToken: string;
+  paymentTokenAddress: string;
   price: number;
   priceUSD: bigint;
   sellerAddress: string;

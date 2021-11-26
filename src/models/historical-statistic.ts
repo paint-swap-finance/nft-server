@@ -120,6 +120,7 @@ export class HistoricalStatistic extends BaseEntity {
     return this.createQueryBuilder("historical-statistic")
       .select('historical-statistic')
       .where('historical-statistic.dailyVolumeUSD = 0')
+      .andWhere('historical-statistic.dailyVolume != 0')
       .getMany()
   }
 }

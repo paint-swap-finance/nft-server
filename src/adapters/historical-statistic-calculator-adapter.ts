@@ -72,7 +72,7 @@ async function updateHistoricalStatistics(): Promise<void> {
       });
 
       if (match) {
-        s.dailyVolumeUSD = BigInt(roundUSD(s.dailyVolume * match[1]));
+        s.dailyVolumeUSD = BigInt(Math.ceil(s.dailyVolume * match[1])); // Round up so <$1 values aren't continually marked as incomplete
         s.save();
       }
     } else if (s.tokenAddress === SOLANA_DEFAULT_TOKEN_ADDRESS) {
@@ -83,7 +83,7 @@ async function updateHistoricalStatistics(): Promise<void> {
       });
 
       if (match) {
-        s.dailyVolumeUSD = BigInt(roundUSD(s.dailyVolume * match[1]));
+        s.dailyVolumeUSD = BigInt(Math.ceil(s.dailyVolume * match[1]));
         s.save();
       }
     }
