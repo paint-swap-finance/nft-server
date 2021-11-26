@@ -78,13 +78,13 @@ export class Statistic extends BaseEntity {
   }
 
   static async getChainsSummary(): Promise<any> {
-    const stats = await this.createQueryBuilder("statistic")
+    const stats = await Collection.createQueryBuilder("collection")
       .select('collection.chain', 'chain')
       .distinct(true)
       .addSelect('COUNT(collection)', 'collections')
       .addSelect('SUM(statistic.totalVolumeUSD)', 'totalVolumeUSD')
       .addSelect('SUM(statistic.dailyVolumeUSD)', 'dailyVolumeUSD') 
-      .leftJoin('statistic.collection', 'collection')
+      .leftJoin('collection.statistic', 'statistic')
       .groupBy('collection.chain')
       .getRawMany()
 
