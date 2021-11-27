@@ -1,10 +1,13 @@
 import axios from "axios";
 
 export class Coingecko {
-  private static ETH_ENDPOINT = "https://api.coingecko.com/api/v3/coins/ethereum";
-  private static ETH_HISTORICAL_ENDPOINT = "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=max&interval=daily"
+  private static ETH_ENDPOINT =
+    "https://api.coingecko.com/api/v3/coins/ethereum";
+  private static ETH_HISTORICAL_ENDPOINT =
+    "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=max&interval=daily";
   private static SOL_ENDPOINT = "https://api.coingecko.com/api/v3/coins/solana";
-  private static SOL_HISTORICAL_ENDPOINT = "https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=max&interval=daily"
+  private static SOL_HISTORICAL_ENDPOINT =
+    "https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=max&interval=daily";
 
   public static async getEthPrice(): Promise<number> {
     const response = await axios.get(Coingecko.ETH_ENDPOINT);
@@ -13,7 +16,7 @@ export class Coingecko {
   }
 
   public static async getHistoricalEthPrices(): Promise<number[][]> {
-    const response = await axios.get(Coingecko.ETH_HISTORICAL_ENDPOINT)
+    const response = await axios.get(Coingecko.ETH_HISTORICAL_ENDPOINT);
     const { prices } = response.data;
     return prices;
   }
@@ -25,7 +28,19 @@ export class Coingecko {
   }
 
   public static async getHistoricalSolPrices(): Promise<number[][]> {
-    const response = await axios.get(Coingecko.SOL_HISTORICAL_ENDPOINT)
+    const response = await axios.get(Coingecko.SOL_HISTORICAL_ENDPOINT);
+    const { prices } = response.data;
+    return prices;
+  }
+
+  public static async getHistoricalPricesByAddress(
+    platform: string,
+    address: string,
+    base: string
+  ): Promise<number[][]> {
+    const response = await axios.get(
+      `https://api.coingecko.com/api/v3/coins/${platform}/contract/${address}/market_chart/?vs_currency=${base}&days=max`
+    );
     const { prices } = response.data;
     return prices;
   }

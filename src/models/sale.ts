@@ -43,4 +43,11 @@ export class Sale extends BaseEntity {
 
   @Column()
   paymentTokenAddress: string;
+
+  static async getUnconverted(): Promise<Sale[]> {
+    return this.createQueryBuilder("sale")
+      .where("sale.priceBase = 0")
+      .orWhere("sale.priceUSD = 0")
+      .getMany();
+  }
 }

@@ -4,7 +4,7 @@ import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Sale } from "../models/sale";
 import { Statistic } from "../models/statistic";
-import { ONE_HOUR } from "../constants"
+import { ONE_HOUR } from "../constants";
 import { sleep } from "../utils";
 import { Coingecko } from "../api/coingecko";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
@@ -99,9 +99,7 @@ async function fetchCollection(
   collection.save();
 }
 
-async function fetchSales(
-  collection: Collection,
-): Promise<void> {
+async function fetchSales(collection: Collection): Promise<void> {
   let offset = 0;
   const limit = 100;
   const mostRecentSaleTime =
@@ -113,7 +111,7 @@ async function fetchSales(
         collection.address,
         mostRecentSaleTime,
         offset,
-        limit,
+        limit
       );
       if (salesEvents.length === 0) {
         sleep(3);
