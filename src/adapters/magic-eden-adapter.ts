@@ -45,7 +45,7 @@ async function runCollections(): Promise<void> {
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
-  const solInUSD = await Coingecko.getSolPrice();
+  const solInUSDPrices = await Coingecko.getHistoricalSolPrices();
   const collections = await Collection.getSorted(
     "totalVolume",
     "DESC",
@@ -57,7 +57,7 @@ async function runSales(): Promise<void> {
   console.log("Fetching sales for Magic Eden collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching Sales for Magic Eden collection:", collection.name);
-    await fetchSales(collection, solInUSD);
+    await fetchSales(collection, solInUSDPrices);
   }
 }
 
@@ -115,7 +115,7 @@ async function fetchCollection(
 
 async function fetchSales(
   collection: Collection,
-  solInUSD: number
+  solInUSDPrices: number[][]
 ): Promise<void> {
   const mostRecentSaleTime =
     (
@@ -125,7 +125,7 @@ async function fetchSales(
     const salesEvents = await MagicEden.getSales(
       collection,
       mostRecentSaleTime,
-      solInUSD
+      solInUSDPrices
     );
 
     if (salesEvents.length === 0) {
