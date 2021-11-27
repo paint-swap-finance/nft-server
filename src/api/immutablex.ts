@@ -1,6 +1,13 @@
 /* eslint-disable camelcase */
 import axios from "axios";
-import { getSlug, roundUSD, weiToETH, isSameDay } from "../utils";
+import {
+  getSlug,
+  roundUSD,
+  weiToETH,
+  isSameDay,
+  getPriceAtDate,
+  formatUSD,
+} from "../utils";
 import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { CollectionData, StatisticData, SaleData } from "../types";
 import { Collection } from "../models/collection";
@@ -160,7 +167,7 @@ export class ImmutableX {
   public static async getSales(
     collection: Collection,
     occurredAfter: number,
-    ethInUSD: number
+    ethInUSDPrices: number[][]
   ): Promise<(SaleData | undefined)[]> {
     const filledOrders = await this.getAllOrders(
       collection.address,
@@ -186,7 +193,9 @@ export class ImmutableX {
       } = sale;
       const { id: txnHash } = sellData as ImmutableXERC721Data;
       const { quantity } = buyData as ImmutableXERC20Data;
-      const total_price = weiToETH(parseFloat(quantity));
+
+      const ethInUSD = getPriceAtDate(timestamp, ethInUSDPrices);
+      const price = weiToETH(parseFloat(quantity));
 
       return {
         collection: null,
@@ -194,8 +203,8 @@ export class ImmutableX {
         txnHash: txnHash.toLowerCase(),
         timestamp,
         paymentTokenAddress,
-        price: total_price,
-        priceUSD: BigInt(roundUSD(total_price * ethInUSD)),
+        price,
+        priceUSD: formatUSD(price * ethInUSD),
         buyerAddress: "",
         sellerAddress: seller_address || "",
       };
