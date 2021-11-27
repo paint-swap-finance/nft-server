@@ -44,3 +44,7 @@ export function getPriceAtDate(
 
   return null;
 }
+
+export function formatUSD(price: number): bigint {
+  return BigInt(roundUSD(price));
+}
