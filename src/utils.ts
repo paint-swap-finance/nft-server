@@ -27,3 +27,20 @@ export function getSlug(text: string): string {
 export function weiToETH(wei: number): number {
   return wei / Math.pow(10, 18);
 }
+
+export function getPriceAtDate(
+  date: string,
+  historicalPrices: number[][] // [0] is a UNIX timestamp, [1] is the price
+): number | null {
+  const match = historicalPrices.find((priceArr) => {
+    const d1 = new Date(priceArr[0]);
+    const d2 = new Date(date);
+    return isSameDay(d1, d2);
+  });
+
+  if (match) {
+    return match[1];
+  }
+
+  return null;
+}
