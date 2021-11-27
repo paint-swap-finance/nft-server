@@ -24,8 +24,9 @@ export function getSlug(text: string): string {
     .replace(/[^\w-]+/g, "");
 }
 
-export function weiToETH(wei: number): number {
-  return wei / Math.pow(10, 18);
+// TODO Rename this to something more meaningful
+export function convertByDecimals(value: number, decimals: number): number {
+  return value / Math.pow(10, decimals);
 }
 
 export function getPriceAtDate(

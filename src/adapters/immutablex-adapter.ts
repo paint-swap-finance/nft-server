@@ -46,7 +46,6 @@ async function runCollections(): Promise<void> {
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
-  const ethInUSDPrices = await Coingecko.getHistoricalEthPrices();
   const collections = await Collection.getSorted(
     "totalVolume",
     "DESC",
@@ -58,7 +57,7 @@ async function runSales(): Promise<void> {
   console.log("Fetching sales for IMX collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching sales for IMX collection:", collection.name);
-    await fetchSales(collection, ethInUSDPrices);
+    await fetchSales(collection);
   }
 }
 
@@ -111,7 +110,6 @@ async function fetchCollection(
 
 async function fetchSales(
   collection: Collection,
-  ethInUSDPrices: number[][]
 ): Promise<void> {
   const mostRecentSaleTime =
     (
@@ -121,7 +119,6 @@ async function fetchSales(
     const salesEvents = await ImmutableX.getSales(
       collection,
       mostRecentSaleTime,
-      ethInUSDPrices
     );
 
     if (salesEvents.length === 0) {

@@ -36,6 +36,9 @@ export class Sale extends BaseEntity {
   price: number;
 
   @Column({ type: "double precision", default: 0 })
+  priceBase: number;
+
+  @Column({ type: "double precision", default: 0 })
   priceUSD: bigint;
 
   @Column()

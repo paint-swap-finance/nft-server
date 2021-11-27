@@ -3,9 +3,8 @@ import axios from "axios";
 import {
   getSlug,
   roundUSD,
-  weiToETH,
   isSameDay,
-  getPriceAtDate,
+  convertByDecimals,
   formatUSD,
 } from "../utils";
 import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
@@ -136,16 +135,16 @@ export class ImmutableX {
     // TODO optimize
     const dailyVolume = filledOrders.reduce((a, b) => {
       if (isSameDay(new Date(b.timestamp), new Date())) {
-        return a + weiToETH(parseFloat(b?.buy?.data?.quantity));
+        return a + convertByDecimals(parseFloat(b?.buy?.data?.quantity), 18);
       }
       return a + 0;
     }, 0);
     const activeOrderPrices = activeOrders.map((order) =>
-      weiToETH(parseFloat(order?.buy?.data?.quantity))
+      convertByDecimals(parseFloat(order?.buy?.data?.quantity), 18)
     );
     const floor = activeOrderPrices.length && Math.min(...activeOrderPrices);
     const totalVolume = filledOrders.reduce(
-      (a, b) => a + weiToETH(parseFloat(b?.buy?.data?.quantity)),
+      (a, b) => a + convertByDecimals(parseFloat(b?.buy?.data?.quantity), 18),
       0
     );
     const marketCap =
@@ -153,21 +152,20 @@ export class ImmutableX {
 
     return {
       dailyVolume,
-      dailyVolumeUSD: BigInt(roundUSD(dailyVolume * ethInUSD)),
+      dailyVolumeUSD: formatUSD(dailyVolume * ethInUSD),
       owners: 0, //TODO get owners
       floor,
       floorUSD: roundUSD(floor * ethInUSD),
       totalVolume,
-      totalVolumeUSD: BigInt(roundUSD(totalVolume * ethInUSD)),
+      totalVolumeUSD: formatUSD(totalVolume * ethInUSD),
       marketCap,
-      marketCapUSD: BigInt(roundUSD(marketCap * ethInUSD)),
+      marketCapUSD: formatUSD(marketCap * ethInUSD),
     };
   }
 
   public static async getSales(
     collection: Collection,
     occurredAfter: number,
-    ethInUSDPrices: number[][]
   ): Promise<(SaleData | undefined)[]> {
     const filledOrders = await this.getAllOrders(
       collection.address,
@@ -184,7 +182,6 @@ export class ImmutableX {
       }
 
       const paymentTokenAddress = ETHEREUM_DEFAULT_TOKEN_ADDRESS;
-
       const {
         timestamp,
         user: seller_address,
@@ -193,9 +190,7 @@ export class ImmutableX {
       } = sale;
       const { id: txnHash } = sellData as ImmutableXERC721Data;
       const { quantity } = buyData as ImmutableXERC20Data;
-
-      const ethInUSD = getPriceAtDate(timestamp, ethInUSDPrices);
-      const price = weiToETH(parseFloat(quantity));
+      const price = convertByDecimals(parseFloat(quantity), 18);
 
       return {
         collection: null,
@@ -204,7 +199,8 @@ export class ImmutableX {
         timestamp,
         paymentTokenAddress,
         price,
-        priceUSD: formatUSD(price * ethInUSD),
+        priceBase: 0,
+        priceUSD: BigInt(0),
         buyerAddress: "",
         sellerAddress: seller_address || "",
       };

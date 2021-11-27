@@ -57,7 +57,6 @@ async function runCollections(): Promise<void> {
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
-  const ethInUSDPrices = await Coingecko.getHistoricalEthPrices();
   const collections = await Collection.getSorted(
     "totalVolume",
     "DESC",
@@ -68,7 +67,7 @@ async function runSales(): Promise<void> {
   console.log("Fetching sales for OpenSea collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching sales for OpenSea collection:", collection.name);
-    await fetchSales(collection, ethInUSDPrices);
+    await fetchSales(collection);
   }
 }
 
@@ -102,7 +101,6 @@ async function fetchCollection(
 
 async function fetchSales(
   collection: Collection,
-  ethInUSDPrices: number[][]
 ): Promise<void> {
   let offset = 0;
   const limit = 100;
@@ -116,7 +114,6 @@ async function fetchSales(
         mostRecentSaleTime,
         offset,
         limit,
-        ethInUSDPrices
       );
       if (salesEvents.length === 0) {
         sleep(3);

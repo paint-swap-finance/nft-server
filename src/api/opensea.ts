@@ -4,7 +4,7 @@ import { URLSearchParams } from "url";
 
 import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { OPENSEA_API_KEY, SECONDARY_OPENSEA_API_KEY } from "../../env";
-import { getPriceAtDate, roundUSD, weiToETH, formatUSD } from "../utils";
+import { roundUSD, convertByDecimals } from "../utils";
 import {
   CollectionAndStatisticData,
   CollectionData,
@@ -117,7 +117,6 @@ export class Opensea {
     occurredAfter: number,
     offset: number,
     limit: number,
-    ethInUSDPrices: number[][]
   ): Promise<(SaleData | undefined)[]> {
     const params: Record<string, string> = {
       asset_contract_address: address,
@@ -144,15 +143,15 @@ export class Opensea {
       const { transaction_hash: txnHash, timestamp } = sale.transaction;
       const { address: paymentTokenAddress, decimals } = paymentToken;
       const { total_price, winner_account, seller, created_date } = sale;
-      const ethInUSD = getPriceAtDate(timestamp, ethInUSDPrices);
-      const price = weiToETH(parseFloat(total_price));
+      const price = convertByDecimals(parseFloat(total_price), decimals);
 
       return {
         txnHash: txnHash.toLowerCase(),
         timestamp: timestamp || created_date,
         paymentTokenAddress,
         price,
-        priceUSD: formatUSD(price * ethInUSD),
+        priceBase: 0,
+        priceUSD: BigInt(0),
         buyerAddress: winner_account?.address || "",
         sellerAddress: seller?.address || "",
       };

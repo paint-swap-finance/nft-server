@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import axios from "axios";
-import { formatUSD, getPriceAtDate, roundUSD } from "../utils";
+import { formatUSD, roundUSD } from "../utils";
 import { SOLANA_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { CollectionAndStatisticData, SaleData } from "../types";
 import { Collection } from "../models/collection";
@@ -89,19 +89,19 @@ export class MagicEden {
       },
       statistics: {
         dailyVolume: one_day_volume / MAGIC_EDEN_MULTIPLIER,
-        dailyVolumeUSD: BigInt(
-          roundUSD((one_day_volume / MAGIC_EDEN_MULTIPLIER) * solInUSD)
+        dailyVolumeUSD: formatUSD(
+          (one_day_volume / MAGIC_EDEN_MULTIPLIER) * solInUSD
         ),
         owners: 0, // TODO add owners, data is not available from Magic Eden
         floor: floor_price / MAGIC_EDEN_MULTIPLIER || 0,
         floorUSD: roundUSD((floor_price / MAGIC_EDEN_MULTIPLIER) * solInUSD),
         totalVolume: total_volume / MAGIC_EDEN_MULTIPLIER,
-        totalVolumeUSD: BigInt(
-          roundUSD((total_volume / MAGIC_EDEN_MULTIPLIER) * solInUSD)
+        totalVolumeUSD: formatUSD(
+          (total_volume / MAGIC_EDEN_MULTIPLIER) * solInUSD
         ),
         marketCap: market_cap / MAGIC_EDEN_MULTIPLIER,
-        marketCapUSD: BigInt(
-          roundUSD((market_cap / MAGIC_EDEN_MULTIPLIER) * solInUSD)
+        marketCapUSD: formatUSD(
+          (market_cap / MAGIC_EDEN_MULTIPLIER) * solInUSD
         ),
       },
     };
@@ -109,8 +109,7 @@ export class MagicEden {
 
   public static async getSales(
     collection: Collection,
-    occurredAfter: number,
-    solInUSDPrices: number[][]
+    occurredAfter: number
   ): Promise<(SaleData | undefined)[]> {
     const url = `https://api-mainnet.magiceden.io/rpc/getGlobalActivitiesByQuery?q={"$match":{"collection_symbol":"${collection.slug}"}}`;
     const response = await axios.get(url);
@@ -136,15 +135,14 @@ export class MagicEden {
         seller_address,
       } = sale.parsedTransaction;
 
-      const solInUSD = getPriceAtDate(timestamp, solInUSDPrices) 
-      const price = total_price / MAGIC_EDEN_MULTIPLIER
+      const price = total_price / MAGIC_EDEN_MULTIPLIER;
 
       return {
         txnHash: txnHash.toLowerCase(),
         timestamp: timestamp,
         paymentTokenAddress,
         price,
-        priceUSD: formatUSD(price * solInUSD),
+        priceUSD: 0,
         buyerAddress: buyer_address || "",
         sellerAddress: seller_address || "",
       };

@@ -58,6 +58,7 @@ export interface SaleData {
   timestamp: string;
   paymentTokenAddress: string;
   price: number;
+  priceBase: number;
   priceUSD: bigint;
   sellerAddress: string;
   buyerAddress: string;
