@@ -51,7 +51,7 @@ export class Sale extends BaseEntity {
     return this.createQueryBuilder("sale")
       .where("sale.price != 0")
       .andWhere("sale.priceBase = 0")
-      .andWhere("sale.priceUSD = 0")
+      .limit(500000)
       .getMany();
   }
 
