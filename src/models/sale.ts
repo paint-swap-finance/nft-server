@@ -55,9 +55,16 @@ export class Sale extends BaseEntity {
       .getMany();
   }
 
-  static async getUnconvertedSalesTokenAddresses(): Promise<
-    Record<string, string>[]
-  > {
+  static async getPaymentTokenAddresses(
+    all = true
+  ): Promise<Record<string, string>[]> {
+    if (all) {
+      return this.createQueryBuilder("sale")
+        .select("sale.paymentTokenAddress", "tokenAddress")
+        .distinct(true)
+        .getRawMany();
+    }
+
     return this.createQueryBuilder("sale")
       .select("sale.paymentTokenAddress", "tokenAddress")
       .distinct(true)

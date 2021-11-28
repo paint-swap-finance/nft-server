@@ -24,15 +24,13 @@ async function runSaleCurrencyConversions(): Promise<void> {
   const sales = await Sale.getUnconvertedSales();
   const tokenAddressPrices = await fetchTokenAddressPrices();
 
-  console.log("Updating currency conversions for", sales.length, "sales");
-
   await updateSaleCurrencyConversions(sales, tokenAddressPrices);
 }
 
-async function fetchTokenAddressPrices(): Promise<Record<string, number[][]>> {
+export async function fetchTokenAddressPrices(): Promise<Record<string, number[][]>> {
   const tokenAddressPrices: Record<string, number[][]> = {};
 
-  const tokenAddressesRaw = await Sale.getUnconvertedSalesTokenAddresses();
+  const tokenAddressesRaw = await Sale.getPaymentTokenAddresses(false);
   const tokenAddresses = tokenAddressesRaw
     .map((data) => data.tokenAddress)
     .filter((data) => !BASE_TOKENS_ADDRESSES.includes(data));
@@ -69,10 +67,12 @@ async function fetchTokenAddressPrices(): Promise<Record<string, number[][]>> {
 }
 
 //TODO optimize and refactor
-async function updateSaleCurrencyConversions(
+export async function updateSaleCurrencyConversions(
   sales: Sale[],
   tokenAddressPrices: Record<string, number[][]>
 ): Promise<void> {
+  console.log("Updating currency conversions for", sales.length, "sales");
+
   for (const sale of sales) {
     const saleTokenAddress = sale.paymentTokenAddress;
     const saleTimestamp = sale.timestamp.toString();
