@@ -72,6 +72,8 @@ async function updateSaleCurrencyConversions(): Promise<void> {
   let count = 0;
   for (const sale of sales) {
     // TODO generalize for other chains
+    console.log(sale.paymentTokenAddress, "is found in price data:", sale.paymentTokenAddress in tokenAddressPrices)
+
     if (
       sale.paymentTokenAddress in tokenAddressPrices &&
       sale.paymentTokenAddress != ETHEREUM_DEFAULT_TOKEN_ADDRESS &&
@@ -90,8 +92,9 @@ async function updateSaleCurrencyConversions(): Promise<void> {
             tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
           )
       );
-      sale.priceBase = priceBase ?? 0;
-      sale.priceUSD = priceUSD ?? BigInt(0);
+
+      sale.priceBase = priceBase ?? -1;
+      sale.priceUSD = priceUSD ?? BigInt(-1);
       console.log(
         sale.txnHash,
         "successfully updated. no",
@@ -136,6 +139,8 @@ async function updateSaleCurrencyConversions(): Promise<void> {
     } else {
       //TODO handle for token addresses whose prices cant be found
       console.log("price data not found for txn hash", sale.txnHash);
+      sale.priceBase = -1;
+      sale.priceUSD = BigInt(-1);
     }
   }
 
