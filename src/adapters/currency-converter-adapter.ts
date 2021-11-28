@@ -81,7 +81,7 @@ async function updateSaleCurrencyConversions(): Promise<void> {
     ) {
       count++;
       const timestamp = sale.timestamp.toString();
-      const priceBase = getPriceAtDate(
+      const priceBase = sale.price * getPriceAtDate(
         timestamp,
         tokenAddressPrices[sale.paymentTokenAddress]
       );
