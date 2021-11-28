@@ -9,13 +9,6 @@ import { Coingecko } from "../api/coingecko";
 import { sleep } from "../utils";
 import { ONE_HOUR } from "../constants";
 
-async function run(): Promise<void> {
-  while (true) {
-    await Promise.all([runCollections(), runSales()]);
-    await sleep(60 * 60);
-  }
-}
-
 async function runCollections(): Promise<void> {
   const collections = await MagicEden.getAllCollections();
 
@@ -55,7 +48,7 @@ async function runSales(): Promise<void> {
 
   console.log("Fetching sales for Magic Eden collections:", collections.length);
   for (const collection of collections) {
-    console.log("Fetching Sales for Magic Eden collection:", collection.name);
+    console.log("Fetching sales for Magic Eden collection:", collection.name);
     await fetchSales(collection);
   }
 }
@@ -106,15 +99,13 @@ async function fetchCollection(
     } else {
       storedCollection.statistic = Statistic.create({ ...statistics });
     }
-    
+
     storedCollection.lastFetched = new Date(Date.now());
     storedCollection.save();
   }
 }
 
-async function fetchSales(
-  collection: Collection,
-): Promise<void> {
+async function fetchSales(collection: Collection): Promise<void> {
   const mostRecentSaleTime =
     (
       await collection.getLastSale(Marketplace.MagicEden)
@@ -122,7 +113,7 @@ async function fetchSales(
   try {
     const salesEvents = await MagicEden.getSales(
       collection,
-      mostRecentSaleTime,
+      mostRecentSaleTime
     );
 
     if (salesEvents.length === 0) {
@@ -163,6 +154,17 @@ async function fetchSales(
         await sleep(60);
       }
     }
+  }
+}
+
+async function run(): Promise<void> {
+  try {
+    while (true) {
+      await Promise.all([runCollections(), runSales()]);
+      await sleep(60 * 60);
+    }
+  } catch (e) {
+    console.error("Magic Eden adapter error:", e.message);
   }
 }
 

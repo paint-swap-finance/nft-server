@@ -48,10 +48,14 @@ do update set
 `;
 
 async function run(): Promise<void> {
-  while (true) {
-    console.log("Running historical statistic calculator");
-    await Collection.query(QUERY);
-    await sleep(60 * 60);
+  try {
+    while (true) {
+      console.log("Running historical statistic calculator");
+      await Collection.query(QUERY);
+      await sleep(60 * 60);
+    }
+  } catch (e) {
+    console.error("Historical statistic calculator adapter error:", e.message);
   }
 }
 

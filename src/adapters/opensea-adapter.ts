@@ -9,12 +9,6 @@ import { sleep } from "../utils";
 import { Coingecko } from "../api/coingecko";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
 
-async function run(): Promise<void> {
-  while (true) {
-    await Promise.all([runCollections(), runSales()]);
-  }
-}
-
 async function runCollections(): Promise<void> {
   const allCollections = await Collection.findNotFetchedSince(ONE_HOUR);
   const collections = allCollections.filter(
@@ -152,6 +146,16 @@ async function fetchSales(collection: Collection): Promise<void> {
       }
       continue;
     }
+  }
+}
+
+async function run(): Promise<void> {
+  try {
+    while (true) {
+      await Promise.all([runCollections(), runSales()]);
+    }
+  } catch (e) {
+    console.error("OpenSea adapter error:", e.message);
   }
 }
 
