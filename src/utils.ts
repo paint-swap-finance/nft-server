@@ -24,6 +24,29 @@ export function getSlug(text: string): string {
     .replace(/[^\w-]+/g, "");
 }
 
-export function weiToETH(wei: number): number {
-  return wei / Math.pow(10, 18);
+// TODO Rename this to something more meaningful
+export function convertByDecimals(value: number, decimals: number): number {
+  return value / Math.pow(10, decimals);
+}
+
+export function getPriceAtDate(
+  date: string,
+  historicalPrices: number[][] // [0] is a UNIX timestamp, [1] is the price
+): number | null {
+  const givenDate = new Date(date);
+  
+  const match = historicalPrices.find((priceArr) => {
+    const historicalDate = new Date(priceArr[0]);
+    return isSameDay(givenDate, historicalDate);
+  });
+
+  if (match) {
+    return match[1];
+  }
+
+  return null;
+}
+
+export function formatUSD(price: number): bigint {
+  return BigInt(roundUSD(price));
 }

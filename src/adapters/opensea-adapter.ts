@@ -4,16 +4,10 @@ import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Sale } from "../models/sale";
 import { Statistic } from "../models/statistic";
-import { ONE_HOUR } from "../constants"
+import { ONE_HOUR } from "../constants";
 import { sleep } from "../utils";
 import { Coingecko } from "../api/coingecko";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
-
-async function run(): Promise<void> {
-  while (true) {
-    await Promise.all([runCollections(), runSales()]);
-  }
-}
 
 async function runCollections(): Promise<void> {
   const allCollections = await Collection.findNotFetchedSince(ONE_HOUR);
@@ -57,7 +51,6 @@ async function runCollections(): Promise<void> {
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
-  const ethInUSD = await Coingecko.getEthPrice();
   const collections = await Collection.getSorted(
     "totalVolume",
     "DESC",
@@ -68,7 +61,7 @@ async function runSales(): Promise<void> {
   console.log("Fetching sales for OpenSea collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching sales for OpenSea collection:", collection.name);
-    await fetchSales(collection, ethInUSD);
+    await fetchSales(collection);
   }
 }
 
@@ -100,10 +93,7 @@ async function fetchCollection(
   collection.save();
 }
 
-async function fetchSales(
-  collection: Collection,
-  ethInUSD: number
-): Promise<void> {
+async function fetchSales(collection: Collection): Promise<void> {
   let offset = 0;
   const limit = 100;
   const mostRecentSaleTime =
@@ -115,8 +105,7 @@ async function fetchSales(
         collection.address,
         mostRecentSaleTime,
         offset,
-        limit,
-        ethInUSD
+        limit
       );
       if (salesEvents.length === 0) {
         sleep(3);
@@ -157,6 +146,16 @@ async function fetchSales(
       }
       continue;
     }
+  }
+}
+
+async function run(): Promise<void> {
+  try {
+    while (true) {
+      await Promise.all([runCollections(), runSales()]);
+    }
+  } catch (e) {
+    console.error("OpenSea adapter error:", e.message);
   }
 }
 

@@ -69,12 +69,16 @@ async function fetchCollectionAddresses() {
 }
 
 async function run(): Promise<void> {
-  Moralis.initialize(MORALIS_APP_ID);
-  Moralis.serverURL = MORALIS_SERVER_URL;
+  try {
+    Moralis.initialize(MORALIS_APP_ID);
+    Moralis.serverURL = MORALIS_SERVER_URL;
 
-  while (true) {
-    await fetchCollectionAddresses();
-    await sleep(60 * 30);
+    while (true) {
+      await fetchCollectionAddresses();
+      await sleep(60 * 30);
+    }
+  } catch (e) {
+    console.error("Moralis adapter error:", e.message);
   }
 }
 

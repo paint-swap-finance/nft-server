@@ -10,13 +10,6 @@ import { Coingecko } from "../api/coingecko";
 import { sleep, getSlug } from "../utils";
 import { ONE_HOUR } from "../constants";
 
-async function run(): Promise<void> {
-  while (true) {
-    await Promise.all([runCollections(), runSales()]);
-    await sleep(60 * 60);
-  }
-}
-
 async function runCollections(): Promise<void> {
   const collections = await ImmutableX.getAllCollections();
 
@@ -46,7 +39,6 @@ async function runCollections(): Promise<void> {
 
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
-  const ethInUSD = await Coingecko.getEthPrice();
   const collections = await Collection.getSorted(
     "totalVolume",
     "DESC",
@@ -58,7 +50,7 @@ async function runSales(): Promise<void> {
   console.log("Fetching sales for IMX collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching sales for IMX collection:", collection.name);
-    await fetchSales(collection, ethInUSD);
+    await fetchSales(collection);
   }
 }
 
@@ -109,10 +101,7 @@ async function fetchCollection(
   storedCollection.save();
 }
 
-async function fetchSales(
-  collection: Collection,
-  ethInUSD: number
-): Promise<void> {
+async function fetchSales(collection: Collection): Promise<void> {
   const mostRecentSaleTime =
     (
       await collection.getLastSale(Marketplace.ImmutableX)
@@ -120,8 +109,7 @@ async function fetchSales(
   try {
     const salesEvents = await ImmutableX.getSales(
       collection,
-      mostRecentSaleTime,
-      ethInUSD
+      mostRecentSaleTime
     );
 
     if (salesEvents.length === 0) {
@@ -162,6 +150,17 @@ async function fetchSales(
         await sleep(60);
       }
     }
+  }
+}
+
+async function run(): Promise<void> {
+  try {
+    while (true) {
+      await Promise.all([runCollections(), runSales()]);
+      await sleep(60 * 60);
+    }
+  } catch (e) {
+    console.error("ImmutableX adapter error:", e.message);
   }
 }
 
