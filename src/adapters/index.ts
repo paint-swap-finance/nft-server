@@ -10,11 +10,11 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
-  //MoralisAdapter,
-  //OpenseaAdapter,
-  //MagicEdenAdapter,
-  //ImmutableXAdapter,
-  //HistoricalStatisticCalculatorAdapter,
+  MoralisAdapter,
+  OpenseaAdapter,
+  MagicEdenAdapter,
+  ImmutableXAdapter,
+  HistoricalStatisticCalculatorAdapter,
   CurrencyConverterAdapter,
 ];
 

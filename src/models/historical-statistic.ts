@@ -7,7 +7,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
 import { Collection } from "./collection";
 
 @Entity()
@@ -33,6 +32,9 @@ export class HistoricalStatistic extends BaseEntity {
 
   @Column({ type: "double precision" })
   dailyVolume: number;
+
+  @Column({ type: 'double precision'})
+  dailyVolumeBase: number;
 
   @Column({ type: "bigint" })
   dailyVolumeUSD: bigint;
@@ -81,7 +83,7 @@ export class HistoricalStatistic extends BaseEntity {
     slug: string
   ): Promise<any[]> {
     //TODO type
-    if (statistic !== "dailyVolume") {
+    if (statistic !== "dailyVolumeBase") {
       return [];
     }
     return this.createQueryBuilder("historical-statistic")
@@ -101,7 +103,7 @@ export class HistoricalStatistic extends BaseEntity {
     chain: string
   ): Promise<any[]> {
     //TODO type
-    if (statistic !== "dailyVolume") {
+    if (statistic !== "dailyVolumeBase") {
       return [];
     }
     return this.createQueryBuilder("historical-statistic")
