@@ -24,6 +24,66 @@ async function run(): Promise<void> {
 //TODO optimize and refactor
 async function updateSaleCurrencyConversions(): Promise<void> {
   const sales = await Sale.getUnconverted();
+  const tokenAddressPrices = await fetchTokenAddressPrices(sales);
+
+  console.log("Updating currency conversions for", sales.length, "sales");
+
+  for (const sale of sales) {
+    //TODO generalize for other chains
+    if (
+      sale.paymentTokenAddress in tokenAddressPrices &&
+      sale.paymentTokenAddress != ETHEREUM_DEFAULT_TOKEN_ADDRESS &&
+      sale.paymentTokenAddress != SOLANA_DEFAULT_TOKEN_ADDRESS
+    ) {
+      const timestamp = sale.timestamp.toString();
+      const baseAtDate = getPriceAtDate(
+        timestamp,
+        tokenAddressPrices[sale.paymentTokenAddress]
+      );
+      const priceBase = baseAtDate ? sale.price * baseAtDate : null;
+      const priceUSD = priceBase
+        ? formatUSD(
+            priceBase *
+              getPriceAtDate(
+                timestamp,
+                tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
+              )
+          )
+        : null;
+
+      sale.priceBase = priceBase ?? -1;
+      sale.priceUSD = priceUSD ?? BigInt(-1);
+    } else if (sale.paymentTokenAddress == ETHEREUM_DEFAULT_TOKEN_ADDRESS) {
+      sale.priceBase = sale.price;
+      sale.priceUSD = formatUSD(
+        sale.price *
+          getPriceAtDate(
+            sale.timestamp.toString(),
+            tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
+          )
+      );
+    } else if (sale.paymentTokenAddress == SOLANA_DEFAULT_TOKEN_ADDRESS) {
+      sale.priceBase = sale.price;
+      sale.priceUSD = formatUSD(
+        sale.price *
+          getPriceAtDate(
+            sale.timestamp.toString(),
+            tokenAddressPrices[SOLANA_DEFAULT_TOKEN_ADDRESS]
+          )
+      );
+    } else {
+      sale.priceBase = -1;
+      sale.priceUSD = BigInt(-1);
+    }
+  }
+
+  Sale.save(sales, { chunk: 100 });
+}
+
+async function fetchTokenAddressPrices(
+  sales: Sale[]
+): Promise<Record<string, number[][]>> {
+  let tokenAddressPrices: Record<string, number[][]> = {};
 
   const tokenAddresses = sales.reduce((addresses, sale) => {
     const tokenAddress = sale.paymentTokenAddress;
@@ -35,8 +95,6 @@ async function updateSaleCurrencyConversions(): Promise<void> {
     return addresses;
   }, []);
 
-  let tokenAddressPrices: Record<string, number[][]> = {};
-
   // TODO do not hardcode
   tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS] =
     await Coingecko.getHistoricalEthPrices();
@@ -45,7 +103,7 @@ async function updateSaleCurrencyConversions(): Promise<void> {
 
   for (const tokenAddress of tokenAddresses) {
     try {
-      //TODO generalize for other chains
+      //TODO generalize for other chains with multiple payment tokens
       const prices = await Coingecko.getHistoricalPricesByAddress(
         "ethereum",
         tokenAddress,
@@ -67,92 +125,7 @@ async function updateSaleCurrencyConversions(): Promise<void> {
     await sleep(1);
   }
 
-  console.log("Updating currency conversions for", sales.length, "sales");
-
-  let count = 0;
-  for (const sale of sales) {
-    // TODO generalize for other chains
-    console.log(
-      sale.paymentTokenAddress,
-      "is found in price data:",
-      sale.paymentTokenAddress in tokenAddressPrices
-    );
-
-    if (
-      sale.paymentTokenAddress in tokenAddressPrices &&
-      sale.paymentTokenAddress != ETHEREUM_DEFAULT_TOKEN_ADDRESS &&
-      sale.paymentTokenAddress != SOLANA_DEFAULT_TOKEN_ADDRESS
-    ) {
-      count++;
-      const timestamp = sale.timestamp.toString();
-      const baseAtDate = getPriceAtDate(
-        timestamp,
-        tokenAddressPrices[sale.paymentTokenAddress]
-      );
-      const priceBase = baseAtDate ? sale.price * baseAtDate : null;
-      const priceUSD = priceBase
-        ? formatUSD(
-            priceBase *
-              getPriceAtDate(
-                timestamp,
-                tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
-              )
-          )
-        : null;
-
-      sale.priceBase = priceBase ?? -1;
-      sale.priceUSD = priceUSD ?? BigInt(-1);
-      console.log(
-        sale.txnHash,
-        "successfully updated. no",
-        count,
-        "of",
-        sales.length
-      );
-    } else if (sale.paymentTokenAddress == ETHEREUM_DEFAULT_TOKEN_ADDRESS) {
-      count++;
-      sale.priceBase = sale.price;
-      sale.priceUSD = formatUSD(
-        sale.price *
-          getPriceAtDate(
-            sale.timestamp.toString(),
-            tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
-          )
-      );
-      console.log(
-        sale.txnHash,
-        "successfully updated. no",
-        count,
-        "of",
-        sales.length
-      );
-    } else if (sale.paymentTokenAddress == SOLANA_DEFAULT_TOKEN_ADDRESS) {
-      count++;
-      sale.priceBase = sale.price;
-      sale.priceUSD = formatUSD(
-        sale.price *
-          getPriceAtDate(
-            sale.timestamp.toString(),
-            tokenAddressPrices[SOLANA_DEFAULT_TOKEN_ADDRESS]
-          )
-      );
-      console.log(
-        sale.txnHash,
-        "successfully updated. no",
-        count,
-        "of",
-        sales.length
-      );
-    } else {
-      //TODO handle for token addresses whose prices cant be found
-      console.log("price data not found for txn hash", sale.txnHash);
-      sale.priceBase = -1;
-      sale.priceUSD = BigInt(-1);
-    }
-  }
-
-  Sale.save(sales, { chunk: 100 });
-  console.log("saving updated values for", sales.length, "sales");
+  return tokenAddressPrices;
 }
 
 const CurrencyConverterAdapter: DataAdapter = { run };
