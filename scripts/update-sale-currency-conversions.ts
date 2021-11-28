@@ -21,7 +21,10 @@ const main = async () => {
     synchronize: true,
     logging: false,
   }).then(async (connection) => {
-    const sales = await Sale.createQueryBuilder("sale").getMany();
+    const sales = await Sale.createQueryBuilder("sale")
+      .where("sale.price != 0")
+      .andWhere("sale.priceBase = 0")
+      .getMany();
     const tokenAddressPrices = await fetchTokenAddressPrices();
 
     await updateSaleCurrencyConversions(sales, tokenAddressPrices);
