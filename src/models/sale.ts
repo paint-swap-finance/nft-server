@@ -36,7 +36,7 @@ export class Sale extends BaseEntity {
   @Column({ type: "double precision" })
   price: number;
 
-  // The price denominated in the chain's native token 
+  // The price denominated in the chain's native token
   @Column({ type: "double precision", default: 0 })
   priceBase: number;
 
@@ -47,11 +47,23 @@ export class Sale extends BaseEntity {
   @Column()
   paymentTokenAddress: string;
 
-  static async getUnconverted(): Promise<Sale[]> {
+  static async getUnconvertedSales(): Promise<Sale[]> {
     return this.createQueryBuilder("sale")
       .where("sale.price != 0")
       .andWhere("sale.priceBase = 0")
       .andWhere("sale.priceUSD = 0")
       .getMany();
+  }
+
+  static async getUnconvertedSalesTokenAddresses(): Promise<
+    Record<string, string>[]
+  > {
+    return this.createQueryBuilder("sale")
+      .select("sale.paymentTokenAddress", "tokenAddress")
+      .distinct(true)
+      .where("sale.price != 0")
+      .andWhere("sale.priceBase = 0")
+      .andWhere("sale.priceUSD = 0")
+      .getRawMany();
   }
 }

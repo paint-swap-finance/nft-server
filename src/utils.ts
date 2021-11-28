@@ -33,10 +33,11 @@ export function getPriceAtDate(
   date: string,
   historicalPrices: number[][] // [0] is a UNIX timestamp, [1] is the price
 ): number | null {
+  const givenDate = new Date(date);
+  
   const match = historicalPrices.find((priceArr) => {
-    const d1 = new Date(priceArr[0]);
-    const d2 = new Date(date);
-    return isSameDay(d1, d2);
+    const historicalDate = new Date(priceArr[0]);
+    return isSameDay(givenDate, historicalDate);
   });
 
   if (match) {

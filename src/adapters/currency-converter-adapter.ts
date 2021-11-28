@@ -8,102 +8,42 @@ import {
   SOLANA_DEFAULT_TOKEN_ADDRESS,
 } from "../constants";
 
-const DEFAULT_TOKENS = [
-  ETHEREUM_DEFAULT_TOKEN_ADDRESS,
-  SOLANA_DEFAULT_TOKEN_ADDRESS,
+const BASE_TOKENS = [
+  {
+    address: ETHEREUM_DEFAULT_TOKEN_ADDRESS,
+    fetch: Coingecko.getHistoricalEthPrices,
+  },
+  {
+    address: SOLANA_DEFAULT_TOKEN_ADDRESS,
+    fetch: Coingecko.getHistoricalSolPrices,
+  },
 ];
+const BASE_TOKENS_ADDRESSES = BASE_TOKENS.map((token) => token.address);
 
-async function run(): Promise<void> {
-  while (true) {
-    console.log("Running currency converter");
-    await updateSaleCurrencyConversions();
-    await sleep(60 * 60);
-  }
-}
-
-//TODO optimize and refactor
-async function updateSaleCurrencyConversions(): Promise<void> {
-  const sales = await Sale.getUnconverted();
-  const tokenAddressPrices = await fetchTokenAddressPrices(sales);
+async function runSaleCurrencyConversions(): Promise<void> {
+  const sales = await Sale.getUnconvertedSales();
+  const tokenAddressPrices = await fetchTokenAddressPrices();
 
   console.log("Updating currency conversions for", sales.length, "sales");
 
-  for (const sale of sales) {
-    //TODO generalize for other chains
-    if (
-      sale.paymentTokenAddress in tokenAddressPrices &&
-      sale.paymentTokenAddress != ETHEREUM_DEFAULT_TOKEN_ADDRESS &&
-      sale.paymentTokenAddress != SOLANA_DEFAULT_TOKEN_ADDRESS
-    ) {
-      const timestamp = sale.timestamp.toString();
-      const baseAtDate = getPriceAtDate(
-        timestamp,
-        tokenAddressPrices[sale.paymentTokenAddress]
-      );
-      const priceBase = baseAtDate ? sale.price * baseAtDate : null;
-      const priceUSD = priceBase
-        ? formatUSD(
-            priceBase *
-              getPriceAtDate(
-                timestamp,
-                tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
-              )
-          )
-        : null;
-
-      sale.priceBase = priceBase ?? -1;
-      sale.priceUSD = priceUSD ?? BigInt(-1);
-    } else if (sale.paymentTokenAddress == ETHEREUM_DEFAULT_TOKEN_ADDRESS) {
-      sale.priceBase = sale.price;
-      sale.priceUSD = formatUSD(
-        sale.price *
-          getPriceAtDate(
-            sale.timestamp.toString(),
-            tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
-          )
-      );
-    } else if (sale.paymentTokenAddress == SOLANA_DEFAULT_TOKEN_ADDRESS) {
-      sale.priceBase = sale.price;
-      sale.priceUSD = formatUSD(
-        sale.price *
-          getPriceAtDate(
-            sale.timestamp.toString(),
-            tokenAddressPrices[SOLANA_DEFAULT_TOKEN_ADDRESS]
-          )
-      );
-    } else {
-      sale.priceBase = -1;
-      sale.priceUSD = BigInt(-1);
-    }
-  }
-
-  Sale.save(sales, { chunk: 100 });
+  await updateSaleCurrencyConversions(sales, tokenAddressPrices);
 }
 
-async function fetchTokenAddressPrices(
-  sales: Sale[]
-): Promise<Record<string, number[][]>> {
-  let tokenAddressPrices: Record<string, number[][]> = {};
+async function fetchTokenAddressPrices(): Promise<Record<string, number[][]>> {
+  const tokenAddressPrices: Record<string, number[][]> = {};
 
-  const tokenAddresses = sales.reduce((addresses, sale) => {
-    const tokenAddress = sale.paymentTokenAddress;
-    const notBaseToken = !DEFAULT_TOKENS.includes(tokenAddress);
-    const isUnique = !addresses.includes(tokenAddress);
-    if (notBaseToken && isUnique) {
-      addresses.push(tokenAddress);
-    }
-    return addresses;
-  }, []);
+  const tokenAddressesRaw = await Sale.getUnconvertedSalesTokenAddresses();
+  const tokenAddresses = tokenAddressesRaw
+    .map((data) => data.tokenAddress)
+    .filter((data) => !BASE_TOKENS_ADDRESSES.includes(data));
 
-  // TODO do not hardcode
-  tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS] =
-    await Coingecko.getHistoricalEthPrices();
-  tokenAddressPrices[SOLANA_DEFAULT_TOKEN_ADDRESS] =
-    await Coingecko.getHistoricalSolPrices();
+  for (const baseToken of BASE_TOKENS) {
+    tokenAddressPrices[baseToken.address] = await baseToken.fetch();
+  }
 
   for (const tokenAddress of tokenAddresses) {
     try {
-      //TODO generalize for other chains with multiple payment tokens
+      //TODO generalize for tokens on other chains
       const prices = await Coingecko.getHistoricalPricesByAddress(
         "ethereum",
         tokenAddress,
@@ -126,6 +66,71 @@ async function fetchTokenAddressPrices(
   }
 
   return tokenAddressPrices;
+}
+
+//TODO optimize and refactor
+async function updateSaleCurrencyConversions(
+  sales: Sale[],
+  tokenAddressPrices: Record<string, number[][]>
+): Promise<void> {
+  for (const sale of sales) {
+    const saleTokenAddress = sale.paymentTokenAddress;
+    const saleTimestamp = sale.timestamp.toString();
+    const salePrice = sale.price;
+
+    if (
+      saleTokenAddress in tokenAddressPrices &&
+      !BASE_TOKENS_ADDRESSES.includes(saleTokenAddress)
+    ) {
+      const baseAtDate = getPriceAtDate(
+        saleTimestamp,
+        tokenAddressPrices[saleTokenAddress]
+      );
+      const priceBase = baseAtDate ? salePrice * baseAtDate : null;
+
+      //TODO generalize for tokens on other chains
+      const priceUSD = priceBase
+        ? formatUSD(
+            priceBase *
+              getPriceAtDate(
+                saleTimestamp,
+                tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
+              )
+          )
+        : null;
+
+      sale.priceBase = priceBase ?? -1;
+      sale.priceUSD = priceUSD ?? BigInt(-1);
+    } else if (BASE_TOKENS_ADDRESSES.includes(saleTokenAddress)) {
+      sale.priceBase = salePrice;
+      sale.priceUSD = formatUSD(
+        salePrice *
+          getPriceAtDate(saleTimestamp, tokenAddressPrices[saleTokenAddress])
+      );
+    } else {
+      sale.priceBase = -1;
+      sale.priceUSD = BigInt(-1);
+    }
+  }
+
+  // Break in chunks of 65535 so Postgres doesn't break, and
+  // save in chunks of 1000 so Typeorm doesn't freeze
+  while (sales.length) {
+    console.log("Sales left to update:", sales.length);
+    await Sale.save(sales.splice(0, 65535), { chunk: 1000 });
+  }
+}
+
+async function run(): Promise<void> {
+  try {
+    while (true) {
+      console.log("Running currency converter");
+      await runSaleCurrencyConversions();
+      await sleep(60 * 60);
+    }
+  } catch (e) {
+    console.error("Currency converter adapter error:", e.message);
+  }
 }
 
 const CurrencyConverterAdapter: DataAdapter = { run };
