@@ -21,7 +21,7 @@ async function run(): Promise<void> {
   }
 }
 
-//TODO optimize
+//TODO optimize and refactor
 async function updateSaleCurrencyConversions(): Promise<void> {
   const sales = await Sale.getUnconverted();
 
@@ -72,7 +72,11 @@ async function updateSaleCurrencyConversions(): Promise<void> {
   let count = 0;
   for (const sale of sales) {
     // TODO generalize for other chains
-    console.log(sale.paymentTokenAddress, "is found in price data:", sale.paymentTokenAddress in tokenAddressPrices)
+    console.log(
+      sale.paymentTokenAddress,
+      "is found in price data:",
+      sale.paymentTokenAddress in tokenAddressPrices
+    );
 
     if (
       sale.paymentTokenAddress in tokenAddressPrices &&
@@ -81,17 +85,20 @@ async function updateSaleCurrencyConversions(): Promise<void> {
     ) {
       count++;
       const timestamp = sale.timestamp.toString();
-      const priceBase = sale.price * getPriceAtDate(
+      const baseAtDate = getPriceAtDate(
         timestamp,
         tokenAddressPrices[sale.paymentTokenAddress]
       );
-      const priceUSD = formatUSD(
-        priceBase *
-          getPriceAtDate(
-            timestamp,
-            tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
+      const priceBase = baseAtDate ? sale.price * baseAtDate : null;
+      const priceUSD = priceBase
+        ? formatUSD(
+            priceBase *
+              getPriceAtDate(
+                timestamp,
+                tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
+              )
           )
-      );
+        : null;
 
       sale.priceBase = priceBase ?? -1;
       sale.priceUSD = priceUSD ?? BigInt(-1);
