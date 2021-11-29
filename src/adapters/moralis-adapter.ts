@@ -38,7 +38,7 @@ async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
   const endBlock = adapterState.lastSyncedBlockNumber;
 
   console.log(
-    `Retrieving NFT collections parsing txns between blocks ${startBlock} --> ${endBlock}`
+    `Retrieving ${chain} NFT collections parsing txns between blocks ${startBlock} --> ${endBlock}`
   );
   for (let blockNumber = startBlock; blockNumber >= endBlock; blockNumber--) {
     try {
@@ -68,8 +68,7 @@ async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
         Collection.save(Object.values(collections));
         collections = {};
         console.log(
-          "Finished syncing collections from blockNumber",
-          blockNumber
+          `Finished syncing ${chain} collections from blockNumber ${blockNumber}`,
         );
       }
     } catch (e) {
