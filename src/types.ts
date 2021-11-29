@@ -3,6 +3,7 @@ export enum Blockchain {
   Ethereum = "ethereum",
   Solana = "solana",
   ImmutableX = "immutablex",
+  Binance = "binance"
 }
 
 export enum AdapterType {

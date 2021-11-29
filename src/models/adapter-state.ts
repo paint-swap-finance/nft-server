@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from "typeorm";
 
-import { AdapterType } from "../types";
+import { AdapterType, Blockchain } from "../types";
 
 @Entity()
 export class AdapterState extends BaseEntity {
@@ -14,15 +14,18 @@ export class AdapterState extends BaseEntity {
   id: number;
 
   @Column()
-  @Index({ unique: true })
   name: AdapterType;
+
+  @Column({ default: Blockchain.Ethereum })
+  chain: Blockchain;
 
   @Column({ default: 0, type: "bigint" })
   lastSyncedBlockNumber: bigint;
 
-  static findByName(name: AdapterType) {
+  static findByNameAndChain(name: AdapterType, chain: Blockchain) {
     return this.createQueryBuilder("adapterState")
       .where("adapterState.name = :name", { name })
+      .andWhere("adapterState.chain = :chain", { chain })
       .getOne();
   }
 }

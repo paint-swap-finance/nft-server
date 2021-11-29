@@ -1,24 +1,39 @@
 import { ethers } from "ethers";
 import { Collection } from "../models/collection";
 import { DataAdapter } from ".";
-import { MORALIS_APP_ID, MORALIS_SERVER_URL } from "../../env";
+import {
+  BINANCE_RPC,
+  ETHEREUM_RPC,
+  MORALIS_APP_ID,
+  MORALIS_SERVER_URL,
+} from "../../env";
 import { AdapterType, Blockchain } from "../types";
 import { AdapterState } from "../models/adapter-state";
 import { sleep } from "../utils";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Moralis = require("moralis/node");
 
-async function fetchCollectionAddresses() {
-  let adapterState = await AdapterState.findByName(AdapterType.Moralis);
+const MoralisChains: Record<Blockchain, string> = {
+  [Blockchain.Any]: "",
+  [Blockchain.Solana]: "",
+  [Blockchain.ImmutableX]: "",
+  [Blockchain.Ethereum]: "eth",
+  [Blockchain.Binance]: "bsc",
+};
+
+async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
+  let adapterState = await AdapterState.findByNameAndChain(
+    AdapterType.Moralis,
+    chain
+  );
+
   if (!adapterState) {
-    adapterState = AdapterState.create({ name: AdapterType.Moralis });
+    adapterState = AdapterState.create({ name: AdapterType.Moralis, chain });
     adapterState.save();
   }
 
   let collections = {};
-  const provider = new ethers.providers.StaticJsonRpcProvider(
-    process.env.ETHEREUM_RPC
-  );
+  const provider = new ethers.providers.StaticJsonRpcProvider(rpc);
   const startBlock = await provider.getBlockNumber();
   const endBlock = adapterState.lastSyncedBlockNumber;
 
@@ -28,7 +43,7 @@ async function fetchCollectionAddresses() {
   for (let blockNumber = startBlock; blockNumber >= endBlock; blockNumber--) {
     try {
       const nftTransfers = await Moralis.Web3API.native.getNFTTransfersByBlock({
-        chain: "eth",
+        chain: MoralisChains[chain],
         block_number_or_hash: blockNumber.toString(),
       });
       collections = nftTransfers.result
@@ -42,7 +57,7 @@ async function fetchCollectionAddresses() {
             [nextCollection.address]: Collection.create({
               address: nextCollection.address.toLowerCase(),
               defaultTokenId: nextCollection.tokenId.toLowerCase(),
-              chain: Blockchain.Ethereum,
+              chain,
             }),
           }),
           collections
@@ -74,7 +89,10 @@ async function run(): Promise<void> {
     Moralis.serverURL = MORALIS_SERVER_URL;
 
     while (true) {
-      await fetchCollectionAddresses();
+      await Promise.all([
+        fetchCollectionAddresses(Blockchain.Ethereum, ETHEREUM_RPC),
+        fetchCollectionAddresses(Blockchain.Binance, BINANCE_RPC),
+      ]);
       await sleep(60 * 30);
     }
   } catch (e) {
