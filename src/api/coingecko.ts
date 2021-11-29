@@ -3,9 +3,11 @@ import axios from "axios";
 export class Coingecko {
   private static ETH_ENDPOINT =
     "https://api.coingecko.com/api/v3/coins/ethereum";
+  private static SOL_ENDPOINT = "https://api.coingecko.com/api/v3/coins/solana";
+  private static BNB_ENDPOINT =
+    "https://api.coingecko.com/api/v3/coins/binancecoin";
   private static ETH_HISTORICAL_ENDPOINT =
     "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=max&interval=daily";
-  private static SOL_ENDPOINT = "https://api.coingecko.com/api/v3/coins/solana";
   private static SOL_HISTORICAL_ENDPOINT =
     "https://api.coingecko.com/api/v3/coins/solana/market_chart?vs_currency=usd&days=max&interval=daily";
 
@@ -31,6 +33,12 @@ export class Coingecko {
     const response = await axios.get(Coingecko.SOL_HISTORICAL_ENDPOINT);
     const { prices } = response.data;
     return prices;
+  }
+
+  public static async getBnbPrice(): Promise<number> {
+    const response = await axios.get(Coingecko.BNB_ENDPOINT);
+    const { usd } = response.data.market_data.current_price;
+    return usd;
   }
 
   public static async getHistoricalPricesByAddress(

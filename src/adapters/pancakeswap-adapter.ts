@@ -1,16 +1,22 @@
 import axios from "axios";
 import { DataAdapter } from ".";
-import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { Collection } from "../models/collection";
+import { Statistic } from "../models/statistic";
+import { Coingecko } from "../api/coingecko";
+import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { sleep, getSlug } from "../utils";
 import { ONE_HOUR } from "../constants";
+import { Blockchain } from "../types";
 
 async function runCollections(): Promise<void> {
   const collections = await PancakeSwap.getAllCollections();
 
+  console.log("PancakeSwap collections to request:", collections.length);
+
+  const bnbInUSD = await Coingecko.getBnbPrice();
   for (const collection of collections) {
     try {
-      await fetchCollection(collection);
+      await fetchCollection(collection, bnbInUSD);
     } catch (e) {
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404) {
@@ -21,6 +27,7 @@ async function runCollections(): Promise<void> {
           await sleep(60);
         }
       }
+      console.log(collection.name);
       console.error("Error retrieving collection data:", e.message);
     }
     await sleep(1);
@@ -33,7 +40,8 @@ async function runSales(): Promise<void> {
 }
 
 async function fetchCollection(
-  collection: PancakeSwapCollectionData
+  collection: PancakeSwapCollectionData,
+  bnbInUsd: number
 ): Promise<void> {
   const existingCollection = await Collection.findSingleFetchedSince(
     getSlug(collection.name),
@@ -45,9 +53,33 @@ async function fetchCollection(
     return;
   }
 
-  const collectionData = await PancakeSwap.getCollection(collection);
+  const { metadata, statistics } = await PancakeSwap.getCollection(
+    collection,
+    bnbInUsd
+  );
 
-  // Do stuff here
+  const filteredMetadata = Object.fromEntries(
+    Object.entries(metadata).filter(([_, v]) => v != null)
+  );
+
+  const address = metadata.address;
+
+  const storedCollection = Collection.create({
+    ...filteredMetadata,
+    chain: Blockchain.Binance,
+    defaultTokenId: "",
+  });
+
+  const statisticId = (
+    await Collection.findOne(address, { relations: ["statistic"] })
+  )?.statistic?.id;
+
+  storedCollection.statistic = Statistic.create({
+    id: statisticId,
+    ...statistics,
+  });
+  storedCollection.lastFetched = new Date(Date.now());
+  storedCollection.save();
 }
 
 async function run(): Promise<void> {
