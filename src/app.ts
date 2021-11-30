@@ -19,8 +19,6 @@ import {
   DB_PASSWORD,
   DB_PORT,
   DB_USER,
-  MORALIS_APP_ID,
-  MORALIS_SERVER_URL,
 } from "../env";
 import { Blockchain } from "./types";
 
