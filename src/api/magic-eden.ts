@@ -73,6 +73,11 @@ export class MagicEden {
 
     const { name, image: logo, description, symbol: slug } = collection;
 
+    const floor = floor_price / MAGIC_EDEN_MULTIPLIER || 0;
+    const dailyVolume = one_day_volume / MAGIC_EDEN_MULTIPLIER || 0;
+    const totalVolume = total_volume / MAGIC_EDEN_MULTIPLIER || 0;
+    const marketCap = market_cap / MAGIC_EDEN_MULTIPLIER || 0;
+
     return {
       metadata: {
         address: null,
@@ -88,21 +93,15 @@ export class MagicEden {
         medium_username: null,
       },
       statistics: {
-        dailyVolume: one_day_volume / MAGIC_EDEN_MULTIPLIER,
-        dailyVolumeUSD: formatUSD(
-          (one_day_volume / MAGIC_EDEN_MULTIPLIER) * solInUSD
-        ),
+        dailyVolume,
+        dailyVolumeUSD: formatUSD(dailyVolume * solInUSD),
         owners: 0, // TODO add owners, data is not available from Magic Eden
-        floor: floor_price / MAGIC_EDEN_MULTIPLIER || 0,
-        floorUSD: roundUSD((floor_price / MAGIC_EDEN_MULTIPLIER) * solInUSD),
-        totalVolume: total_volume / MAGIC_EDEN_MULTIPLIER,
-        totalVolumeUSD: formatUSD(
-          (total_volume / MAGIC_EDEN_MULTIPLIER) * solInUSD
-        ),
-        marketCap: market_cap / MAGIC_EDEN_MULTIPLIER,
-        marketCapUSD: formatUSD(
-          (market_cap / MAGIC_EDEN_MULTIPLIER) * solInUSD
-        ),
+        floor,
+        floorUSD: roundUSD(floor * solInUSD),
+        totalVolume,
+        totalVolumeUSD: formatUSD(totalVolume * solInUSD),
+        marketCap,
+        marketCapUSD: formatUSD(marketCap * solInUSD),
       },
     };
   }

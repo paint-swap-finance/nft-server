@@ -34,7 +34,7 @@ export function getPriceAtDate(
   historicalPrices: number[][] // [0] is a UNIX timestamp, [1] is the price
 ): number | null {
   const givenDate = new Date(date);
-  
+
   const match = historicalPrices.find((priceArr) => {
     const historicalDate = new Date(priceArr[0]);
     return isSameDay(givenDate, historicalDate);
@@ -48,5 +48,5 @@ export function getPriceAtDate(
 }
 
 export function formatUSD(price: number): bigint {
-  return BigInt(roundUSD(price));
+  return BigInt(roundUSD(price ?? 0));
 }
