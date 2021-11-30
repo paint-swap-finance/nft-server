@@ -1,12 +1,14 @@
 import axios from "axios";
+
 import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Statistic } from "../models/statistic";
+import { Sale } from "../models/sale";
 import { Coingecko } from "../api/coingecko";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { sleep, getSlug } from "../utils";
 import { ONE_HOUR } from "../constants";
-import { Blockchain } from "../types";
+import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
   const collections = await PancakeSwap.getAllCollections();
@@ -36,7 +38,22 @@ async function runCollections(): Promise<void> {
 }
 
 async function runSales(): Promise<void> {
-  console.log("running sales");
+  const MAX_INT = 2_147_483_647;
+  const collections = await Collection.getSorted(
+    "totalVolume",
+    "DESC",
+    0,
+    MAX_INT,
+    Blockchain.Binance
+  );
+  console.log(
+    "Fetching sales for PancakeSwap collections:",
+    collections.length
+  );
+  for (const collection of collections) {
+    console.log("Fetching sales for PancakeSwap collection:", collection.name);
+    await fetchSales(collection);
+  }
 }
 
 async function fetchCollection(
@@ -80,6 +97,56 @@ async function fetchCollection(
   });
   storedCollection.lastFetched = new Date(Date.now());
   storedCollection.save();
+}
+
+async function fetchSales(collection: Collection): Promise<void> {
+  const mostRecentSaleTime =
+    (
+      await collection.getLastSale(Marketplace.PancakeSwap)
+    )?.timestamp?.getTime() || 0;
+
+  try {
+    const salesEvents = await PancakeSwap.getSales(
+      collection.address,
+      mostRecentSaleTime
+    );
+    if (salesEvents.length === 0) {
+      sleep(3);
+      return;
+    }
+    const sales = salesEvents
+      .filter((event) => event !== undefined)
+      .reduce(
+        (allSales, nextSale) => ({
+          ...allSales,
+          [nextSale.txnHash]: Sale.create({
+            ...nextSale,
+            collection,
+            marketplace: Marketplace.PancakeSwap,
+          }),
+        }),
+        {}
+      );
+    Sale.save(Object.values(sales), { chunk: 1000 });
+    await sleep(1);
+  } catch (e) {
+    console.error("Error retrieving sales data:", e.message);
+
+    if (axios.isAxiosError(e)) {
+      if (
+        e.response.status === 404 ||
+        e.response.status === 500 ||
+        e.response.status === 504
+      ) {
+        console.error("Error retrieving sales data:", e.message);
+        return;
+      }
+      if (e.response.status === 429) {
+        // Backoff for 1 minute if rate limited
+        await sleep(60);
+      }
+    }
+  }
 }
 
 async function run(): Promise<void> {

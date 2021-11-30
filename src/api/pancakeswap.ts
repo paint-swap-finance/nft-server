@@ -1,7 +1,9 @@
 import axios from "axios";
 import { request, gql } from "graphql-request";
-import { CollectionAndStatisticData } from "../types";
+
+import { CollectionAndStatisticData, SaleData } from "../types";
 import { formatUSD, getSlug, roundUSD } from "../utils";
+import { BINANCE_DEFAULT_TOKEN_ADDRESS } from "../constants";
 
 export interface PancakeSwapCollectionBanner {
   large: string;
@@ -49,6 +51,33 @@ const floorQuery = gql`
       skip: $skip
     ) {
       currentAskPrice
+    }
+  }
+`;
+
+const salesQuery = gql`
+  query getSalesData(
+    $first: Int
+    $skip: Int!
+    $id: String
+    $timestamp: String
+  ) {
+    transactions(
+      first: $first
+      skip: $skip
+      where: { collection: $id, timestamp_gte: $timestamp }
+      orderBy: timestamp
+      orderDirection: asc
+    ) {
+      id
+      timestamp
+      askPrice
+      buyer {
+        id
+      }
+      seller {
+        id
+      }
     }
   }
 `;
@@ -124,5 +153,82 @@ export class PancakeSwap {
         marketCapUSD: BigInt(0),
       },
     };
+  }
+
+  public static async getSales(
+    address: string,
+    occurredFrom: number
+  ): Promise<(SaleData | undefined)[]> {
+    const first = 1000; // Maximum value accepted by subgraph
+    let skip = 0;
+    let timestamp =
+      occurredFrom > 1000
+        ? (occurredFrom / 1000).toString()
+        : occurredFrom.toString();
+    let allTransactions = [] as any;
+    let transactionCount = 0;
+
+    const { transactions } = await request(PANCAKESWAP_ENDPOINT, salesQuery, {
+      first,
+      skip,
+      timestamp,
+      id: address,
+    });
+
+    transactionCount = transactions.length ?? 0;
+    allTransactions = transactions ?? [];
+
+    while (transactionCount) {
+      skip += 1000;
+      // Maximum value accepted by subgraph
+      if (skip <= 5000) {
+        const { transactions } = await request(
+          PANCAKESWAP_ENDPOINT,
+          salesQuery,
+          {
+            first,
+            skip,
+            id: address,
+            timestamp,
+          }
+        );
+        const newTransactions = transactions ?? [];
+        transactionCount = newTransactions.length;
+        allTransactions = [...allTransactions, ...newTransactions];
+      } else {
+        // Reset skip value and retrieve more sales
+        const transactionLength = allTransactions.length;
+        if (transactionLength) {
+          const lastTimestamp =
+            allTransactions[transactionLength - 1].timestamp;
+          timestamp = lastTimestamp;
+          skip = 0;
+        }
+      }
+    }
+
+    return allTransactions.map((sale: any) => {
+      const {
+        id: txnHash,
+        askPrice: price,
+        timestamp: createdAt,
+        buyer,
+        seller,
+      } = sale;
+      const { id: buyerAddress } = buyer;
+      const { id: sellerAddress } = seller;
+      const paymentTokenAddress = BINANCE_DEFAULT_TOKEN_ADDRESS;
+
+      return {
+        txnHash: txnHash.toLowerCase(),
+        timestamp: new Date(createdAt * 1000),
+        paymentTokenAddress,
+        price: parseFloat(price),
+        priceBase: 0,
+        priceUSD: BigInt(0),
+        buyerAddress,
+        sellerAddress,
+      };
+    });
   }
 }

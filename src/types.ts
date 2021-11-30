@@ -3,7 +3,7 @@ export enum Blockchain {
   Ethereum = "ethereum",
   Solana = "solana",
   ImmutableX = "immutablex",
-  Binance = "binance"
+  Binance = "binance",
 }
 
 export enum AdapterType {
@@ -14,6 +14,13 @@ export enum Marketplace {
   Opensea = "opensea",
   MagicEden = "magic-eden",
   ImmutableX = "immutablex",
+  PancakeSwap = "pancakeswap",
+}
+
+export enum MoralisChain {
+  Ethereum = "eth",
+  Binance = "bsc",
+  None = ""
 }
 
 export class LowVolumeError extends Error {

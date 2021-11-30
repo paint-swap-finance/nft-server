@@ -4,22 +4,13 @@ import { DataAdapter } from ".";
 import {
   BINANCE_RPC,
   ETHEREUM_RPC,
-  MORALIS_APP_ID,
-  MORALIS_SERVER_URL,
 } from "../../env";
 import { AdapterType, Blockchain } from "../types";
 import { AdapterState } from "../models/adapter-state";
 import { sleep } from "../utils";
+import { MORALIS_CHAINS } from "../constants";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Moralis = require("moralis/node");
-
-const MoralisChains: Record<Blockchain, string> = {
-  [Blockchain.Any]: "",
-  [Blockchain.Solana]: "",
-  [Blockchain.ImmutableX]: "",
-  [Blockchain.Ethereum]: "eth",
-  [Blockchain.Binance]: "bsc",
-};
 
 async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
   let adapterState = await AdapterState.findByNameAndChain(
@@ -43,7 +34,7 @@ async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
   for (let blockNumber = startBlock; blockNumber >= endBlock; blockNumber--) {
     try {
       const nftTransfers = await Moralis.Web3API.native.getNFTTransfersByBlock({
-        chain: MoralisChains[chain],
+        chain: MORALIS_CHAINS[chain],
         block_number_or_hash: blockNumber.toString(),
       });
       collections = nftTransfers.result
@@ -84,9 +75,6 @@ async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
 
 async function run(): Promise<void> {
   try {
-    Moralis.initialize(MORALIS_APP_ID);
-    Moralis.serverURL = MORALIS_SERVER_URL;
-
     while (true) {
       await Promise.all([
         fetchCollectionAddresses(Blockchain.Ethereum, ETHEREUM_RPC),

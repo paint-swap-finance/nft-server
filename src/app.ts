@@ -4,6 +4,8 @@ import * as fs from "fs";
 import { createConnection } from "typeorm";
 import { classToPlain, serialize } from "class-transformer";
 import "reflect-metadata";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Moralis = require("moralis/node");
 
 import { adapters } from "./adapters";
 import { AdapterState } from "./models/adapter-state";
@@ -11,7 +13,15 @@ import { Collection } from "./models/collection";
 import { HistoricalStatistic } from "./models/historical-statistic";
 import { Sale } from "./models/sale";
 import { Statistic } from "./models/statistic";
-import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from "../env";
+import {
+  DB_HOST,
+  DB_NAME,
+  DB_PASSWORD,
+  DB_PORT,
+  DB_USER,
+  MORALIS_APP_ID,
+  MORALIS_SERVER_URL,
+} from "../env";
 import { Blockchain } from "./types";
 
 const html = fs.readFileSync("index.html");
@@ -32,6 +42,9 @@ createConnection({
     if (!process.env.API_ONLY) {
       adapters.forEach((adapter) => adapter.run());
     }
+
+    Moralis.initialize(MORALIS_APP_ID);
+    Moralis.serverURL = MORALIS_SERVER_URL;
 
     const app = express();
     app.use(cors());
@@ -127,9 +140,9 @@ createConnection({
 
     app.get("/statistics/chains", async (req, res) => {
       const data = await Statistic.getChainsSummary();
-      res.send(serialize(data))
+      res.send(serialize(data));
       res.status(200);
-    })
+    });
 
     app.get("/historical-statistic/all/:statistic", async (req, res) => {
       const data = await HistoricalStatistic.getAllStatisticTimeseries(
