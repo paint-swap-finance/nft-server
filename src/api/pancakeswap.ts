@@ -31,6 +31,10 @@ const collectionQuery = gql`
   query getCollectionData($collectionAddress: String!) {
     collection(id: $collectionAddress) {
       totalVolumeBNB
+      numberTokensListed
+      dayData(orderBy: date, orderDirection: desc, first: 1) {
+        dailyVolumeBNB
+      }
     }
   }
 `;
@@ -120,10 +124,14 @@ export class PancakeSwap {
 
     const { name, symbol, description, banner } = collection;
     const {
-      collection: { totalVolumeBNB: totalVolume },
+      collection: { totalVolumeBNB: totalVolume, dayData, numberTokensListed },
     } = collectionData;
+    const { dailyVolumeBNB: dailyVolume } = dayData[0];
+
     const { nfts } = floorData;
-    const { currentAskPrice: floor } = nfts[0];
+    const { currentAskPrice } = nfts[0];
+    const floor = parseFloat(currentAskPrice);
+    const marketCap = floor * parseInt(numberTokensListed);
     const slug = getSlug(name);
     const logo = banner.small;
 
@@ -142,15 +150,15 @@ export class PancakeSwap {
         medium_username: "",
       },
       statistics: {
-        dailyVolume: 0,
-        dailyVolumeUSD: BigInt(0),
+        dailyVolume,
+        dailyVolumeUSD: formatUSD(dailyVolume * bnbInUsd),
         owners: 0,
-        floor: parseFloat(floor),
-        floorUSD: roundUSD(parseFloat(floor) * bnbInUsd),
+        floor: floor,
+        floorUSD: roundUSD(floor * bnbInUsd),
         totalVolume: parseFloat(totalVolume),
         totalVolumeUSD: formatUSD(totalVolume * bnbInUsd),
-        marketCap: 0,
-        marketCapUSD: BigInt(0),
+        marketCap,
+        marketCapUSD: formatUSD(marketCap * bnbInUsd),
       },
     };
   }
