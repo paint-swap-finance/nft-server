@@ -83,7 +83,7 @@ async function run(): Promise<void> {
     while (true) {
       await Promise.all([
         fetchCollectionAddresses(Blockchain.Ethereum, ETHEREUM_RPC),
-        fetchCollectionAddresses(Blockchain.Binance, BINANCE_RPC),
+      //  fetchCollectionAddresses(Blockchain.Binance, BINANCE_RPC),
       ]);
       await sleep(60 * 30);
     }
