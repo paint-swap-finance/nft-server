@@ -13,14 +13,8 @@ import { Collection } from "./models/collection";
 import { HistoricalStatistic } from "./models/historical-statistic";
 import { Sale } from "./models/sale";
 import { Statistic } from "./models/statistic";
-import {
-  DB_HOST,
-  DB_NAME,
-  DB_PASSWORD,
-  DB_PORT,
-  DB_USER,
-} from "../env";
-import { Blockchain } from "./types";
+import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from "../env";
+import { Blockchain, BlockchainReverseLookup } from "./types";
 
 const html = fs.readFileSync("index.html");
 const port = process.env.PORT || 3000;
@@ -135,7 +129,15 @@ createConnection({
 
     app.get("/statistics/chains", async (req, res) => {
       const data = await Statistic.getChainsSummary();
-      res.send(serialize(data));
+      const chainData = data.map((elem: any) => {
+        const chainName = elem.chain as Blockchain;
+        const displayName = BlockchainReverseLookup.get(chainName);
+        return {
+          ...elem,
+          displayName,
+        };
+      });
+      res.send(serialize(chainData));
       res.status(200);
     });
 
