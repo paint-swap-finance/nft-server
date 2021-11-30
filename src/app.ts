@@ -43,9 +43,6 @@ createConnection({
       adapters.forEach((adapter) => adapter.run());
     }
 
-    Moralis.initialize(MORALIS_APP_ID);
-    Moralis.serverURL = MORALIS_SERVER_URL;
-
     const app = express();
     app.use(cors());
     app.use((req, res, next) => {

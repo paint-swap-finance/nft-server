@@ -4,6 +4,8 @@ import { DataAdapter } from ".";
 import {
   BINANCE_RPC,
   ETHEREUM_RPC,
+  MORALIS_APP_ID,
+  MORALIS_SERVER_URL,
 } from "../../env";
 import { AdapterType, Blockchain } from "../types";
 import { AdapterState } from "../models/adapter-state";
@@ -59,7 +61,7 @@ async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
         Collection.save(Object.values(collections));
         collections = {};
         console.log(
-          `Finished syncing ${chain} collections from blockNumber ${blockNumber}`,
+          `Finished syncing ${chain} collections from blockNumber ${blockNumber}`
         );
       }
     } catch (e) {
@@ -75,6 +77,9 @@ async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
 
 async function run(): Promise<void> {
   try {
+    Moralis.initialize(MORALIS_APP_ID);
+    Moralis.serverURL = MORALIS_SERVER_URL;
+
     while (true) {
       await Promise.all([
         fetchCollectionAddresses(Blockchain.Ethereum, ETHEREUM_RPC),
