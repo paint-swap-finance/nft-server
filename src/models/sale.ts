@@ -47,6 +47,9 @@ export class Sale extends BaseEntity {
   @Column()
   paymentTokenAddress: string;
 
+  @Column({ default: false })
+  blacklisted: boolean;
+
   static async getUnconvertedSales(): Promise<Sale[]> {
     return this.createQueryBuilder("sale")
       .where("sale.price != 0")

@@ -36,6 +36,7 @@ insert into historical_statistic (
   from sale
   join collection on sale."collectionAddress" = collection.address
   where price != 0
+  and blacklisted = 'false'
   group by "collectionAddress", day
 )
 on conflict("collectionAddress", timestamp)

@@ -153,6 +153,7 @@ async function run(): Promise<void> {
   try {
     while (true) {
       await Promise.all([runCollections(), runSales()]);
+      await sleep(60 * 60);
     }
   } catch (e) {
     console.error("OpenSea adapter error:", e.message);

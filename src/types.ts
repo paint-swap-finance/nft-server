@@ -3,7 +3,17 @@ export enum Blockchain {
   Ethereum = "ethereum",
   Solana = "solana",
   ImmutableX = "immutablex",
+  Binance = "binance",
 }
+
+export const BlockchainReverseLookup = new Map<
+  Blockchain,
+  keyof typeof Blockchain
+>(
+  Object.entries(Blockchain).map(
+    ([key, value]: [keyof typeof Blockchain, Blockchain]) => [value, key]
+  )
+);
 
 export enum AdapterType {
   Moralis = "moralis",
@@ -13,6 +23,13 @@ export enum Marketplace {
   Opensea = "opensea",
   MagicEden = "magic-eden",
   ImmutableX = "immutablex",
+  PancakeSwap = "pancakeswap",
+}
+
+export enum MoralisChain {
+  Ethereum = "eth",
+  Binance = "bsc",
+  None = "",
 }
 
 export class LowVolumeError extends Error {

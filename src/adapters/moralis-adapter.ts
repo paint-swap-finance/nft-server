@@ -1,34 +1,42 @@
 import { ethers } from "ethers";
 import { Collection } from "../models/collection";
 import { DataAdapter } from ".";
-import { MORALIS_APP_ID, MORALIS_SERVER_URL } from "../../env";
+import {
+  BINANCE_RPC,
+  ETHEREUM_RPC,
+  MORALIS_APP_ID,
+  MORALIS_SERVER_URL,
+} from "../../env";
 import { AdapterType, Blockchain } from "../types";
 import { AdapterState } from "../models/adapter-state";
 import { sleep } from "../utils";
+import { MORALIS_CHAINS } from "../constants";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Moralis = require("moralis/node");
 
-async function fetchCollectionAddresses() {
-  let adapterState = await AdapterState.findByName(AdapterType.Moralis);
+async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
+  let adapterState = await AdapterState.findByNameAndChain(
+    AdapterType.Moralis,
+    chain
+  );
+
   if (!adapterState) {
-    adapterState = AdapterState.create({ name: AdapterType.Moralis });
+    adapterState = AdapterState.create({ name: AdapterType.Moralis, chain });
     adapterState.save();
   }
 
   let collections = {};
-  const provider = new ethers.providers.StaticJsonRpcProvider(
-    process.env.ETHEREUM_RPC
-  );
+  const provider = new ethers.providers.StaticJsonRpcProvider(rpc);
   const startBlock = await provider.getBlockNumber();
   const endBlock = adapterState.lastSyncedBlockNumber;
 
   console.log(
-    `Retrieving NFT collections parsing txns between blocks ${startBlock} --> ${endBlock}`
+    `Retrieving ${chain} NFT collections parsing txns between blocks ${startBlock} --> ${endBlock}`
   );
   for (let blockNumber = startBlock; blockNumber >= endBlock; blockNumber--) {
     try {
       const nftTransfers = await Moralis.Web3API.native.getNFTTransfersByBlock({
-        chain: "eth",
+        chain: MORALIS_CHAINS[chain],
         block_number_or_hash: blockNumber.toString(),
       });
       collections = nftTransfers.result
@@ -42,7 +50,7 @@ async function fetchCollectionAddresses() {
             [nextCollection.address]: Collection.create({
               address: nextCollection.address.toLowerCase(),
               defaultTokenId: nextCollection.tokenId.toLowerCase(),
-              chain: Blockchain.Ethereum,
+              chain,
             }),
           }),
           collections
@@ -53,8 +61,7 @@ async function fetchCollectionAddresses() {
         Collection.save(Object.values(collections));
         collections = {};
         console.log(
-          "Finished syncing collections from blockNumber",
-          blockNumber
+          `Finished syncing ${chain} collections from blockNumber ${blockNumber}`
         );
       }
     } catch (e) {
@@ -74,7 +81,10 @@ async function run(): Promise<void> {
     Moralis.serverURL = MORALIS_SERVER_URL;
 
     while (true) {
-      await fetchCollectionAddresses();
+      await Promise.all([
+        fetchCollectionAddresses(Blockchain.Ethereum, ETHEREUM_RPC),
+        fetchCollectionAddresses(Blockchain.Binance, BINANCE_RPC),
+      ]);
       await sleep(60 * 30);
     }
   } catch (e) {

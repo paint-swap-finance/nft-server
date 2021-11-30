@@ -4,6 +4,8 @@ import * as fs from "fs";
 import { createConnection } from "typeorm";
 import { classToPlain, serialize } from "class-transformer";
 import "reflect-metadata";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Moralis = require("moralis/node");
 
 import { adapters } from "./adapters";
 import { AdapterState } from "./models/adapter-state";
@@ -12,7 +14,7 @@ import { HistoricalStatistic } from "./models/historical-statistic";
 import { Sale } from "./models/sale";
 import { Statistic } from "./models/statistic";
 import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from "../env";
-import { Blockchain } from "./types";
+import { Blockchain, BlockchainReverseLookup } from "./types";
 
 const html = fs.readFileSync("index.html");
 const port = process.env.PORT || 3000;
@@ -127,9 +129,17 @@ createConnection({
 
     app.get("/statistics/chains", async (req, res) => {
       const data = await Statistic.getChainsSummary();
-      res.send(serialize(data))
+      const chainData = data.map((elem: any) => {
+        const chainName = elem.chain as Blockchain;
+        const displayName = BlockchainReverseLookup.get(chainName);
+        return {
+          ...elem,
+          displayName,
+        };
+      });
+      res.send(serialize(chainData));
       res.status(200);
-    })
+    });
 
     app.get("/historical-statistic/all/:statistic", async (req, res) => {
       const data = await HistoricalStatistic.getAllStatisticTimeseries(

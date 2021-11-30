@@ -72,22 +72,24 @@ export class Statistic extends BaseEntity {
       .getRawMany();
 
     const percentChange =
-      ((today.dailyVolumeUSD - yesterday.dailyVolumeUSD) / yesterday.dailyVolumeUSD) *
+      ((today.dailyVolumeUSD - yesterday.dailyVolumeUSD) /
+        yesterday.dailyVolumeUSD) *
       100;
     return { ...stats, dailyChange: percentChange };
   }
 
   static async getChainsSummary(): Promise<any> {
     const stats = await Collection.createQueryBuilder("collection")
-      .select('collection.chain', 'chain')
+      .select("collection.chain", "chain")
       .distinct(true)
-      .addSelect('COUNT(collection)', 'collections')
-      .addSelect('SUM(statistic.totalVolumeUSD)', 'totalVolumeUSD')
-      .addSelect('SUM(statistic.dailyVolumeUSD)', 'dailyVolumeUSD') 
-      .leftJoin('collection.statistic', 'statistic')
-      .groupBy('collection.chain')
-      .getRawMany()
+      .addSelect("COUNT(collection)", "collections")
+      .addSelect("SUM(statistic.totalVolumeUSD)", "totalVolumeUSD")
+      .addSelect("SUM(statistic.dailyVolumeUSD)", "dailyVolumeUSD")
+      .leftJoin("collection.statistic", "statistic")
+      .where("collection.slug != ''")
+      .groupBy("collection.chain")
+      .getRawMany();
 
-    return stats
+    return stats;
   }
 }
