@@ -4,6 +4,7 @@ import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
 import { getPriceAtDate, sleep, formatUSD } from "../utils";
 import {
+  BINANCE_DEFAULT_TOKEN_ADDRESS,
   ETHEREUM_DEFAULT_TOKEN_ADDRESS,
   SOLANA_DEFAULT_TOKEN_ADDRESS,
 } from "../constants";
@@ -17,6 +18,10 @@ const BASE_TOKENS = [
     address: SOLANA_DEFAULT_TOKEN_ADDRESS,
     fetch: Coingecko.getHistoricalSolPrices,
   },
+  {
+    address: BINANCE_DEFAULT_TOKEN_ADDRESS,
+    fetch: Coingecko.getHistoricalBnbPrices,
+  },
 ];
 const BASE_TOKENS_ADDRESSES = BASE_TOKENS.map((token) => token.address);
 
@@ -27,7 +32,9 @@ async function runSaleCurrencyConversions(): Promise<void> {
   await updateSaleCurrencyConversions(sales, tokenAddressPrices);
 }
 
-export async function fetchTokenAddressPrices(): Promise<Record<string, number[][]>> {
+export async function fetchTokenAddressPrices(): Promise<
+  Record<string, number[][]>
+> {
   const tokenAddressPrices: Record<string, number[][]> = {};
 
   const tokenAddressesRaw = await Sale.getPaymentTokenAddresses(false);
@@ -117,7 +124,7 @@ export async function updateSaleCurrencyConversions(
   // save in chunks of 1000 so Typeorm doesn't freeze
   while (sales.length) {
     console.log("Sales left to update:", sales.length);
-    await Sale.save(sales.splice(0, 65535), { chunk: 1000 });
+    await Sale.save(sales.splice(0, 1000), { chunk: 1000 });
   }
 }
 
