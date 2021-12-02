@@ -14,6 +14,7 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
   [Blockchain.Any]: MoralisChain.None,
   [Blockchain.Solana]: MoralisChain.None,
   [Blockchain.ImmutableX]: MoralisChain.None,
+  [Blockchain.Arbitrum]: MoralisChain.None,
   [Blockchain.Ethereum]: MoralisChain.Ethereum,
   [Blockchain.Binance]: MoralisChain.Binance,
 };

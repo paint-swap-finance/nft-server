@@ -98,6 +98,15 @@ export class Collection extends BaseEntity {
     return qb.where("collection.chain = :chain", { chain }).getMany();
   }
 
+  public async getDailyVolume(): Promise<any> {
+    const interval = `sale.timestamp >= NOW() - interval '1 days'`;
+    return Sale.createQueryBuilder("sale")
+      .select("SUM(sale.price)", "dailyVolume")
+      .where("sale.collectionAddress = :address", { address: this.address })
+      .andWhere(interval)
+      .getRawOne()
+  }
+
   public async getLastSale(
     marketplace: Marketplace
   ): Promise<Sale | undefined> {
@@ -189,5 +198,11 @@ export class Collection extends BaseEntity {
     return this.createQueryBuilder("collection")
       .where("collection.address = :address", { address })
       .getOne();
+  }
+
+  static findByChain(chain: Blockchain): Promise<Collection[]> {
+    return this.createQueryBuilder("collection")
+      .where("collection.chain = :chain", { chain })
+      .getMany();
   }
 }

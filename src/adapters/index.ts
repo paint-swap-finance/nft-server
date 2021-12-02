@@ -3,6 +3,7 @@ import OpenseaAdapter from "./opensea-adapter";
 import MagicEdenAdapter from "./magic-eden-adapter";
 import ImmutableXAdapter from "./immutablex-adapter";
 import PancakeSwapAdapter from "./pancakeswap-adapter";
+import TreasureAdapter from "./treasure-adapter";
 import HistoricalStatisticCalculatorAdapter from "./historical-statistic-calculator-adapter";
 import CurrencyConverterAdapter from "./currency-converter-adapter";
 
@@ -16,6 +17,7 @@ const adapters: DataAdapter[] = [
   MagicEdenAdapter,
   ImmutableXAdapter,
   PancakeSwapAdapter,
+  TreasureAdapter,
   HistoricalStatisticCalculatorAdapter,
   CurrencyConverterAdapter,
 ];
