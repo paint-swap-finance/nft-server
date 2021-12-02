@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build bundle
-      run: npm install && npm run build && npm run dist
+      run: yarn && yarn build && yarn dist
     - name: Deploy to EB (API)
       uses: einaregilsson/beanstalk-deploy@v18
       with:
