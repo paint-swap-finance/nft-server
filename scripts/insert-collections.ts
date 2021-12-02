@@ -4,12 +4,11 @@ import { Collection } from "../src/models/collection";
 import { Statistic } from "../src/models/statistic";
 import { HistoricalStatistic } from "../src/models/historical-statistic";
 import { DB_HOST, DB_NAME, DB_PASSWORD, DB_PORT, DB_USER } from "../env";
-import {
-  fetchTokenAddressPrices,
-  updateSaleCurrencyConversions,
-} from "../src/adapters/currency-converter-adapter";
+import { Blockchain } from "../src/types";
 
-const main = async () => {
+const collections = [];
+
+const main = () => {
   createConnection({
     type: "postgres",
     host: DB_HOST,
@@ -20,15 +19,16 @@ const main = async () => {
     entities: [Sale, Collection, Statistic, HistoricalStatistic],
     synchronize: true,
     logging: false,
-  }).then(async (connection) => {
-    const sales = await Sale.createQueryBuilder("sale")
-      .where("sale.price != 0")
-      .andWhere("sale.priceBase = 0")
-      .getMany();
-    const tokenAddressPrices = await fetchTokenAddressPrices();
-
-    await updateSaleCurrencyConversions(sales, tokenAddressPrices);
-  });
+  })
+    .then(async (connection) => {
+      console.log("Manually inserting", collections.length, "collections");
+      for (const collection of collections) {
+        console.log("Inserting collection", collection.name);
+        const storedCollection = await Collection.create({ ...collection }) as unknown as Collection;
+        storedCollection.save()
+      }
+    })
+    .catch((e) => console.error("Error", e.message));
 };
 
-main();
+main()

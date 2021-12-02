@@ -32,6 +32,7 @@ async function runSaleCurrencyConversions(): Promise<void> {
   await updateSaleCurrencyConversions(sales, tokenAddressPrices);
 }
 
+// TODO optimize and refactor
 export async function fetchTokenAddressPrices(): Promise<
   Record<string, number[][]>
 > {
@@ -49,11 +50,19 @@ export async function fetchTokenAddressPrices(): Promise<
   for (const tokenAddress of tokenAddresses) {
     try {
       //TODO generalize for tokens on other chains
-      const prices = await Coingecko.getHistoricalPricesByAddress(
+      let prices;
+      prices = await Coingecko.getHistoricalPricesByAddress(
         "ethereum",
         tokenAddress,
         "eth"
       );
+      if (!prices.length) {
+        prices = await Coingecko.getHistoricalPricesByAddress(
+          "arbitrum-one",
+          tokenAddress,
+          "eth"
+        );
+      }
       tokenAddressPrices[tokenAddress] = prices;
     } catch (e) {
       if (axios.isAxiosError(e)) {

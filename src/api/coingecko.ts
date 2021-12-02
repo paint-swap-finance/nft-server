@@ -47,15 +47,25 @@ export class Coingecko {
     return prices;
   }
 
+  public static async getPricesById(id: string): Promise<any> {
+    const response = await axios.get(`${Coingecko.PRICE_ENDPOINT}/${id}`);
+    const { usd, eth } = response.data.market_data.current_price;
+    return { usd, eth };
+  }
+
   public static async getHistoricalPricesByAddress(
     platform: string,
     address: string,
     base: string
   ): Promise<number[][]> {
-    const response = await axios.get(
-      `https://api.coingecko.com/api/v3/coins/${platform}/contract/${address}/market_chart/?vs_currency=${base}&days=max`
-    );
-    const { prices } = response.data;
-    return prices;
+    try {
+      const response = await axios.get(
+        `https://api.coingecko.com/api/v3/coins/${platform}/contract/${address}/market_chart/?vs_currency=${base}&days=max`
+      );
+      const { prices } = response.data;
+      return prices;
+    } catch (e) {
+      return [];
+    }
   }
 }
