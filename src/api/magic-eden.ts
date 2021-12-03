@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import axios from "axios";
 import { formatUSD, roundUSD, convertByDecimals } from "../utils";
-import { SOLANA_DEFAULT_TOKEN_ADDRESS } from "../constants";
-import { CollectionAndStatisticData, SaleData } from "../types";
+import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
+import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
 import { Collection } from "../models/collection";
 
 interface MagicEdenParsedTransaction {
@@ -124,7 +124,7 @@ export class MagicEden {
         return undefined;
       }
 
-      const paymentTokenAddress = SOLANA_DEFAULT_TOKEN_ADDRESS;
+      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Solana];
       const { transaction_id: txnHash, createdAt: timestamp } = sale;
       const {
         total_amount: total_price,

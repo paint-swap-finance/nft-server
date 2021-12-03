@@ -52,6 +52,7 @@ export class Sale extends BaseEntity {
 
   static async getUnconvertedSales(): Promise<Sale[]> {
     return this.createQueryBuilder("sale")
+      .leftJoinAndSelect("sale.collection", "collection")
       .where("sale.price != 0")
       .andWhere("sale.priceBase = 0")
       .limit(500000)
@@ -63,14 +64,18 @@ export class Sale extends BaseEntity {
   ): Promise<Record<string, string>[]> {
     if (all) {
       return this.createQueryBuilder("sale")
-        .select("sale.paymentTokenAddress", "tokenAddress")
+        .select("collection.chain", "chain")
+        .addSelect("sale.paymentTokenAddress", "address")
         .distinct(true)
+        .leftJoin("sale.collection", "collection")
         .getRawMany();
     }
 
     return this.createQueryBuilder("sale")
-      .select("sale.paymentTokenAddress", "tokenAddress")
+      .select("collection.chain", "chain")
+      .addSelect("sale.paymentTokenAddress", "address")
       .distinct(true)
+      .leftJoin("sale.collection", "collection")
       .where("sale.price != 0")
       .andWhere("sale.priceBase = 0")
       .andWhere("sale.priceUSD = 0")

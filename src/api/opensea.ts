@@ -2,10 +2,11 @@
 import axios from "axios";
 import { URLSearchParams } from "url";
 
-import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
+import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
 import { OPENSEA_API_KEY, SECONDARY_OPENSEA_API_KEY } from "../../env";
 import { roundUSD, convertByDecimals } from "../utils";
 import {
+  Blockchain,
   CollectionAndStatisticData,
   CollectionData,
   SaleData,
@@ -116,7 +117,7 @@ export class Opensea {
     address: string,
     occurredAfter: number,
     offset: number,
-    limit: number,
+    limit: number
   ): Promise<(SaleData | undefined)[]> {
     const params: Record<string, string> = {
       asset_contract_address: address,
@@ -136,7 +137,7 @@ export class Opensea {
         return undefined;
       }
       const paymentToken = sale.payment_token || {
-        address: ETHEREUM_DEFAULT_TOKEN_ADDRESS,
+        address: DEFAULT_TOKEN_ADDRESSES[Blockchain.Ethereum],
         decimals: 18,
       };
 

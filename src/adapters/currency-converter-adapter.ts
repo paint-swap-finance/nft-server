@@ -3,17 +3,12 @@ import { Sale } from "../models/sale";
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
 import { getPriceAtDate, sleep, formatUSD } from "../utils";
-import {
-  COINGECKO_IDS,
-  BINANCE_DEFAULT_TOKEN_ADDRESS,
-  ETHEREUM_DEFAULT_TOKEN_ADDRESS,
-  SOLANA_DEFAULT_TOKEN_ADDRESS,
-} from "../constants";
+import { COINGECKO_IDS, DEFAULT_TOKEN_ADDRESSES } from "../constants";
 import { Blockchain } from "../types";
 
 const BASE_TOKENS = [
   {
-    address: ETHEREUM_DEFAULT_TOKEN_ADDRESS,
+    address: DEFAULT_TOKEN_ADDRESSES[Blockchain.Ethereum],
     fetch: () =>
       Coingecko.getHistoricalPricesById(
         COINGECKO_IDS[Blockchain.Ethereum].geckoId,
@@ -21,7 +16,7 @@ const BASE_TOKENS = [
       ),
   },
   {
-    address: SOLANA_DEFAULT_TOKEN_ADDRESS,
+    address: DEFAULT_TOKEN_ADDRESSES[Blockchain.Solana],
     fetch: () =>
       Coingecko.getHistoricalPricesById(
         COINGECKO_IDS[Blockchain.Solana].geckoId,
@@ -29,7 +24,7 @@ const BASE_TOKENS = [
       ),
   },
   {
-    address: BINANCE_DEFAULT_TOKEN_ADDRESS,
+    address: DEFAULT_TOKEN_ADDRESSES[Blockchain.Binance],
     fetch: () =>
       Coingecko.getHistoricalPricesById(
         COINGECKO_IDS[Blockchain.Binance].geckoId,
@@ -54,9 +49,9 @@ export async function fetchTokenAddressPrices(): Promise<
   const tokenAddressPrices: Record<string, number[][]> = {};
 
   const tokenAddressesRaw = await Sale.getPaymentTokenAddresses(false);
-  const tokenAddresses = tokenAddressesRaw
-    .map((data) => data.tokenAddress)
-    .filter((data) => !BASE_TOKENS_ADDRESSES.includes(data));
+  const tokenAddresses = tokenAddressesRaw.filter(
+    (data) => !BASE_TOKENS_ADDRESSES.includes(data.address)
+  );
 
   for (const baseToken of BASE_TOKENS) {
     tokenAddressPrices[baseToken.address] = await baseToken.fetch();
@@ -64,21 +59,12 @@ export async function fetchTokenAddressPrices(): Promise<
 
   for (const tokenAddress of tokenAddresses) {
     try {
-      //TODO generalize for tokens on other chains
-      let prices;
-      prices = await Coingecko.getHistoricalPricesByAddress(
-        COINGECKO_IDS[Blockchain.Ethereum].geckoId,
-        tokenAddress,
-        COINGECKO_IDS[Blockchain.Arbitrum].symbol
+      const prices = await getHistoricalPricesByChainAndAddress(
+        tokenAddress.chain as any,
+        tokenAddress.address
       );
-      if (!prices.length) {
-        prices = await Coingecko.getHistoricalPricesByAddress(
-          COINGECKO_IDS[Blockchain.Arbitrum].geckoId,
-          tokenAddress,
-          COINGECKO_IDS[Blockchain.Arbitrum].symbol
-        );
-      }
-      tokenAddressPrices[tokenAddress] = prices;
+
+      tokenAddressPrices[tokenAddress.address] = prices;
     } catch (e) {
       if (axios.isAxiosError(e)) {
         if (e.response.status === 404) {
@@ -95,6 +81,17 @@ export async function fetchTokenAddressPrices(): Promise<
   }
 
   return tokenAddressPrices;
+}
+
+export async function getHistoricalPricesByChainAndAddress(
+  chain: Blockchain,
+  address: string
+): Promise<number[][]> {
+  return Coingecko.getHistoricalPricesByAddress(
+    COINGECKO_IDS[chain].geckoId,
+    address,
+    COINGECKO_IDS[chain].symbol
+  );
 }
 
 //TODO optimize and refactor
@@ -118,15 +115,13 @@ export async function updateSaleCurrencyConversions(
         tokenAddressPrices[saleTokenAddress]
       );
       const priceBase = baseAtDate ? salePrice * baseAtDate : null;
+      const saleChain = sale.collection.chain as Blockchain;
+      const baseAddress = DEFAULT_TOKEN_ADDRESSES[saleChain];
 
-      //TODO generalize for tokens on other chains
       const priceUSD = priceBase
         ? formatUSD(
             priceBase *
-              getPriceAtDate(
-                saleTimestamp,
-                tokenAddressPrices[ETHEREUM_DEFAULT_TOKEN_ADDRESS]
-              )
+              getPriceAtDate(saleTimestamp, tokenAddressPrices[baseAddress])
           )
         : null;
 
