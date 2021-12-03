@@ -2,7 +2,7 @@ import axios from "axios";
 import { Sale } from "../models/sale";
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
-import { getPriceAtDate, sleep, formatUSD } from "../utils";
+import { getPriceAtDate, sleep, formatUSD, handleError } from "../utils";
 import { COINGECKO_IDS, DEFAULT_TOKEN_ADDRESSES } from "../constants";
 import { Blockchain } from "../types";
 
@@ -63,19 +63,12 @@ export async function fetchTokenAddressPrices(): Promise<
         tokenAddress.chain as any,
         tokenAddress.address
       );
-
       tokenAddressPrices[tokenAddress.address] = prices;
     } catch (e) {
-      if (axios.isAxiosError(e)) {
-        if (e.response.status === 404) {
-          console.error("Historical prices not found:", e.message);
-        }
-        if (e.response.status === 429) {
-          // Backoff for 1 minute if rate limited
-          await sleep(60);
-        }
-      }
-      console.error("Error retrieving historical prices:", e.message);
+      await handleError(
+        e,
+        "currency-converter-adapter:fetchTokenAddressPrices"
+      );
     }
     await sleep(1);
   }
@@ -154,7 +147,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    console.error("Currency converter adapter error:", e.message);
+    await handleError(e, "currency-converter-adapter");
   }
 }
 

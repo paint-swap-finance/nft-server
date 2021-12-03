@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export const sleep = async (seconds: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
@@ -49,4 +51,25 @@ export function getPriceAtDate(
   }
 
   return null;
+}
+
+export async function handleError(error: Error, context: string) {
+  if (axios.isAxiosError(error)) {
+    if (error.response.status === 404) {
+      console.error(`Error [${context}] - not found: ${error.message}`);
+    }
+    if (error.response.status === 429) {
+      // Backoff for 1 minute if rate limited
+      console.error(
+        `Error [${context}] - too many requests: ${error.message}`
+      );
+      await sleep(60);
+    }
+    if (error.response.status === 500 || error.response.status === 504) {
+      console.error(
+        `Error [${context}] - server error: ${error.message}`
+      );
+    }
+  }
+  console.error(`Error [${context}] - other error: ${error.message}`);
 }

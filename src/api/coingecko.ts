@@ -1,4 +1,5 @@
 import axios from "axios";
+import { handleError } from "../utils";
 
 export class Coingecko {
   private static PRICE_ENDPOINT = "https://api.coingecko.com/api/v3/coins";
@@ -12,7 +13,7 @@ export class Coingecko {
       );
       return response.data.market_data.current_price;
     } catch (e) {
-      console.error("Coingecko API error:", e.message);
+      await handleError(e, "coingecko:getPricesById");
       return {};
     }
   }
@@ -30,7 +31,7 @@ export class Coingecko {
       const { prices } = response.data;
       return prices;
     } catch (e) {
-      console.error("Coingecko API error:", e.message);
+      await handleError(e, "coingecko:getHistoricalPricesById");
       return [];
     }
   }
@@ -51,7 +52,7 @@ export class Coingecko {
       const { prices } = response.data;
       return prices;
     } catch (e) {
-      console.error("Coingecko API error:", e.message);
+      await handleError(e, "coingecko:getHistoricalPricesByAddress");
       return [];
     }
   }

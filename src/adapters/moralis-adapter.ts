@@ -9,7 +9,7 @@ import {
 } from "../../env";
 import { AdapterType, Blockchain } from "../types";
 import { AdapterState } from "../models/adapter-state";
-import { sleep } from "../utils";
+import { sleep, handleError } from "../utils";
 import { MORALIS_CHAINS } from "../constants";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Moralis = require("moralis/node");
@@ -65,10 +65,7 @@ async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
         );
       }
     } catch (e) {
-      console.error(
-        "Error retrieving data from Moralis:",
-        JSON.stringify(e.message)
-      );
+      await handleError(e, "moralis-adapter:fetchCollectionAddresses");
     }
   }
   adapterState.lastSyncedBlockNumber = BigInt(startBlock);
@@ -83,12 +80,11 @@ async function run(): Promise<void> {
     while (true) {
       await Promise.all([
         fetchCollectionAddresses(Blockchain.Ethereum, ETHEREUM_RPC),
-      //  fetchCollectionAddresses(Blockchain.Binance, BINANCE_RPC),
       ]);
       await sleep(60 * 30);
     }
   } catch (e) {
-    console.error("Moralis adapter error:", e.message);
+    await handleError(e, "moralis-adapter");
   }
 }
 

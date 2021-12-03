@@ -7,7 +7,7 @@ import { Sale } from "../models/sale";
 import { Blockchain, Marketplace } from "../types";
 import { ImmutableX, ImmutableXCollectionData } from "../api/immutablex";
 import { Coingecko } from "../api/coingecko";
-import { sleep, getSlug } from "../utils";
+import { sleep, getSlug, handleError } from "../utils";
 import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 
 async function runCollections(): Promise<void> {
@@ -23,16 +23,7 @@ async function runCollections(): Promise<void> {
     try {
       await fetchCollection(collection, ethInUSD);
     } catch (e) {
-      if (axios.isAxiosError(e)) {
-        if (e.response.status === 404) {
-          console.error("Collection not found:", e.message);
-        }
-        if (e.response.status === 429) {
-          // Backoff for 1 minute if rate limited
-          await sleep(60);
-        }
-      }
-      console.error("Error retrieving collection data:", e.message);
+      await handleError(e, "immutablex-adapter:runCollections");
     }
     await sleep(1);
   }
@@ -136,22 +127,7 @@ async function fetchSales(collection: Collection): Promise<void> {
     Sale.save(Object.values(sales));
     await sleep(1);
   } catch (e) {
-    console.error("Error retrieving sales data:", e.message);
-
-    if (axios.isAxiosError(e)) {
-      if (
-        e.response.status === 404 ||
-        e.response.status === 500 ||
-        e.response.status === 504
-      ) {
-        console.error("Error retrieving sales data:", e.message);
-        return;
-      }
-      if (e.response.status === 429) {
-        // Backoff for 1 minute if rate limited
-        await sleep(60);
-      }
-    }
+    await handleError(e, "immutablex-adapter:fetchSales");
   }
 }
 
@@ -162,7 +138,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    console.error("ImmutableX adapter error:", e.message);
+    await handleError(e, "immutablex-adapter");
   }
 }
 

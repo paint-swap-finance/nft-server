@@ -1,6 +1,6 @@
 import { Collection } from "../models/collection";
 import { DataAdapter } from ".";
-import { sleep } from "../utils";
+import { sleep, handleError } from "../utils";
 
 const QUERY = `
 insert into historical_statistic (
@@ -56,7 +56,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    console.error("Historical statistic calculator adapter error:", e.message);
+    await handleError(e, "historical-statistic-calculator-adapter")
   }
 }
 
