@@ -30,11 +30,11 @@ export function getSlug(text: string): string {
     .replace(/[^\w-]+/g, "");
 }
 
-// TODO Rename this to something more meaningful
 export function convertByDecimals(value: number, decimals: number): number {
   return value / Math.pow(10, decimals);
 }
 
+// TODO optimize
 export function getPriceAtDate(
   date: string,
   historicalPrices: number[][] // [0] is a UNIX timestamp, [1] is the price

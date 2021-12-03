@@ -1,4 +1,3 @@
-import axios from "axios";
 import { Sale } from "../models/sale";
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
@@ -42,13 +41,12 @@ async function runSaleCurrencyConversions(): Promise<void> {
   await updateSaleCurrencyConversions(sales, tokenAddressPrices);
 }
 
-// TODO optimize and refactor
 export async function fetchTokenAddressPrices(): Promise<
   Record<string, number[][]>
 > {
   const tokenAddressPrices: Record<string, number[][]> = {};
-
   const tokenAddressesRaw = await Sale.getPaymentTokenAddresses(false);
+
   const tokenAddresses = tokenAddressesRaw.filter(
     (data) => !BASE_TOKENS_ADDRESSES.includes(data.address)
   );
@@ -70,7 +68,6 @@ export async function fetchTokenAddressPrices(): Promise<
         "currency-converter-adapter:fetchTokenAddressPrices"
       );
     }
-    await sleep(1);
   }
 
   return tokenAddressPrices;
@@ -87,7 +84,6 @@ export async function getHistoricalPricesByChainAndAddress(
   );
 }
 
-//TODO optimize and refactor
 export async function updateSaleCurrencyConversions(
   sales: Sale[],
   tokenAddressPrices: Record<string, number[][]>
@@ -95,41 +91,45 @@ export async function updateSaleCurrencyConversions(
   console.log("Updating currency conversions for", sales.length, "sales");
 
   for (const sale of sales) {
-    const saleTokenAddress = sale.paymentTokenAddress;
-    const saleTimestamp = sale.timestamp.toString();
-    const salePrice = sale.price;
+    const tokenAddress = sale.paymentTokenAddress;
+    const timestamp = sale.timestamp.toString();
+    const price = sale.price;
+    const chain = sale.collection.chain as Blockchain;
 
-    if (
-      saleTokenAddress in tokenAddressPrices &&
-      !BASE_TOKENS_ADDRESSES.includes(saleTokenAddress)
-    ) {
-      const baseAtDate = getPriceAtDate(
-        saleTimestamp,
-        tokenAddressPrices[saleTokenAddress]
-      );
-      const priceBase = baseAtDate ? salePrice * baseAtDate : null;
-      const saleChain = sale.collection.chain as Blockchain;
-      const baseAddress = DEFAULT_TOKEN_ADDRESSES[saleChain];
-
-      const priceUSD = priceBase
-        ? formatUSD(
-            priceBase *
-              getPriceAtDate(saleTimestamp, tokenAddressPrices[baseAddress])
-          )
-        : null;
-
-      sale.priceBase = priceBase ?? -1;
-      sale.priceUSD = priceUSD ?? BigInt(-1);
-    } else if (BASE_TOKENS_ADDRESSES.includes(saleTokenAddress)) {
-      sale.priceBase = salePrice;
-      sale.priceUSD = formatUSD(
-        salePrice *
-          getPriceAtDate(saleTimestamp, tokenAddressPrices[saleTokenAddress])
-      );
-    } else {
+    // If the token's historical prices was not found
+    if (!(tokenAddress in tokenAddressPrices)) {
       sale.priceBase = -1;
       sale.priceUSD = BigInt(-1);
+      continue;
     }
+
+    // USD price for base tokens, base price for all other tokens
+    const priceAtDate = getPriceAtDate(
+      timestamp,
+      tokenAddressPrices[tokenAddress]
+    );
+
+    // If the token's historical prices was found but not at the sale date
+    if (!priceAtDate) {
+      sale.priceBase = -1;
+      sale.priceUSD = BigInt(-1);
+      continue;
+    }
+
+    // If the token is a base token
+    if (BASE_TOKENS_ADDRESSES.includes(tokenAddress)) {
+      sale.priceBase = price;
+      sale.priceUSD = formatUSD(price * priceAtDate);
+      continue;
+    }
+
+    const baseAddress = DEFAULT_TOKEN_ADDRESSES[chain];
+    sale.priceBase = price * priceAtDate;
+    sale.priceUSD = formatUSD(
+      price *
+        priceAtDate *
+        getPriceAtDate(timestamp, tokenAddressPrices[baseAddress])
+    );
   }
 
   // Break in chunks of 1000 so Postgres doesn't break and Typeorm doesn't freeze
