@@ -6,7 +6,11 @@ export function timestamp(): number {
 }
 
 export function roundUSD(num: number): number {
-  return Math.round(num);
+  return Math.round(num ?? 0);
+}
+
+export function formatUSD(price: number): bigint {
+  return BigInt(roundUSD(price ?? 0));
 }
 
 export function isSameDay(d1: Date, d2: Date): boolean {
@@ -45,8 +49,4 @@ export function getPriceAtDate(
   }
 
   return null;
-}
-
-export function formatUSD(price: number): bigint {
-  return BigInt(roundUSD(price ?? 0));
 }
