@@ -4,7 +4,7 @@ import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Sale } from "../models/sale";
 import { Statistic } from "../models/statistic";
-import { ONE_HOUR } from "../constants";
+import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 import { sleep } from "../utils";
 import { Coingecko } from "../api/coingecko";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
@@ -19,8 +19,13 @@ async function runCollections(): Promise<void> {
     console.log("No OpenSea collections to request...");
     return;
   }
+
   console.log("OpenSea collections to request:", collections.length);
-  const ethInUSD = await Coingecko.getEthPrice();
+
+  const { usd: ethInUSD } = await Coingecko.getPricesById(
+    COINGECKO_IDS[Blockchain.Ethereum].geckoId
+  );
+
   for (const collection of collections) {
     try {
       await fetchCollection(

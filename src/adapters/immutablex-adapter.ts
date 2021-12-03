@@ -8,14 +8,16 @@ import { Blockchain, Marketplace } from "../types";
 import { ImmutableX, ImmutableXCollectionData } from "../api/immutablex";
 import { Coingecko } from "../api/coingecko";
 import { sleep, getSlug } from "../utils";
-import { ONE_HOUR } from "../constants";
+import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 
 async function runCollections(): Promise<void> {
   const collections = await ImmutableX.getAllCollections();
 
   console.log("IMX collections to request:", collections.length);
 
-  const ethInUSD = await Coingecko.getEthPrice();
+  const { usd: ethInUSD } = await Coingecko.getPricesById(
+    COINGECKO_IDS[Blockchain.Ethereum].geckoId
+  );
 
   for (const collection of collections) {
     try {

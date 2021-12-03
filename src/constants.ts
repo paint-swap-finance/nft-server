@@ -18,3 +18,22 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
   [Blockchain.Ethereum]: MoralisChain.Ethereum,
   [Blockchain.Binance]: MoralisChain.Binance,
 };
+
+export const COINGECKO_IDS = {
+  [Blockchain.Ethereum]: {
+    geckoId: "ethereum",
+    symbol: "eth",
+  },
+  [Blockchain.Arbitrum]: {
+    geckoId: "arbitrum-one",
+    symbol: "eth",
+  },
+  [Blockchain.Solana]: {
+    geckoId: "solana",
+    symbol: "sol",
+  },
+  [Blockchain.Binance]: {
+    geckoId: "binancecoin",
+    symbol: "bnb",
+  },
+};

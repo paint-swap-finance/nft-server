@@ -7,14 +7,16 @@ import { Blockchain, Marketplace } from "../types";
 import { MagicEden, MagicEdenCollectionData } from "../api/magic-eden";
 import { Coingecko } from "../api/coingecko";
 import { sleep } from "../utils";
-import { ONE_HOUR } from "../constants";
+import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 
 async function runCollections(): Promise<void> {
   const collections = await MagicEden.getAllCollections();
 
   console.log("Magic Eden collections to request:", collections.length);
 
-  const solInUSD = await Coingecko.getSolPrice();
+  const { usd: solInUSD } = await Coingecko.getPricesById(
+    COINGECKO_IDS[Blockchain.Solana].geckoId
+  );
 
   for (const collection of collections) {
     try {

@@ -7,7 +7,7 @@ import { Sale } from "../models/sale";
 import { Coingecko } from "../api/coingecko";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { sleep, getSlug } from "../utils";
-import { ONE_HOUR } from "../constants";
+import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
@@ -15,7 +15,10 @@ async function runCollections(): Promise<void> {
 
   console.log("PancakeSwap collections to request:", collections.length);
 
-  const bnbInUSD = await Coingecko.getBnbPrice();
+  const { usd: bnbInUSD } = await Coingecko.getPricesById(
+    COINGECKO_IDS[Blockchain.Binance].geckoId
+  );
+
   for (const collection of collections) {
     try {
       await fetchCollection(collection, bnbInUSD);

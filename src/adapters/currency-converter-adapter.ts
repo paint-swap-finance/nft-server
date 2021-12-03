@@ -4,25 +4,40 @@ import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
 import { getPriceAtDate, sleep, formatUSD } from "../utils";
 import {
+  COINGECKO_IDS,
   BINANCE_DEFAULT_TOKEN_ADDRESS,
   ETHEREUM_DEFAULT_TOKEN_ADDRESS,
   SOLANA_DEFAULT_TOKEN_ADDRESS,
 } from "../constants";
+import { Blockchain } from "../types";
 
 const BASE_TOKENS = [
   {
     address: ETHEREUM_DEFAULT_TOKEN_ADDRESS,
-    fetch: Coingecko.getHistoricalEthPrices,
+    fetch: () =>
+      Coingecko.getHistoricalPricesById(
+        COINGECKO_IDS[Blockchain.Ethereum].geckoId,
+        "usd"
+      ),
   },
   {
     address: SOLANA_DEFAULT_TOKEN_ADDRESS,
-    fetch: Coingecko.getHistoricalSolPrices,
+    fetch: () =>
+      Coingecko.getHistoricalPricesById(
+        COINGECKO_IDS[Blockchain.Solana].geckoId,
+        "usd"
+      ),
   },
   {
     address: BINANCE_DEFAULT_TOKEN_ADDRESS,
-    fetch: Coingecko.getHistoricalBnbPrices,
+    fetch: () =>
+      Coingecko.getHistoricalPricesById(
+        COINGECKO_IDS[Blockchain.Binance].geckoId,
+        "usd"
+      ),
   },
 ];
+
 const BASE_TOKENS_ADDRESSES = BASE_TOKENS.map((token) => token.address);
 
 async function runSaleCurrencyConversions(): Promise<void> {
@@ -52,15 +67,15 @@ export async function fetchTokenAddressPrices(): Promise<
       //TODO generalize for tokens on other chains
       let prices;
       prices = await Coingecko.getHistoricalPricesByAddress(
-        "ethereum",
+        COINGECKO_IDS[Blockchain.Ethereum].geckoId,
         tokenAddress,
-        "eth"
+        COINGECKO_IDS[Blockchain.Arbitrum].symbol
       );
       if (!prices.length) {
         prices = await Coingecko.getHistoricalPricesByAddress(
-          "arbitrum-one",
+          COINGECKO_IDS[Blockchain.Arbitrum].geckoId,
           tokenAddress,
-          "eth"
+          COINGECKO_IDS[Blockchain.Arbitrum].symbol
         );
       }
       tokenAddressPrices[tokenAddress] = prices;
@@ -129,8 +144,7 @@ export async function updateSaleCurrencyConversions(
     }
   }
 
-  // Break in chunks of 65535 so Postgres doesn't break, and
-  // save in chunks of 1000 so Typeorm doesn't freeze
+  // Break in chunks of 1000 so Postgres doesn't break and Typeorm doesn't freeze
   while (sales.length) {
     console.log("Sales left to update:", sales.length);
     await Sale.save(sales.splice(0, 1000), { chunk: 1000 });

@@ -68,7 +68,7 @@ async function fetchCollection(
   const { metadata, statistics } = await Treasure.getCollection(
     collection,
     magicInUsd,
-    magicInEth,
+    magicInEth
   );
 
   const filteredMetadata = Object.fromEntries(
