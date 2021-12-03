@@ -13,21 +13,25 @@ async function runCollections(): Promise<void> {
   const allCollections = await Collection.findNotFetchedSince(ONE_HOUR);
   const collections = allCollections.filter(
     (collection) => collection.chain === Blockchain.Ethereum
-  );
+  ); // TODO filter from query
 
   if (collections.length === 0) {
     console.log("No OpenSea collections to request...");
     return;
   }
 
-  console.log("OpenSea collections to request:", collections.length);
-
   const { usd: ethInUSD } = await Coingecko.getPricesById(
     COINGECKO_IDS[Blockchain.Ethereum].geckoId
   );
 
+  console.log("Fetching metadata for Opensea collections:", collections.length);
+
   for (const collection of collections) {
     try {
+      console.log(
+        "Fetching metadata for Opensea collection:",
+        collection?.name || "No name"
+      );
       await fetchCollection(
         collection.slug,
         collection.address,

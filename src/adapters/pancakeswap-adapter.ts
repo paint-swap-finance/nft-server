@@ -13,14 +13,21 @@ import { Blockchain, Marketplace } from "../types";
 async function runCollections(): Promise<void> {
   const collections = await PancakeSwap.getAllCollections();
 
-  console.log("PancakeSwap collections to request:", collections.length);
-
   const { usd: bnbInUSD } = await Coingecko.getPricesById(
     COINGECKO_IDS[Blockchain.Binance].geckoId
   );
 
+  console.log(
+    "Fetching metadata for PancakeSwap collections:",
+    collections.length
+  );
+
   for (const collection of collections) {
     try {
+      console.log(
+        "Fetching metadata for PancakeSwap collection:",
+        collection.name
+      );
       await fetchCollection(collection, bnbInUSD);
     } catch (e) {
       await handleError(e, "pancakeswap-adapter:runCollections");

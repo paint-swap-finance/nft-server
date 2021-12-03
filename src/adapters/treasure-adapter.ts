@@ -13,14 +13,21 @@ import { Treasure } from "../api/treasure";
 async function runCollections(): Promise<void> {
   const collections = await Collection.findByChain(Blockchain.Arbitrum); // TODO filter by marketplace too
 
-  console.log("Treasure collections to request:", collections.length);
-
   const { usd: magicInUsd, eth: magicInEth } = await Coingecko.getPricesById(
     "magic"
   );
 
+  console.log(
+    "Fetching metadata for Treasure collections:",
+    collections.length
+  );
+
   for (const collection of collections) {
     try {
+      console.log(
+        "Fetching metadata for Treasure collection:",
+        collection.name
+      );
       await fetchCollection(collection, magicInUsd, magicInEth);
     } catch (e) {
       await handleError(e, "treasure-adapter:runCollections");

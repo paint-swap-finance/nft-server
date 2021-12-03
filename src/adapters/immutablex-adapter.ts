@@ -13,14 +13,15 @@ import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 async function runCollections(): Promise<void> {
   const collections = await ImmutableX.getAllCollections();
 
-  console.log("IMX collections to request:", collections.length);
-
   const { usd: ethInUSD } = await Coingecko.getPricesById(
     COINGECKO_IDS[Blockchain.Ethereum].geckoId
   );
 
+  console.log("Fetching metadata for IMX collections:", collections.length);
+
   for (const collection of collections) {
     try {
+      console.log("Fetching metadata for IMX collection:", collection.name);
       await fetchCollection(collection, ethInUSD);
     } catch (e) {
       await handleError(e, "immutablex-adapter:runCollections");

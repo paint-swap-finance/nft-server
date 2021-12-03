@@ -12,14 +12,21 @@ import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 async function runCollections(): Promise<void> {
   const collections = await MagicEden.getAllCollections();
 
-  console.log("Magic Eden collections to request:", collections.length);
-
   const { usd: solInUSD } = await Coingecko.getPricesById(
     COINGECKO_IDS[Blockchain.Solana].geckoId
   );
 
+  console.log(
+    "Fetching metadata for Magic Eden collections:",
+    collections.length
+  );
+
   for (const collection of collections) {
     try {
+      console.log(
+        "Fetching metadata for Magic Eden collection:",
+        collection.name
+      );
       await fetchCollection(collection, solInUSD);
     } catch (e) {
       await handleError(e, "magic-eden-adapter:runCollections");
