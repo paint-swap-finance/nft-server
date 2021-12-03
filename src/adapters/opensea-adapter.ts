@@ -4,8 +4,8 @@ import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Sale } from "../models/sale";
 import { Statistic } from "../models/statistic";
-import { ONE_HOUR } from "../constants";
-import { sleep } from "../utils";
+import { COINGECKO_IDS, ONE_HOUR } from "../constants";
+import { sleep, handleError } from "../utils";
 import { Coingecko } from "../api/coingecko";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
 
@@ -13,16 +13,25 @@ async function runCollections(): Promise<void> {
   const allCollections = await Collection.findNotFetchedSince(ONE_HOUR);
   const collections = allCollections.filter(
     (collection) => collection.chain === Blockchain.Ethereum
-  );
+  ); // TODO filter from query
 
   if (collections.length === 0) {
     console.log("No OpenSea collections to request...");
     return;
   }
-  console.log("OpenSea collections to request:", collections.length);
-  const ethInUSD = await Coingecko.getEthPrice();
+
+  const { usd: ethInUSD } = await Coingecko.getPricesById(
+    COINGECKO_IDS[Blockchain.Ethereum].geckoId
+  );
+
+  console.log("Fetching metadata for Opensea collections:", collections.length);
+
   for (const collection of collections) {
     try {
+      console.log(
+        "Fetching metadata for Opensea collection:",
+        collection?.name || "No name"
+      );
       await fetchCollection(
         collection.slug,
         collection.address,
@@ -33,16 +42,7 @@ async function runCollections(): Promise<void> {
       if (e instanceof LowVolumeError) {
         collection.remove();
       }
-      if (axios.isAxiosError(e)) {
-        if (e.response.status === 404) {
-          collection.remove();
-        }
-        if (e.response.status === 429) {
-          // Backoff for 1 minute if rate limited
-          await sleep(60);
-        }
-      }
-      console.error("Error retrieving collection data:", e.message);
+      await handleError(e, "opensea-adapter:runCollections");
     }
     await sleep(1);
   }
@@ -128,22 +128,7 @@ async function fetchSales(collection: Collection): Promise<void> {
       offset += limit;
       await sleep(1);
     } catch (e) {
-      console.error("Error retrieving sales data:", e.message);
-
-      if (axios.isAxiosError(e)) {
-        if (
-          e.response.status === 404 ||
-          e.response.status === 500 ||
-          e.response.status === 504
-        ) {
-          console.error("Error retrieving sales data:", e.message);
-          return;
-        }
-        if (e.response.status === 429) {
-          // Backoff for 1 minute if rate limited
-          await sleep(60);
-        }
-      }
+      await handleError(e, "opensea-adapter:fetchSales");
       continue;
     }
   }
@@ -156,7 +141,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    console.error("OpenSea adapter error:", e.message);
+    await handleError(e, "opensea-adapter");
   }
 }
 

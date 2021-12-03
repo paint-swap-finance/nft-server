@@ -1,9 +1,9 @@
 import axios from "axios";
 import { request, gql } from "graphql-request";
 
-import { CollectionAndStatisticData, SaleData } from "../types";
+import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
 import { formatUSD, getSlug, roundUSD } from "../utils";
-import { BINANCE_DEFAULT_TOKEN_ADDRESS } from "../constants";
+import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
 
 export interface PancakeSwapCollectionBanner {
   large: string;
@@ -225,7 +225,7 @@ export class PancakeSwap {
       } = sale;
       const { id: buyerAddress } = buyer;
       const { id: sellerAddress } = seller;
-      const paymentTokenAddress = BINANCE_DEFAULT_TOKEN_ADDRESS;
+      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Binance];
 
       return {
         txnHash: txnHash.toLowerCase(),

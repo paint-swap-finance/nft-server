@@ -7,30 +7,24 @@ import { Sale } from "../models/sale";
 import { Blockchain, Marketplace } from "../types";
 import { ImmutableX, ImmutableXCollectionData } from "../api/immutablex";
 import { Coingecko } from "../api/coingecko";
-import { sleep, getSlug } from "../utils";
-import { ONE_HOUR } from "../constants";
+import { sleep, getSlug, handleError } from "../utils";
+import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 
 async function runCollections(): Promise<void> {
   const collections = await ImmutableX.getAllCollections();
 
-  console.log("IMX collections to request:", collections.length);
+  const { usd: ethInUSD } = await Coingecko.getPricesById(
+    COINGECKO_IDS[Blockchain.Ethereum].geckoId
+  );
 
-  const ethInUSD = await Coingecko.getEthPrice();
+  console.log("Fetching metadata for IMX collections:", collections.length);
 
   for (const collection of collections) {
     try {
+      console.log("Fetching metadata for IMX collection:", collection.name);
       await fetchCollection(collection, ethInUSD);
     } catch (e) {
-      if (axios.isAxiosError(e)) {
-        if (e.response.status === 404) {
-          console.error("Collection not found:", e.message);
-        }
-        if (e.response.status === 429) {
-          // Backoff for 1 minute if rate limited
-          await sleep(60);
-        }
-      }
-      console.error("Error retrieving collection data:", e.message);
+      await handleError(e, "immutablex-adapter:runCollections");
     }
     await sleep(1);
   }
@@ -134,22 +128,7 @@ async function fetchSales(collection: Collection): Promise<void> {
     Sale.save(Object.values(sales));
     await sleep(1);
   } catch (e) {
-    console.error("Error retrieving sales data:", e.message);
-
-    if (axios.isAxiosError(e)) {
-      if (
-        e.response.status === 404 ||
-        e.response.status === 500 ||
-        e.response.status === 504
-      ) {
-        console.error("Error retrieving sales data:", e.message);
-        return;
-      }
-      if (e.response.status === 429) {
-        // Backoff for 1 minute if rate limited
-        await sleep(60);
-      }
-    }
+    await handleError(e, "immutablex-adapter:fetchSales");
   }
 }
 
@@ -160,7 +139,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    console.error("ImmutableX adapter error:", e.message);
+    await handleError(e, "immutablex-adapter");
   }
 }
 

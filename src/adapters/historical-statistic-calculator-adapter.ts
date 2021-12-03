@@ -1,6 +1,6 @@
 import { Collection } from "../models/collection";
 import { DataAdapter } from ".";
-import { sleep } from "../utils";
+import { sleep, handleError } from "../utils";
 
 const QUERY = `
 insert into historical_statistic (
@@ -35,8 +35,10 @@ insert into historical_statistic (
     0
   from sale
   join collection on sale."collectionAddress" = collection.address
-  where price != 0
-  and blacklisted = 'false'
+  where blacklisted = 'false'
+  and price > 0
+  and "priceBase" > 0
+  and "priceUSD" > 0
   group by "collectionAddress", day
 )
 on conflict("collectionAddress", timestamp)
@@ -56,7 +58,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    console.error("Historical statistic calculator adapter error:", e.message);
+    await handleError(e, "historical-statistic-calculator-adapter")
   }
 }
 

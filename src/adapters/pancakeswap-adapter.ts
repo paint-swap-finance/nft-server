@@ -6,31 +6,31 @@ import { Statistic } from "../models/statistic";
 import { Sale } from "../models/sale";
 import { Coingecko } from "../api/coingecko";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
-import { sleep, getSlug } from "../utils";
-import { ONE_HOUR } from "../constants";
+import { sleep, getSlug, handleError } from "../utils";
+import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
   const collections = await PancakeSwap.getAllCollections();
 
-  console.log("PancakeSwap collections to request:", collections.length);
+  const { usd: bnbInUSD } = await Coingecko.getPricesById(
+    COINGECKO_IDS[Blockchain.Binance].geckoId
+  );
 
-  const bnbInUSD = await Coingecko.getBnbPrice();
+  console.log(
+    "Fetching metadata for PancakeSwap collections:",
+    collections.length
+  );
+
   for (const collection of collections) {
     try {
+      console.log(
+        "Fetching metadata for PancakeSwap collection:",
+        collection.name
+      );
       await fetchCollection(collection, bnbInUSD);
     } catch (e) {
-      if (axios.isAxiosError(e)) {
-        if (e.response.status === 404) {
-          console.error("Collection not found:", e.message);
-        }
-        if (e.response.status === 429) {
-          // Backoff for 1 minute if rate limited
-          await sleep(60);
-        }
-      }
-      console.log(collection.name);
-      console.error("Error retrieving collection data:", e.message);
+      await handleError(e, "pancakeswap-adapter:runCollections");
     }
     await sleep(1);
   }
@@ -130,22 +130,7 @@ async function fetchSales(collection: Collection): Promise<void> {
     Sale.save(Object.values(sales), { chunk: 1000 });
     await sleep(1);
   } catch (e) {
-    console.error("Error retrieving sales data:", e.message);
-
-    if (axios.isAxiosError(e)) {
-      if (
-        e.response.status === 404 ||
-        e.response.status === 500 ||
-        e.response.status === 504
-      ) {
-        console.error("Error retrieving sales data:", e.message);
-        return;
-      }
-      if (e.response.status === 429) {
-        // Backoff for 1 minute if rate limited
-        await sleep(60);
-      }
-    }
+    await handleError(e, "pancakeswap-adapter:fetchSales");
   }
 }
 
@@ -156,7 +141,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    console.error("PancakeSwap adapter error:", e.message);
+    await handleError(e, "pancakeswap-adapter");
   }
 }
 

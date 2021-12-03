@@ -1,11 +1,9 @@
 /* eslint-disable camelcase */
 import axios from "axios";
-import { formatUSD, roundUSD } from "../utils";
-import { SOLANA_DEFAULT_TOKEN_ADDRESS } from "../constants";
-import { CollectionAndStatisticData, SaleData } from "../types";
+import { formatUSD, roundUSD, convertByDecimals } from "../utils";
+import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
+import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
 import { Collection } from "../models/collection";
-
-const MAGIC_EDEN_MULTIPLIER = 1_000_000_000;
 
 interface MagicEdenParsedTransaction {
   txType: string;
@@ -73,10 +71,10 @@ export class MagicEden {
 
     const { name, image: logo, description, symbol: slug } = collection;
 
-    const floor = floor_price / MAGIC_EDEN_MULTIPLIER || 0;
-    const dailyVolume = one_day_volume / MAGIC_EDEN_MULTIPLIER || 0;
-    const totalVolume = total_volume / MAGIC_EDEN_MULTIPLIER || 0;
-    const marketCap = market_cap / MAGIC_EDEN_MULTIPLIER || 0;
+    const floor = convertByDecimals(floor_price, 9) || 0;
+    const dailyVolume = convertByDecimals(one_day_volume, 9) || 0;
+    const totalVolume = convertByDecimals(total_volume, 9) || 0;
+    const marketCap = convertByDecimals(market_cap, 9) || 0;
 
     return {
       metadata: {
@@ -126,7 +124,7 @@ export class MagicEden {
         return undefined;
       }
 
-      const paymentTokenAddress = SOLANA_DEFAULT_TOKEN_ADDRESS;
+      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Solana];
       const { transaction_id: txnHash, createdAt: timestamp } = sale;
       const {
         total_amount: total_price,
@@ -134,7 +132,7 @@ export class MagicEden {
         seller_address,
       } = sale.parsedTransaction;
 
-      const price = total_price / MAGIC_EDEN_MULTIPLIER;
+      const price = convertByDecimals(total_price, 9);
 
       return {
         txnHash: txnHash.toLowerCase(),

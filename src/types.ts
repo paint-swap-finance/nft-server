@@ -1,3 +1,5 @@
+import { Collection } from "./models/collection";
+
 export enum Blockchain {
   Any = "any",
   Ethereum = "ethereum",
@@ -82,5 +84,5 @@ export interface SaleData {
   sellerAddress: string;
   buyerAddress: string;
   marketplace: Marketplace;
-  collection: any; //TODO fix
+  collection: Collection;
 }

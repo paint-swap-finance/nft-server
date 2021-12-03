@@ -2,8 +2,7 @@ import { request, gql } from "graphql-request";
 
 import { Collection } from "../models/collection";
 import { CollectionAndStatisticData, SaleData } from "../types";
-import { convertByDecimals, formatUSD, getSlug, roundUSD } from "../utils";
-import { BINANCE_DEFAULT_TOKEN_ADDRESS } from "../constants";
+import { convertByDecimals, formatUSD, roundUSD } from "../utils";
 
 export interface TreasureCollectionData {
   floorPrice: string;

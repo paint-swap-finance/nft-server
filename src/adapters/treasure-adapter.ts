@@ -5,7 +5,7 @@ import { Collection } from "../models/collection";
 import { Statistic } from "../models/statistic";
 import { Sale } from "../models/sale";
 import { Coingecko } from "../api/coingecko";
-import { sleep, getSlug } from "../utils";
+import { sleep, getSlug, handleError } from "../utils";
 import { ONE_HOUR } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 import { Treasure } from "../api/treasure";
@@ -13,27 +13,24 @@ import { Treasure } from "../api/treasure";
 async function runCollections(): Promise<void> {
   const collections = await Collection.findByChain(Blockchain.Arbitrum); // TODO filter by marketplace too
 
-  console.log("Treasure collections to request:", collections.length);
-
   const { usd: magicInUsd, eth: magicInEth } = await Coingecko.getPricesById(
     "magic"
   );
 
+  console.log(
+    "Fetching metadata for Treasure collections:",
+    collections.length
+  );
+
   for (const collection of collections) {
     try {
+      console.log(
+        "Fetching metadata for Treasure collection:",
+        collection.name
+      );
       await fetchCollection(collection, magicInUsd, magicInEth);
     } catch (e) {
-      if (axios.isAxiosError(e)) {
-        if (e.response.status === 404) {
-          console.error("Collection not found:", e.message);
-        }
-        if (e.response.status === 429) {
-          // Backoff for 1 minute if rate limited
-          await sleep(60);
-        }
-      }
-      console.log(collection.name);
-      console.error("Error retrieving collection data:", e.message);
+      await handleError(e, "treasure-adapter:runCollections");
     }
     await sleep(1);
   }
@@ -68,7 +65,7 @@ async function fetchCollection(
   const { metadata, statistics } = await Treasure.getCollection(
     collection,
     magicInUsd,
-    magicInEth,
+    magicInEth
   );
 
   const filteredMetadata = Object.fromEntries(
@@ -126,22 +123,7 @@ async function fetchSales(collection: Collection): Promise<void> {
     Sale.save(Object.values(sales), { chunk: 1000 });
     await sleep(1);
   } catch (e) {
-    console.error("Error retrieving sales data:", e.message);
-
-    if (axios.isAxiosError(e)) {
-      if (
-        e.response.status === 404 ||
-        e.response.status === 500 ||
-        e.response.status === 504
-      ) {
-        console.error("Error retrieving sales data:", e.message);
-        return;
-      }
-      if (e.response.status === 429) {
-        // Backoff for 1 minute if rate limited
-        await sleep(60);
-      }
-    }
+    await handleError(e, "treasure-adapter:fetchSales");
   }
 }
 
@@ -152,7 +134,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    console.error("Treasure adapter error:", e.message);
+    await handleError(e, "treasure-adapter");
   }
 }
 

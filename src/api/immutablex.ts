@@ -7,8 +7,8 @@ import {
   convertByDecimals,
   formatUSD,
 } from "../utils";
-import { ETHEREUM_DEFAULT_TOKEN_ADDRESS } from "../constants";
-import { CollectionData, StatisticData, SaleData } from "../types";
+import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
+import { CollectionData, StatisticData, SaleData, Blockchain } from "../types";
 import { Collection } from "../models/collection";
 
 export interface ImmutableXCollectionData {
@@ -165,7 +165,7 @@ export class ImmutableX {
 
   public static async getSales(
     collection: Collection,
-    occurredAfter: number,
+    occurredAfter: number
   ): Promise<(SaleData | undefined)[]> {
     const filledOrders = await this.getAllOrders(
       collection.address,
@@ -181,7 +181,7 @@ export class ImmutableX {
         return undefined;
       }
 
-      const paymentTokenAddress = ETHEREUM_DEFAULT_TOKEN_ADDRESS;
+      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.ImmutableX];
       const {
         timestamp,
         user: seller_address,
