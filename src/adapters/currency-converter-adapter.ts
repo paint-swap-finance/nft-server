@@ -78,7 +78,7 @@ export async function getHistoricalPricesByChainAndAddress(
   address: string
 ): Promise<number[][]> {
   return Coingecko.getHistoricalPricesByAddress(
-    COINGECKO_IDS[chain].geckoId,
+    COINGECKO_IDS[chain].platform,
     address,
     COINGECKO_IDS[chain].symbol
   );

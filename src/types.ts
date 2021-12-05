@@ -7,6 +7,7 @@ export enum Blockchain {
   ImmutableX = "immutablex",
   Binance = "binance",
   Arbitrum = "arbitrum",
+  Terra = "terra",
 }
 
 export const BlockchainReverseLookup = new Map<
@@ -28,6 +29,7 @@ export enum Marketplace {
   ImmutableX = "immutablex",
   PancakeSwap = "pancakeswap",
   Treasure = "treasure",
+  RandomEarth = "random-earth",
 }
 
 export enum MoralisChain {
