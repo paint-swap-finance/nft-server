@@ -82,7 +82,10 @@ export class RandomEarth {
 
     const address = addr.toLowerCase();
 
-    const { totalVolume } = await Collection.getTotalVolume(address);
+    const { totalVolume: totalVolumeRaw } = await Collection.getTotalVolume(
+      address
+    );
+    const totalVolume = totalVolumeRaw || 0;
 
     const slug = getSlug(name);
     const floor = convertByDecimals(floor_price, 6) || 0;
@@ -112,8 +115,8 @@ export class RandomEarth {
         owners,
         floor,
         floorUSD: roundUSD(floor * lunaInUSD),
-        totalVolume: totalVolume ?? 0,
-        totalVolumeUSD: formatUSD(totalVolume ?? 0 * lunaInUSD),
+        totalVolume,
+        totalVolumeUSD: formatUSD(totalVolume * lunaInUSD),
         marketCap,
         marketCapUSD: formatUSD(marketCap * lunaInUSD),
       },
