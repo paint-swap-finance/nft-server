@@ -73,7 +73,7 @@ export class Treasure {
     const { collection: collectionData } = await request(TREASURE_ENDPOINT, collectionQuery, {
       id: address,
     });
-    const { dailyVolume } = await collection.getDailyVolume()
+    const { dailyVolume } = await Collection.getDailyVolume(address)
 
     const { floorPrice, totalListings, totalVolume: volume } = collectionData;
     const floor = convertByDecimals(parseInt(floorPrice), 18);
