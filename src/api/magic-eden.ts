@@ -139,6 +139,7 @@ export class MagicEden {
         timestamp: timestamp,
         paymentTokenAddress,
         price,
+        priceBase: 0,
         priceUSD: 0,
         buyerAddress: buyer_address || "",
         sellerAddress: seller_address || "",

@@ -30,6 +30,14 @@ const BASE_TOKENS = [
         "usd"
       ),
   },
+  {
+    address: DEFAULT_TOKEN_ADDRESSES[Blockchain.Terra],
+    fetch: () =>
+      Coingecko.getHistoricalPricesById(
+        COINGECKO_IDS[Blockchain.Terra].geckoId,
+        "usd"
+      ),
+  },
 ];
 
 const BASE_TOKENS_ADDRESSES = BASE_TOKENS.map((token) => token.address);
@@ -78,7 +86,7 @@ export async function getHistoricalPricesByChainAndAddress(
   address: string
 ): Promise<number[][]> {
   return Coingecko.getHistoricalPricesByAddress(
-    COINGECKO_IDS[chain].geckoId,
+    COINGECKO_IDS[chain].platform,
     address,
     COINGECKO_IDS[chain].symbol
   );

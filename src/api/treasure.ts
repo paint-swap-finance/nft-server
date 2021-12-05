@@ -70,10 +70,17 @@ export class Treasure {
   ): Promise<CollectionAndStatisticData> {
     const address = collection.address.toLowerCase();
 
-    const { collection: collectionData } = await request(TREASURE_ENDPOINT, collectionQuery, {
-      id: address,
-    });
-    const { dailyVolume } = await collection.getDailyVolume()
+    const { collection: collectionData } = await request(
+      TREASURE_ENDPOINT,
+      collectionQuery,
+      {
+        id: address,
+      }
+    );
+    const { dailyVolume: dailyVolumeRaw } = await Collection.getDailyVolume(
+      address
+    );
+    const dailyVolume = dailyVolumeRaw || 0;
 
     const { floorPrice, totalListings, totalVolume: volume } = collectionData;
     const floor = convertByDecimals(parseInt(floorPrice), 18);
@@ -95,8 +102,8 @@ export class Treasure {
         medium_username: null,
       },
       statistics: {
-        dailyVolume: dailyVolume ?? 0 * magicInEth,
-        dailyVolumeUSD: formatUSD(dailyVolume ?? 0 * magicInUsd),
+        dailyVolume: dailyVolume * magicInEth,
+        dailyVolumeUSD: formatUSD(dailyVolume * magicInUsd),
         owners: 0,
         floor: floor * magicInEth,
         floorUSD: roundUSD(floor * magicInUsd),
