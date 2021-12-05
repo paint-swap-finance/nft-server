@@ -4,6 +4,7 @@ import MagicEdenAdapter from "./magic-eden-adapter";
 import ImmutableXAdapter from "./immutablex-adapter";
 import PancakeSwapAdapter from "./pancakeswap-adapter";
 import TreasureAdapter from "./treasure-adapter";
+import RandomEarthAdapter from "./random-earth-adapter";
 import HistoricalStatisticCalculatorAdapter from "./historical-statistic-calculator-adapter";
 import CurrencyConverterAdapter from "./currency-converter-adapter";
 
@@ -18,6 +19,7 @@ const adapters: DataAdapter[] = [
   ImmutableXAdapter,
   PancakeSwapAdapter,
   TreasureAdapter,
+  RandomEarthAdapter,
   HistoricalStatisticCalculatorAdapter,
   CurrencyConverterAdapter,
 ];

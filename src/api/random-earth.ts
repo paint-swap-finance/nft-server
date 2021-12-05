@@ -5,34 +5,34 @@ import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
 import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
 import { Collection } from "../models/collection";
 
-interface MagicEdenParsedTransaction {
-  txType: string;
-  transaction_id: string;
-  blockTime: number;
-  slot: number;
-  collection_symbol: string;
-  mint: string;
-  total_amount: number;
-  platform_fees_amount: number;
-  seller_fee_amount: number;
-  creator_fees_amount: number;
-  seller_address: string;
-  buyer_address: string;
+interface RandomEarthTransactionBuyerSeller {
+  addr: string;
+  created_at: string;
+  slug: string;
+  name?: string;
+  num_followers?: number;
+  description?: string;
+  twitter_sn?: string;
+  profile_src?: string;
+  type: string;
 }
 
-interface MagicEdenTransactionData {
-  _id: string;
-  transaction_id: string;
-  blockTime: number;
-  buyer_address: string;
-  collection_symbol: string;
-  createdAt: string;
-  mint: string;
-  seller_address: string;
-  slot: number;
-  source: string;
-  txType: string;
-  parsedTransaction: MagicEdenParsedTransaction;
+interface RandomEarthTransactionData {
+  type: string;
+  created_at: string;
+  updated_at: string;
+  order_hash: string;
+  item_collection_addr: string;
+  item_token_id: number;
+  user_from_addr: string;
+  user_to_addr: string;
+  price: number;
+  currency: Object;
+  txhash: string;
+  data: unknown;
+  user_from: RandomEarthTransactionBuyerSeller;
+  user_to: RandomEarthTransactionBuyerSeller;
+  item: Object;
 }
 
 export interface RandomEarthCollectionData {
@@ -124,44 +124,47 @@ export class RandomEarth {
     collection: Collection,
     occurredAfter: number
   ): Promise<(SaleData | undefined)[]> {
-    return;
-    /*
-    const url = `https://api-mainnet.magiceden.io/rpc/getGlobalActivitiesByQuery?q={"$match":{"collection_symbol":"${collection.slug}"}}`;
+    // TODO fetch with pagination
+    const url = `https://randomearth.io/api/activities?collection_addr=${collection.address}&limit=10000&sort=created_at.desc`;
     const response = await axios.get(url);
-    const results = response.data?.results;
+    let { activities: transactions } = response.data;
 
-    if (!results) {
+    if (!transactions) {
       return [];
     }
 
-    return response.data.results.map((sale: MagicEdenTransactionData) => {
-      if (sale.txType !== "exchange") {
+    return transactions.map((sale: RandomEarthTransactionData) => {
+      if (sale.type !== "Trade") {
         return undefined;
       }
-      if (new Date(sale.createdAt).getTime() < occurredAfter) {
+      if (!sale.txhash) {
+        return undefined;
+      }
+      if (new Date(sale.created_at).getTime() < occurredAfter) {
         return undefined;
       }
 
-      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Solana];
-      const { transaction_id: txnHash, createdAt: timestamp } = sale;
+      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Terra];
       const {
-        total_amount: total_price,
-        buyer_address,
-        seller_address,
-      } = sale.parsedTransaction;
+        txhash: txnHash,
+        created_at: timestamp,
+        price: total_price,
+        user_from_addr: seller_address,
+        user_to_addr: buyer_address,
+      } = sale;
 
-      const price = convertByDecimals(total_price, 9);
+      const price = convertByDecimals(total_price, 6);
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: timestamp,
+        timestamp,
         paymentTokenAddress,
         price,
+        priceBase: 0,
         priceUSD: 0,
         buyerAddress: buyer_address || "",
         sellerAddress: seller_address || "",
       };
     });
-    */
   }
 }

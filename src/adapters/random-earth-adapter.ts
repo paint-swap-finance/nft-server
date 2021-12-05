@@ -42,7 +42,7 @@ async function runSales(): Promise<void> {
     "DESC",
     0,
     MAX_INT,
-    Blockchain.Solana
+    Blockchain.Terra
   );
 
   console.log(
@@ -109,7 +109,7 @@ async function fetchCollection(
 async function fetchSales(collection: Collection): Promise<void> {
   const mostRecentSaleTime =
     (
-      await collection.getLastSale(Marketplace.MagicEden)
+      await collection.getLastSale(Marketplace.RandomEarth)
     )?.timestamp?.getTime() || 0;
   try {
     const salesEvents = await RandomEarth.getSales(
@@ -130,7 +130,7 @@ async function fetchSales(collection: Collection): Promise<void> {
           [nextSale.txnHash]: Sale.create({
             ...nextSale,
             collection: collection,
-            marketplace: Marketplace.MagicEden,
+            marketplace: Marketplace.RandomEarth,
           }),
         }),
         {}
@@ -146,7 +146,7 @@ async function fetchSales(collection: Collection): Promise<void> {
 async function run(): Promise<void> {
   try {
     while (true) {
-      await Promise.all([runCollections() /*, runSales()*/]);
+      await Promise.all([runCollections(), runSales()]);
       await sleep(60 * 60);
     }
   } catch (e) {
