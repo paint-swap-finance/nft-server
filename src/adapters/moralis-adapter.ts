@@ -2,7 +2,6 @@ import { ethers } from "ethers";
 import { Collection } from "../models/collection";
 import { DataAdapter } from ".";
 import {
-  BINANCE_RPC,
   ETHEREUM_RPC,
   MORALIS_APP_ID,
   MORALIS_SERVER_URL,

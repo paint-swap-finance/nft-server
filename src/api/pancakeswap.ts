@@ -225,7 +225,7 @@ export class PancakeSwap {
       } = sale;
       const { id: buyerAddress } = buyer;
       const { id: sellerAddress } = seller;
-      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Binance];
+      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.BSC];
 
       return {
         txnHash: txnHash.toLowerCase(),

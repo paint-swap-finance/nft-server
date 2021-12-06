@@ -23,10 +23,10 @@ const BASE_TOKENS = [
       ),
   },
   {
-    address: DEFAULT_TOKEN_ADDRESSES[Blockchain.Binance],
+    address: DEFAULT_TOKEN_ADDRESSES[Blockchain.BSC],
     fetch: () =>
       Coingecko.getHistoricalPricesById(
-        COINGECKO_IDS[Blockchain.Binance].geckoId,
+        COINGECKO_IDS[Blockchain.BSC].geckoId,
         "usd"
       ),
   },
