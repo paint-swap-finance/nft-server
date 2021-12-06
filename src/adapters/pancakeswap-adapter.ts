@@ -14,7 +14,7 @@ async function runCollections(): Promise<void> {
   const collections = await PancakeSwap.getAllCollections();
 
   const { usd: bnbInUSD } = await Coingecko.getPricesById(
-    COINGECKO_IDS[Blockchain.Binance].geckoId
+    COINGECKO_IDS[Blockchain.BSC].geckoId
   );
 
   console.log(
@@ -44,7 +44,7 @@ async function runSales(): Promise<void> {
     "DESC",
     0,
     MAX_INT,
-    Blockchain.Binance
+    Blockchain.BSC
   );
   console.log(
     "Fetching sales for PancakeSwap collections:",
@@ -83,7 +83,7 @@ async function fetchCollection(
 
   const storedCollection = Collection.create({
     ...filteredMetadata,
-    chain: Blockchain.Binance,
+    chain: Blockchain.BSC,
     defaultTokenId: "",
   });
 

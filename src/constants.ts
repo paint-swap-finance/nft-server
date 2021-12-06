@@ -7,7 +7,7 @@ export const DEFAULT_TOKEN_ADDRESSES: any = {
   [Blockchain.Arbitrum]: "0x0000000000000000000000000000000000000000",
   [Blockchain.ImmutableX]: "0x0000000000000000000000000000000000000000",
   [Blockchain.Solana]: "11111111111111111111111111111111",
-  [Blockchain.Binance]: "BSC0x0000000000000000000000000000000000000000",
+  [Blockchain.BSC]: "BSC0x0000000000000000000000000000000000000000",
   [Blockchain.Terra]: "Terra1sk06e3dyexuq4shw77y3dsv480xv42mq73anxu",
 };
 
@@ -18,7 +18,7 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
   [Blockchain.Arbitrum]: MoralisChain.None,
   [Blockchain.Terra]: MoralisChain.None,
   [Blockchain.Ethereum]: MoralisChain.Ethereum,
-  [Blockchain.Binance]: MoralisChain.Binance,
+  [Blockchain.BSC]: MoralisChain.BSC
 };
 
 export const COINGECKO_IDS: any = {
@@ -37,7 +37,7 @@ export const COINGECKO_IDS: any = {
     platform: "solana",
     symbol: "sol",
   },
-  [Blockchain.Binance]: {
+  [Blockchain.BSC]: {
     geckoId: "binancecoin",
     platform: "binance-smart-chain",
     symbol: "bnb",

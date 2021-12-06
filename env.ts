@@ -1,7 +1,6 @@
 require("dotenv").config();
 
 export const ETHEREUM_RPC = process.env.ETHEREUM_RPC;
-export const BINANCE_RPC = process.env.BINANCE_RPC;
 export const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
 export const SECONDARY_OPENSEA_API_KEY = process.env.SECONDARY_OPENSEA_API_KEY;
 export const MORALIS_APP_ID = process.env.MORALIS_APP_ID;

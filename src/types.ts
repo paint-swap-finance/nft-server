@@ -5,7 +5,7 @@ export enum Blockchain {
   Ethereum = "ethereum",
   Solana = "solana",
   ImmutableX = "immutablex",
-  Binance = "binance",
+  BSC = "bsc",
   Arbitrum = "arbitrum",
   Terra = "terra",
 }
@@ -34,7 +34,7 @@ export enum Marketplace {
 
 export enum MoralisChain {
   Ethereum = "eth",
-  Binance = "bsc",
+  BSC = "bsc",
   None = "",
 }
 
