@@ -32,6 +32,15 @@ export enum Marketplace {
   RandomEarth = "random-earth",
 }
 
+export const MarketplaceReverseLookup = new Map<
+  Marketplace,
+  keyof typeof Marketplace
+>(
+  Object.entries(Marketplace).map(
+    ([key, value]: [keyof typeof Marketplace, Marketplace]) => [value, key]
+  )
+);
+
 export enum MoralisChain {
   Ethereum = "eth",
   BSC = "bsc",

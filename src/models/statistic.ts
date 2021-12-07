@@ -92,4 +92,20 @@ export class Statistic extends BaseEntity {
 
     return stats;
   }
+
+  static async getMarketplacesSummary(): Promise<any> {
+    const stats = await Collection.createQueryBuilder("collection")
+      .select("sale.marketplace", "marketplace")
+      .addSelect("COUNT(DISTINCT(collection.address))", "collections")
+      .addSelect("SUM(DISTINCT(statistic.totalVolumeUSD))", "totalVolumeUSD")
+      .addSelect("SUM(DISTINCT(statistic.dailyVolumeUSD))", "dailyVolumeUSD")
+      .leftJoin("collection.statistic", "statistic")
+      .leftJoin("collection.sales", "sale")
+      .where("sale.marketplace IS NOT NULL")
+      .andWhere("collection.slug != ''")
+      .groupBy("sale.marketplace")
+      .getRawMany();
+
+    return stats;
+  }
 }
