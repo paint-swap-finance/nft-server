@@ -128,8 +128,17 @@ async function fetchSales(collection: Collection): Promise<void> {
       offset += limit;
       await sleep(1);
     } catch (e) {
-      await handleError(e, "opensea-adapter:fetchSales");
-      continue;
+      if (axios.isAxiosError(e)) {
+        if (e.response.status === 500) {
+          console.error(
+            "Error [opensea-adapter:fetchSales]: offset not valid or server error"
+          );
+        }
+        break;
+      } else {
+        await handleError(e, "opensea-adapter:fetchSales");
+        continue;
+      }
     }
   }
 }
