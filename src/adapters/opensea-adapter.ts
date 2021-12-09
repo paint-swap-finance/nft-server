@@ -133,12 +133,11 @@ async function fetchSales(collection: Collection): Promise<void> {
           console.error(
             "Error [opensea-adapter:fetchSales]: offset not valid or server error"
           );
+          break;
         }
-        break;
-      } else {
-        await handleError(e, "opensea-adapter:fetchSales");
-        continue;
       }
+      await handleError(e, "opensea-adapter:fetchSales");
+      continue;
     }
   }
 }
