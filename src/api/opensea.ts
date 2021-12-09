@@ -129,6 +129,7 @@ export class Opensea {
     };
     const searchParams = new URLSearchParams(params);
     const url = `https://api.opensea.io/api/v1/events?${searchParams.toString()}`;
+    console.log(url)
     const response = await axios.get(url, {
       headers: { "X-API-KEY": SECONDARY_OPENSEA_API_KEY },
     });
