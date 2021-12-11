@@ -1,0 +1,30 @@
+service: defillama-nft
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-central-1
+
+custom:
+  tableName: prod-nft-table
+
+functions:
+  triggerAdapters:
+    handler: src/triggerAdapters.default
+    events:
+      - schedule: cron(0 * * * ? *)
+  chart:
+    handler: src/getCollection.default
+    timeout: 30
+    events:
+      - http:
+          path: collection/{slug}
+          method: get
+
+resources:
+  # DynamoDB
+  - ${file(resources/dynamodb-table.yml)}
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
