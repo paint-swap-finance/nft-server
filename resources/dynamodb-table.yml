@@ -28,6 +28,7 @@ Resources:
           Projection:
             ProjectionType: INCLUDE
             NonKeyAttributes:
+              - address
               - name
               - logo
               - totalVolume

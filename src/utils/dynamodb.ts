@@ -87,13 +87,38 @@ export function upsertCollection({
   ]);
 }
 
+export async function insertSales({
+  slug,
+  marketplace,
+  sales,
+}: {
+  slug: string;
+  marketplace: Marketplace;
+  sales: any;
+}) {
+  const batchWriteStep = 25;
+  for (let i = 0; i < sales.length; i += batchWriteStep) {
+    const items = sales.slice(i, i + batchWriteStep).map((sale: any) => {
+      const { timestamp, txnHash, ...data } = sale;
+      return {
+        PK: `sales#${slug}#marketplace#${marketplace}`,
+        SK: `${timestamp}#txnHash#${txnHash}`,
+        ...data,
+      };
+    });
+    await dynamodb.batchWrite(items);
+  }
+}
+
 export function getCollection(slug: string) {
-  return dynamodb.query({
-    KeyConditionExpression: "PK = :pk",
-    ExpressionAttributeValues: {
-      ":pk": `collection#${slug}`,
-    },
-  });
+  return dynamodb
+    .query({
+      KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: {
+        ":pk": `collection#${slug}`,
+      },
+    })
+    .then((result) => result.Items);
 }
 
 export function getSortedCollections({
@@ -113,24 +138,40 @@ export function getSortedCollections({
   }
 
   if (category) {
-    return dynamodb.query({
-      IndexName: "collectionsIndex",
-      KeyConditionExpression: "category = :category",
-      ExpressionAttributeValues: {
-        ":category": category,
-      },
-      ScanIndexForward: false,
-    });
+    return dynamodb
+      .query({
+        IndexName: "collectionsIndex",
+        KeyConditionExpression: "category = :category",
+        ExpressionAttributeValues: {
+          ":category": category,
+        },
+        ScanIndexForward: false,
+      })
+      .then((result) => result.Items);
   }
 }
 
-export function getHistoricalValues(pk: string) {
+export function getLastSaleTime({
+  slug,
+  marketplace,
+}: {
+  slug: string;
+  marketplace: Marketplace;
+}) {
   return dynamodb
     .query({
-      ExpressionAttributeValues: {
-        ":pk": pk,
-      },
       KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: {
+        ":pk": `sales#${slug}#marketplace#${marketplace}`,
+      },
+      Limit: 1,
+      ScanIndexForward: false,
     })
-    .then((result) => result.Items);
+    .then((result) => {
+      const results = result.Items;
+      if (results.length) {
+        return results[0]?.SK?.split("#")[0];
+      }
+      return "0";
+    });
 }

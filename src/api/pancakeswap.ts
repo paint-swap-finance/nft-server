@@ -1,8 +1,9 @@
 import axios from "axios";
 import { request, gql } from "graphql-request";
 
-import { Blockchain, Marketplace, CollectionAndStatisticData } from "../types";
+import { Blockchain, Marketplace, CollectionAndStatisticData, SaleData } from "../types";
 import { roundUSD, getSlug } from "../utils";
+import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
 
 export interface PancakeSwapCollectionBanner {
   large: string;
@@ -68,7 +69,7 @@ const salesQuery = gql`
     transactions(
       first: $first
       skip: $skip
-      where: { collection: $id, timestamp_gte: $timestamp }
+      where: { collection: $id, timestamp_gt: $timestamp }
       orderBy: timestamp
       orderDirection: asc
     ) {
@@ -163,18 +164,14 @@ export class PancakeSwap {
       },
     };
   }
-}
-/*
+
   public static async getSales(
     address: string,
     occurredFrom: number
   ): Promise<(SaleData | undefined)[]> {
     const first = 1000; // Maximum value accepted by subgraph
     let skip = 0;
-    let timestamp =
-      occurredFrom > 1000
-        ? (occurredFrom / 1000).toString()
-        : occurredFrom.toString();
+    let timestamp = occurredFrom.toString();
     let allTransactions = [] as any;
     let transactionCount = 0;
 
@@ -221,7 +218,7 @@ export class PancakeSwap {
       const {
         id: txnHash,
         askPrice: price,
-        timestamp: createdAt,
+        timestamp,
         buyer,
         seller,
       } = sale;
@@ -231,16 +228,14 @@ export class PancakeSwap {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: new Date(createdAt * 1000),
+        timestamp,
         paymentTokenAddress,
         price: parseFloat(price),
         priceBase: 0,
-        priceUSD: BigInt(0),
+        priceUSD: 0,
         buyerAddress,
         sellerAddress,
       };
     });
   }
 }
-
-*/

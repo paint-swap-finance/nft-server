@@ -1,8 +1,13 @@
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
-import { sleep, handleError, filterMetadata } from "../utils";
-import { upsertCollection } from "../utils/dynamodb";
+import { handleError, filterMetadata } from "../utils";
+import {
+  upsertCollection,
+  insertSales,
+  getSortedCollections,
+  getLastSaleTime,
+} from "../utils/dynamodb";
 import { COINGECKO_IDS } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
@@ -28,21 +33,13 @@ async function runCollections(): Promise<void> {
     } catch (e) {
       await handleError(e, "pancakeswap-adapter:runCollections");
     }
-    await sleep(1);
   }
 }
 
-/*
 async function runSales(): Promise<void> {
-  const MAX_INT = 2_147_483_647;
-  const collections = await Collection.getSorted(
-    "totalVolume",
-    "DESC",
-    0,
-    MAX_INT,
-    Blockchain.BSC
-  );
-
+  const collections = await getSortedCollections({
+    marketplace: Marketplace.PancakeSwap,
+  });
   console.log(
     "Fetching sales for PancakeSwap collections:",
     collections.length
@@ -52,7 +49,6 @@ async function runSales(): Promise<void> {
     await fetchSales(collection);
   }
 }
-*/
 
 async function fetchCollection(
   collection: PancakeSwapCollectionData,
@@ -66,60 +62,44 @@ async function fetchCollection(
   const filteredMetadata = filterMetadata(metadata);
   const slug = filteredMetadata.slug as string;
 
-  if (slug) {
-    await upsertCollection({
-      slug,
-      metadata: filteredMetadata,
-      statistics,
-      chain: Blockchain.BSC,
-      marketplace: Marketplace.PancakeSwap,
-    });
+  if (!slug) {
+    return;
   }
+
+  await upsertCollection({
+    slug,
+    metadata: filteredMetadata,
+    statistics,
+    chain: Blockchain.BSC,
+    marketplace: Marketplace.PancakeSwap,
+  });
 }
 
-/*
-async function fetchSales(collection: Collection): Promise<void> {
-  const mostRecentSaleTime =
-    (
-      await collection.getLastSale(Marketplace.PancakeSwap)
-    )?.timestamp?.getTime() || 0;
+async function fetchSales(collection: any): Promise<void> {
+  const lastSaleTime = await getLastSaleTime({
+    slug: collection.slug,
+    marketplace: Marketplace.PancakeSwap,
+  });
 
   try {
-    const salesEvents = await PancakeSwap.getSales(
-      collection.address,
-      mostRecentSaleTime
-    );
-    if (salesEvents.length === 0) {
-      sleep(3);
+    const sales = await PancakeSwap.getSales(collection.address, lastSaleTime);
+
+    if (sales.length === 0) {
       return;
     }
-    const sales = salesEvents
-      .filter((event) => event !== undefined)
-      .reduce(
-        (allSales, nextSale) => ({
-          ...allSales,
-          [nextSale.txnHash]: Sale.create({
-            ...nextSale,
-            collection,
-            marketplace: Marketplace.PancakeSwap,
-          }),
-        }),
-        {}
-      );
-    Sale.save(Object.values(sales), { chunk: 1000 });
-    await sleep(1);
+    insertSales({
+      slug: collection.slug,
+      marketplace: Marketplace.PancakeSwap,
+      sales,
+    });
   } catch (e) {
     await handleError(e, "pancakeswap-adapter:fetchSales");
   }
 }
-*/
 
 async function run(): Promise<void> {
   try {
-    await Promise.all([
-      runCollections(),
-      //runSales()
-    ]);
+    await Promise.all([runCollections(), runSales()]);
   } catch (e) {
     await handleError(e, "pancakeswap-adapter");
   }
