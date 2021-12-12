@@ -11,6 +11,7 @@ import {
   CollectionData,
   SaleData,
   LowVolumeError,
+  Marketplace,
 } from "../types";
 
 const TEN_ETHER = 10;
@@ -63,17 +64,19 @@ export class Opensea {
         telegram_url,
         twitter_username,
         medium_username,
+        chains: [Blockchain.Ethereum],
+        marketplaces: [Marketplace.Opensea],
       },
       statistics: {
         dailyVolume: one_day_volume,
-        dailyVolumeUSD: BigInt(roundUSD(one_day_volume * ethInUSD)),
+        dailyVolumeUSD: roundUSD(one_day_volume * ethInUSD),
         owners: num_owners,
         floor: floor_price || 0,
         floorUSD: roundUSD(floor_price * ethInUSD),
         totalVolume: total_volume,
-        totalVolumeUSD: BigInt(roundUSD(total_volume * ethInUSD)),
+        totalVolumeUSD: roundUSD(total_volume * ethInUSD),
         marketCap: market_cap,
-        marketCapUSD: BigInt(roundUSD(market_cap * ethInUSD)),
+        marketCapUSD: roundUSD(market_cap * ethInUSD),
       },
     };
   }
@@ -110,6 +113,8 @@ export class Opensea {
       telegram_url,
       twitter_username,
       medium_username,
+      chains: [Blockchain.Ethereum],
+      marketplaces: [Marketplace.Opensea],
     };
   }
 

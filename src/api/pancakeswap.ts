@@ -1,9 +1,8 @@
 import axios from "axios";
 import { request, gql } from "graphql-request";
 
-import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
-import { formatUSD, getSlug, roundUSD } from "../utils";
-import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
+import { Blockchain, Marketplace, CollectionAndStatisticData } from "../types";
+import { roundUSD, getSlug } from "../utils";
 
 export interface PancakeSwapCollectionBanner {
   large: string;
@@ -148,17 +147,19 @@ export class PancakeSwap {
         telegram_url: "",
         twitter_username: "",
         medium_username: "",
+        chains: [Blockchain.BSC],
+        marketplaces: [Marketplace.PancakeSwap]
       },
       statistics: {
-        dailyVolume,
-        dailyVolumeUSD: formatUSD(dailyVolume * bnbInUsd),
+        dailyVolume: parseFloat(dailyVolume),
+        dailyVolumeUSD: roundUSD(dailyVolume * bnbInUsd),
         owners: 0,
-        floor: floor,
+        floor,
         floorUSD: roundUSD(floor * bnbInUsd),
         totalVolume: parseFloat(totalVolume),
-        totalVolumeUSD: formatUSD(totalVolume * bnbInUsd),
+        totalVolumeUSD: roundUSD(totalVolume * bnbInUsd),
         marketCap,
-        marketCapUSD: formatUSD(marketCap * bnbInUsd),
+        marketCapUSD: roundUSD(marketCap * bnbInUsd),
       },
     };
   }

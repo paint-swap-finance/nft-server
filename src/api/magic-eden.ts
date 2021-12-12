@@ -1,8 +1,13 @@
 /* eslint-disable camelcase */
 import axios from "axios";
-import { formatUSD, roundUSD, convertByDecimals } from "../utils";
+import { roundUSD, convertByDecimals } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
+import {
+  Blockchain,
+  CollectionAndStatisticData,
+  Marketplace,
+  SaleData,
+} from "../types";
 import { Collection } from "../models/collection";
 
 interface MagicEdenParsedTransaction {
@@ -89,17 +94,19 @@ export class MagicEden {
         telegram_url: null,
         twitter_username: null,
         medium_username: null,
+        chains: [Blockchain.Solana],
+        marketplaces: [Marketplace.MagicEden],
       },
       statistics: {
         dailyVolume,
-        dailyVolumeUSD: formatUSD(dailyVolume * solInUSD),
+        dailyVolumeUSD: roundUSD(dailyVolume * solInUSD),
         owners: 0, // TODO add owners, data is not available from Magic Eden
         floor,
         floorUSD: roundUSD(floor * solInUSD),
         totalVolume,
-        totalVolumeUSD: formatUSD(totalVolume * solInUSD),
+        totalVolumeUSD: roundUSD(totalVolume * solInUSD),
         marketCap,
-        marketCapUSD: formatUSD(marketCap * solInUSD),
+        marketCapUSD: roundUSD(marketCap * solInUSD),
       },
     };
   }

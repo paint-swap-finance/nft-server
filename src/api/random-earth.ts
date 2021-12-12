@@ -1,8 +1,13 @@
 /* eslint-disable camelcase */
 import axios from "axios";
-import { formatUSD, roundUSD, convertByDecimals, getSlug } from "../utils";
+import { roundUSD, convertByDecimals, getSlug } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
+import {
+  Blockchain,
+  CollectionAndStatisticData,
+  Marketplace,
+  SaleData,
+} from "../types";
 import { Collection } from "../models/collection";
 
 interface RandomEarthTransactionBuyerSeller {
@@ -108,17 +113,19 @@ export class RandomEarth {
         telegram_url: null,
         twitter_username: null,
         medium_username: null,
+        chains: [Blockchain.Terra],
+        marketplaces: [Marketplace.RandomEarth],
       },
       statistics: {
         dailyVolume,
-        dailyVolumeUSD: formatUSD(dailyVolume * lunaInUSD),
+        dailyVolumeUSD: roundUSD(dailyVolume * lunaInUSD),
         owners,
         floor,
         floorUSD: roundUSD(floor * lunaInUSD),
         totalVolume,
-        totalVolumeUSD: formatUSD(totalVolume * lunaInUSD),
+        totalVolumeUSD: roundUSD(totalVolume * lunaInUSD),
         marketCap,
-        marketCapUSD: formatUSD(marketCap * lunaInUSD),
+        marketCapUSD: roundUSD(marketCap * lunaInUSD),
       },
     };
   }

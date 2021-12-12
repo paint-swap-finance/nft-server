@@ -85,11 +85,11 @@ async function fetchCollection(
     storedCollection.statistic = Statistic.create({
       id: statisticId,
       ...collectionStatistics,
-    });
+    }) as unknown as Statistic;
   } else {
     storedCollection.statistic = Statistic.create({
       ...collectionStatistics,
-    });
+    }) as unknown as Statistic;
   }
   storedCollection.lastFetched = new Date(Date.now());
   storedCollection.save();

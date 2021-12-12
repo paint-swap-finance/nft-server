@@ -25,23 +25,23 @@ export class Statistic extends BaseEntity {
   @Column({ type: "double precision" })
   dailyVolume: number;
 
-  @Column({ type: "bigint" })
+  @Column({ type: "number" })
   @Index()
-  dailyVolumeUSD: bigint;
+  dailyVolumeUSD: number;
 
   @Column({ type: "double precision" })
   totalVolume: number;
 
-  @Column({ type: "bigint" })
+  @Column({ type: "number" })
   @Index()
-  totalVolumeUSD: bigint;
+  totalVolumeUSD: number;
 
   @Column({ type: "double precision" })
   marketCap: number;
 
-  @Column({ type: "bigint" })
+  @Column({ type: "number" })
   @Index()
-  marketCapUSD: bigint;
+  marketCapUSD: number;
 
   @Column({ type: "double precision" })
   floor: number;

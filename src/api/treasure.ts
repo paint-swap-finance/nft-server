@@ -1,8 +1,13 @@
 import { request, gql } from "graphql-request";
 
 import { Collection } from "../models/collection";
-import { CollectionAndStatisticData, SaleData } from "../types";
-import { convertByDecimals, formatUSD, roundUSD } from "../utils";
+import {
+  Blockchain,
+  CollectionAndStatisticData,
+  Marketplace,
+  SaleData,
+} from "../types";
+import { convertByDecimals, roundUSD } from "../utils";
 
 export interface TreasureCollectionData {
   floorPrice: string;
@@ -100,17 +105,19 @@ export class Treasure {
         telegram_url: null,
         twitter_username: null,
         medium_username: null,
+        chains: [Blockchain.Arbitrum],
+        marketplaces: [Marketplace.Treasure],
       },
       statistics: {
         dailyVolume: dailyVolume * magicInEth,
-        dailyVolumeUSD: formatUSD(dailyVolume * magicInUsd),
+        dailyVolumeUSD: roundUSD(dailyVolume * magicInUsd),
         owners: 0,
         floor: floor * magicInEth,
         floorUSD: roundUSD(floor * magicInUsd),
         totalVolume: totalVolume * magicInEth,
-        totalVolumeUSD: formatUSD(totalVolume * magicInUsd),
+        totalVolumeUSD: roundUSD(totalVolume * magicInUsd),
         marketCap: marketCap * magicInEth,
-        marketCapUSD: formatUSD(marketCap * magicInUsd),
+        marketCapUSD: roundUSD(marketCap * magicInUsd),
       },
     };
   }

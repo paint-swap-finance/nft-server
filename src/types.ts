@@ -66,18 +66,20 @@ export interface CollectionData {
   telegram_url: string;
   twitter_username: string;
   medium_username: string;
+  chains: Blockchain[];
+  marketplaces: Marketplace[];
 }
 
 export interface StatisticData {
   dailyVolume: number;
-  dailyVolumeUSD: bigint;
+  dailyVolumeUSD: number;
   owners: number;
   floor: number;
   floorUSD: number;
   totalVolume: number;
-  totalVolumeUSD: bigint;
+  totalVolumeUSD: number;
   marketCap: number;
-  marketCapUSD: bigint;
+  marketCapUSD: number;
 }
 
 export interface CollectionAndStatisticData {
@@ -91,7 +93,7 @@ export interface SaleData {
   paymentTokenAddress: string;
   price: number;
   priceBase: number;
-  priceUSD: bigint;
+  priceUSD: number;
   sellerAddress: string;
   buyerAddress: string;
   marketplace: Marketplace;

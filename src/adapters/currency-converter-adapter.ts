@@ -1,7 +1,7 @@
 import { Sale } from "../models/sale";
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
-import { getPriceAtDate, sleep, formatUSD, handleError } from "../utils";
+import { getPriceAtDate, sleep, roundUSD, handleError } from "../utils";
 import { COINGECKO_IDS, DEFAULT_TOKEN_ADDRESSES } from "../constants";
 import { Blockchain } from "../types";
 
@@ -107,7 +107,7 @@ export async function updateSaleCurrencyConversions(
     // If the token's historical prices was not found
     if (!(tokenAddress in tokenAddressPrices)) {
       sale.priceBase = -1;
-      sale.priceUSD = BigInt(-1);
+      sale.priceUSD = -1
       continue;
     }
 
@@ -120,20 +120,20 @@ export async function updateSaleCurrencyConversions(
     // If the token's historical prices was found but not at the sale date
     if (!priceAtDate) {
       sale.priceBase = -1;
-      sale.priceUSD = BigInt(-1);
+      sale.priceUSD = -1
       continue;
     }
 
     // If the token is a base token
     if (BASE_TOKENS_ADDRESSES.includes(tokenAddress)) {
       sale.priceBase = price;
-      sale.priceUSD = formatUSD(price * priceAtDate);
+      sale.priceUSD = roundUSD(price * priceAtDate);
       continue;
     }
 
     const baseAddress = DEFAULT_TOKEN_ADDRESSES[chain];
     sale.priceBase = price * priceAtDate;
-    sale.priceUSD = formatUSD(
+    sale.priceUSD = roundUSD(
       price *
         priceAtDate *
         getPriceAtDate(timestamp, tokenAddressPrices[baseAddress])

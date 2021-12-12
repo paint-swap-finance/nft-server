@@ -5,10 +5,9 @@ import {
   roundUSD,
   isSameDay,
   convertByDecimals,
-  formatUSD,
 } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { CollectionData, StatisticData, SaleData, Blockchain } from "../types";
+import { CollectionData, StatisticData, SaleData, Blockchain, Marketplace } from "../types";
 import { Collection } from "../models/collection";
 
 export interface ImmutableXCollectionData {
@@ -90,6 +89,8 @@ export class ImmutableX {
       telegram_url: null,
       twitter_username: null,
       medium_username: null,
+      chains: [Blockchain.ImmutableX],
+      marketplaces: [Marketplace.ImmutableX],
     };
   }
 
@@ -152,14 +153,14 @@ export class ImmutableX {
 
     return {
       dailyVolume,
-      dailyVolumeUSD: formatUSD(dailyVolume * ethInUSD),
+      dailyVolumeUSD: roundUSD(dailyVolume * ethInUSD),
       owners: 0, //TODO get owners
       floor,
       floorUSD: roundUSD(floor * ethInUSD),
       totalVolume,
-      totalVolumeUSD: formatUSD(totalVolume * ethInUSD),
+      totalVolumeUSD: roundUSD(totalVolume * ethInUSD),
       marketCap,
-      marketCapUSD: formatUSD(marketCap * ethInUSD),
+      marketCapUSD: roundUSD(marketCap * ethInUSD),
     };
   }
 
@@ -200,7 +201,7 @@ export class ImmutableX {
         paymentTokenAddress,
         price,
         priceBase: 0,
-        priceUSD: BigInt(0),
+        priceUSD: 0,
         buyerAddress: "",
         sellerAddress: seller_address || "",
       };
