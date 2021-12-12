@@ -1,11 +1,9 @@
-import axios from "axios";
-
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
-import { sleep, getSlug, handleError } from "../utils";
-import dynamodb from "../utils/dynamodb";
-import { COINGECKO_IDS, ONE_HOUR } from "../constants";
+import { sleep, handleError, filterMetadata } from "../utils";
+import { upsertCollection } from "../utils/dynamodb";
+import { COINGECKO_IDS } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
@@ -32,7 +30,6 @@ async function runCollections(): Promise<void> {
     }
     await sleep(1);
   }
-  //await Collection.removeDuplicates();
 }
 
 /*
@@ -45,6 +42,7 @@ async function runSales(): Promise<void> {
     MAX_INT,
     Blockchain.BSC
   );
+
   console.log(
     "Fetching sales for PancakeSwap collections:",
     collections.length
@@ -65,38 +63,18 @@ async function fetchCollection(
     bnbInUsd
   );
 
-  const filteredMetadata = Object.fromEntries(
-    Object.entries(metadata).filter(([_, v]) => v != null)
-  );
+  const filteredMetadata = filterMetadata(metadata);
+  const slug = filteredMetadata.slug as string;
 
-  const { slug } = metadata;
-
-  // TODO Check if already exists
-  await dynamodb.batchWrite([
-    {
-      PK: `collection#${slug}`,
-      SK: "metadata",
-      ...filteredMetadata,
-    },
-    {
-      PK: `collection#${slug}`,
-      SK: "statistics",
-      category: "collections",
-      ...statistics,
-    },
-    {
-      PK: `collection#${slug}`,
-      SK: `statistics#chain#${Blockchain.BSC}`,
-      category: `collections#chain#${Blockchain.BSC}`,
-      ...statistics,
-    },
-    {
-      PK: `collection#${slug}`,
-      SK: `statistics#marketplace#${Marketplace.PancakeSwap}`,
-      category: `collections#marketplace#${Marketplace.PancakeSwap}`,
-      ...statistics,
-    },
-  ]);
+  if (slug) {
+    await upsertCollection({
+      slug,
+      metadata: filteredMetadata,
+      statistics,
+      chain: Blockchain.BSC,
+      marketplace: Marketplace.PancakeSwap,
+    });
+  }
 }
 
 /*

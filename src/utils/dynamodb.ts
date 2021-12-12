@@ -1,5 +1,6 @@
 import AWS from "aws-sdk";
-import { MOCK_DYNAMODB_ENDPOINT } from "../../env"
+import { MOCK_DYNAMODB_ENDPOINT } from "../../env";
+import { Blockchain, Marketplace } from "../types";
 
 const client = new AWS.DynamoDB.DocumentClient({
   ...(MOCK_DYNAMODB_ENDPOINT && {
@@ -46,6 +47,73 @@ const dynamodb = {
   scan: () => client.scan({ TableName }).promise(),
 };
 export default dynamodb;
+
+// TODO Check if already exists
+export function upsertCollection({
+  slug,
+  metadata,
+  statistics,
+  chain,
+  marketplace,
+}: {
+  slug: string;
+  metadata: any;
+  statistics: any;
+  chain: Blockchain;
+  marketplace: Marketplace;
+}) {
+  return dynamodb.batchWrite([
+    {
+      PK: `collection#${slug}`,
+      SK: "overview",
+      category: "collections",
+      ...metadata,
+      ...statistics,
+    },
+    {
+      PK: `collection#${slug}`,
+      SK: `chain#${chain}`,
+      category: `collections#chain#${chain}`,
+      ...metadata,
+      ...statistics,
+    },
+    {
+      PK: `collection#${slug}`,
+      SK: `marketplace#${marketplace}`,
+      category: `collections#marketplace#${marketplace}`,
+      ...metadata,
+      ...statistics,
+    },
+  ]);
+}
+
+export function getSortedCollections({
+  chain,
+  marketplace,
+}: {
+  chain?: any;
+  marketplace?: any;
+}) {
+  let category = "collections";
+
+  if (chain) {
+    category = `collections#chain#${chain}`;
+  }
+  if (marketplace) {
+    category = `collections#marketplace#${marketplace}`;
+  }
+
+  if (category) {
+    return dynamodb.query({
+      IndexName: "collectionsIndex",
+      KeyConditionExpression: "category = :category",
+      ExpressionAttributeValues: {
+        ":category": category,
+      },
+      ScanIndexForward: false,
+    });
+  }
+}
 
 export function getHistoricalValues(pk: string) {
   return dynamodb
