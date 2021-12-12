@@ -4,22 +4,33 @@ provider:
   name: aws
   runtime: nodejs14.x
   region: eu-central-1
+  environment:
+    stage: prod
+
+package:
+  individually: true
 
 custom:
   tableName: prod-nft-table
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+    packager: 'npm'
+    excludeFiles: src/**/*.test.ts
 
 functions:
   triggerAdapters:
-    handler: src/triggerAdapters.default
+    handler: src/handlers/triggerAdapters.default
     events:
       - schedule: cron(0 * * * ? *)
-  chart:
-    handler: src/getCollection.default
-    timeout: 30
-    events:
+  triggerAdapter:
+    handler: src/handlers/triggerAdapter.default
+    timeout: 900
+    memorySize: 512
+    events: # TODO Only for testing, remove on deploy
       - http:
-          path: collection/{slug}
-          method: get
+        path: trigger
+        method: get
 
 resources:
   # DynamoDB
