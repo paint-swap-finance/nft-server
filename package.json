@@ -24,13 +24,14 @@
     "deploy:dev": "export NODE_ENV=dev && npm run deploy:env",
     "deploy:prod": "export NODE_ENV=prod && npm run deploy:env",
     "deploy": "npm run deploy:dev",
-    "serve": "serverless offline",
+    "serve": "serverless offline start",
     "dev": "ts-node src/app.ts",
     "build": "tsc",
     "dist": "sh ./scripts/dist.sh",
     "start": "node dist/src/app.js",
     "lint": "eslint -c .eslintrc.js --ext .ts src",
-    "test": "npx ts-node test/test.ts"
+    "test": "npx ts-node test/test.ts",
+    "invoke": "serverless invoke local --function triggerAdapter --data '{\"adapterIndex\": 0}' "
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.87",
