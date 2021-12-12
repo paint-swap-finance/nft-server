@@ -1,5 +1,5 @@
-import invokeLambda from "../utils/invokeLambda";
 import { adapters } from "../adapters";
+import invokeLambda from "../utils/invokeLambda";
 
 const handler = async () => {
   console.log("running triggerAdapters")

@@ -29,8 +29,20 @@ functions:
     memorySize: 512
     events: # TODO Only for testing, remove on deploy
       - http:
-        path: trigger
-        method: get
+          path: trigger
+          method: get
+  getCollections:
+    handler: src/handlers/getCollections.default
+    events:
+      - http:
+          path: collections
+          method: get
+      - http:
+          path: collections/chain/{chain}
+          method: get
+      - http:
+          path: collections/marketplace/{marketplace}
+          method: get
 
 resources:
   # DynamoDB
