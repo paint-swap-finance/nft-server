@@ -1,9 +1,14 @@
 import { getSortedCollections } from "../utils/dynamodb";
-import { successResponse, errorResponse } from "../utils/lambda-response";
+import {
+  successResponse,
+  errorResponse,
+  IResponse,
+} from "../utils/lambda-response";
 
-const handler = async () => {
+const handler = async (event: any): Promise<IResponse> => {
   try {
-    const collections = await getSortedCollections({});
+    const { chain, marketplace } = event?.pathParameters || {};
+    const collections = await getSortedCollections({ chain, marketplace });
     return successResponse(collections); // 10 mins cache
   } catch (e) {
     console.log(e);
