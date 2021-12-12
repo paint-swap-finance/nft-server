@@ -143,7 +143,7 @@ export class PancakeSwap {
         symbol,
         description,
         logo,
-        website: "",
+        website: `https://pancakeswap.finance/nfts/collections/${address}`,
         discord_url: "",
         telegram_url: "",
         twitter_username: "",
@@ -162,7 +162,8 @@ export class PancakeSwap {
       },
     };
   }
-
+}
+/*
   public static async getSales(
     address: string,
     occurredFrom: number
@@ -240,3 +241,5 @@ export class PancakeSwap {
     });
   }
 }
+
+*/

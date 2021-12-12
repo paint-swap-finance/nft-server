@@ -1,12 +1,10 @@
 import axios from "axios";
 
 import { DataAdapter } from ".";
-import { Collection } from "../models/collection";
-import { Statistic } from "../models/statistic";
-import { Sale } from "../models/sale";
 import { Coingecko } from "../api/coingecko";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { sleep, getSlug, handleError } from "../utils";
+import dynamodb from "../utils/dynamodb";
 import { COINGECKO_IDS, ONE_HOUR } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
@@ -34,9 +32,10 @@ async function runCollections(): Promise<void> {
     }
     await sleep(1);
   }
-  await Collection.removeDuplicates();
+  //await Collection.removeDuplicates();
 }
 
+/*
 async function runSales(): Promise<void> {
   const MAX_INT = 2_147_483_647;
   const collections = await Collection.getSorted(
@@ -55,21 +54,12 @@ async function runSales(): Promise<void> {
     await fetchSales(collection);
   }
 }
+*/
 
 async function fetchCollection(
   collection: PancakeSwapCollectionData,
   bnbInUsd: number
 ): Promise<void> {
-  const existingCollection = await Collection.findSingleFetchedSince(
-    getSlug(collection.name),
-    ONE_HOUR
-  );
-
-  if (existingCollection) {
-    // Already exists and has been fetched under the last hour
-    return;
-  }
-
   const { metadata, statistics } = await PancakeSwap.getCollection(
     collection,
     bnbInUsd
@@ -79,26 +69,37 @@ async function fetchCollection(
     Object.entries(metadata).filter(([_, v]) => v != null)
   );
 
-  const address = metadata.address;
+  const { slug } = metadata;
 
-  const storedCollection = Collection.create({
-    ...filteredMetadata,
-    chain: Blockchain.BSC,
-    defaultTokenId: "",
-  });
-
-  const statisticId = (
-    await Collection.findOne(address, { relations: ["statistic"] })
-  )?.statistic?.id;
-
-  storedCollection.statistic = Statistic.create({
-    id: statisticId,
-    ...statistics,
-  });
-  storedCollection.lastFetched = new Date(Date.now());
-  storedCollection.save();
+  // TODO Check if already exists
+  await dynamodb.batchWrite([
+    {
+      PK: `collection#${slug}`,
+      SK: "metadata",
+      ...filteredMetadata,
+    },
+    {
+      PK: `collection#${slug}`,
+      SK: "statistics",
+      category: "collections",
+      ...statistics,
+    },
+    {
+      PK: `collection#${slug}`,
+      SK: `statistics#chain#${Blockchain.BSC}`,
+      category: `collections#chain#${Blockchain.BSC}`,
+      ...statistics,
+    },
+    {
+      PK: `collection#${slug}`,
+      SK: `statistics#marketplace#${Marketplace.PancakeSwap}`,
+      category: `collections#marketplace#${Marketplace.PancakeSwap}`,
+      ...statistics,
+    },
+  ]);
 }
 
+/*
 async function fetchSales(collection: Collection): Promise<void> {
   const mostRecentSaleTime =
     (
@@ -133,13 +134,14 @@ async function fetchSales(collection: Collection): Promise<void> {
     await handleError(e, "pancakeswap-adapter:fetchSales");
   }
 }
+*/
 
 async function run(): Promise<void> {
   try {
-    while (true) {
-      await Promise.all([runCollections(), runSales()]);
-      await sleep(60 * 60);
-    }
+    await Promise.all([
+      runCollections(),
+      //runSales()
+    ]);
   } catch (e) {
     await handleError(e, "pancakeswap-adapter");
   }

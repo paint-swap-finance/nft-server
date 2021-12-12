@@ -13,15 +13,15 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
-  MoralisAdapter,
-  OpenseaAdapter,
-  MagicEdenAdapter,
-  ImmutableXAdapter,
+  //MoralisAdapter,
+  //OpenseaAdapter,
+  //MagicEdenAdapter,
+  //ImmutableXAdapter,
   PancakeSwapAdapter,
-  TreasureAdapter,
-  RandomEarthAdapter,
-  HistoricalStatisticCalculatorAdapter,
-  CurrencyConverterAdapter,
+  //TreasureAdapter,
+  //RandomEarthAdapter,
+  //HistoricalStatisticCalculatorAdapter,
+  //CurrencyConverterAdapter,
 ];
 
 export { adapters };

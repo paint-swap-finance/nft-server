@@ -13,3 +13,4 @@ export const DB_PASSWORD = process.env.DB_PASSWORD || "local";
 export const DB_PORT = parseInt(process.env.DB_PORT) || 5432;
 
 export const API_ONLY = process.env.API_ONLY === "true" ? true : false;
+export const MOCK_DYNAMODB_ENDPOINT = "http://localhost:8000"
