@@ -31,6 +31,12 @@ functions:
       - http:
           path: trigger
           method: get
+  getCollection:
+    handler: src/handlers/getCollection.default
+    events:
+      - http:
+          path: collection/{slug}
+          method: get
   getCollections:
     handler: src/handlers/getCollections.default
     events:

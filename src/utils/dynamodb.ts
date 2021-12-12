@@ -87,6 +87,15 @@ export function upsertCollection({
   ]);
 }
 
+export function getCollection(slug: string) {
+  return dynamodb.query({
+    KeyConditionExpression: "PK = :pk",
+    ExpressionAttributeValues: {
+      ":pk": `collection#${slug}`,
+    },
+  });
+}
+
 export function getSortedCollections({
   chain,
   marketplace,
