@@ -27,9 +27,17 @@ functions:
     handler: src/handlers/triggerAdapter.default
     timeout: 900
     memorySize: 512
-    events: # TODO Only for testing, remove on deploy
+  getChart:
+    handler: src/handlers/getChart.default
+    events:
       - http:
-          path: trigger
+          path: chart
+          method: get
+      - http:
+          path: chart/chain/{chain}
+          method: get
+      - http:
+          path: chart/marketplace/{marketplace}
           method: get
   getCollection:
     handler: src/handlers/getCollection.default

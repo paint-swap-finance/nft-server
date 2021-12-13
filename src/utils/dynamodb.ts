@@ -142,7 +142,7 @@ export async function updateCollectionStatistics({
 
     await dynamodb.update({
       Key: {
-        PK: `globalStatistics#${slug}`,
+        PK: `globalStatistics`,
         SK: timestamp,
       },
       UpdateExpression: `
@@ -157,6 +157,56 @@ export async function updateCollectionStatistics({
       },
     });
   }
+}
+
+export async function getChart({
+  chain,
+  marketplace,
+}: {
+  chain?: any;
+  marketplace?: any;
+}) {
+  const globalStatistics = await dynamodb
+    .query({
+      KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: {
+        ":pk": "globalStatistics",
+      },
+      ScanIndexForward: false,
+    })
+    .then((result) => result.Items);
+
+  if (chain) {
+    return globalStatistics.map((statistic) => ({
+      timestamp: statistic.SK,
+      volume: statistic[`chain_${chain}_volume`],
+      volumeUSD: statistic[`chain_${chain}_volumeUSD`],
+    }));
+  }
+
+  if (marketplace) {
+    return globalStatistics.map((statistic) => ({
+      timestamp: statistic.SK,
+      volume: statistic[`marketplace_${marketplace}_volume`],
+      volumeUSD: statistic[`marketplace_${marketplace}_volumeUSD`],
+    }));
+  }
+
+  return globalStatistics.map((statistic) => ({
+    timestamp: statistic.SK,
+    volume: Object.entries(statistic).reduce((volume, entry) => {
+      if (entry[0].startsWith("chain") && entry[0].endsWith("volume")) {
+        return volume + entry[1];
+      }
+      return volume;
+    }, 0),
+    volumeUSD: Object.entries(statistic).reduce((volumeUSD, entry) => {
+      if (entry[0].startsWith("chain") && entry[0].endsWith("volumeUSD")) {
+        return volumeUSD + entry[1];
+      }
+      return volumeUSD;
+    }, 0),
+  }));
 }
 
 export function getCollection(slug: string) {
