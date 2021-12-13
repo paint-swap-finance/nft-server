@@ -1,7 +1,12 @@
 import axios from "axios";
 import { request, gql } from "graphql-request";
 
-import { Blockchain, Marketplace, CollectionAndStatisticData, SaleData } from "../types";
+import {
+  Blockchain,
+  Marketplace,
+  CollectionAndStatisticData,
+  SaleData,
+} from "../types";
 import { roundUSD, getSlug } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
 
@@ -149,7 +154,7 @@ export class PancakeSwap {
         twitter_username: "",
         medium_username: "",
         chains: [Blockchain.BSC],
-        marketplaces: [Marketplace.PancakeSwap]
+        marketplaces: [Marketplace.PancakeSwap],
       },
       statistics: {
         dailyVolume: parseFloat(dailyVolume),
@@ -215,13 +220,7 @@ export class PancakeSwap {
     }
 
     return allTransactions.map((sale: any) => {
-      const {
-        id: txnHash,
-        askPrice: price,
-        timestamp,
-        buyer,
-        seller,
-      } = sale;
+      const { id: txnHash, askPrice: price, timestamp, buyer, seller } = sale;
       const { id: buyerAddress } = buyer;
       const { id: sellerAddress } = seller;
       const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.BSC];
@@ -235,6 +234,8 @@ export class PancakeSwap {
         priceUSD: 0,
         buyerAddress,
         sellerAddress,
+        chain: Blockchain.BSC,
+        marketplace: Marketplace.PancakeSwap,
       };
     });
   }

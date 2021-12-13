@@ -1,5 +1,6 @@
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
+import { CurrencyConverter } from "../api/currency-converter";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { handleError, filterMetadata } from "../utils";
 import {
@@ -87,10 +88,13 @@ async function fetchSales(collection: any): Promise<void> {
     if (sales.length === 0) {
       return;
     }
+
+    const convertedSales = await CurrencyConverter.convertSales(sales);
+
     insertSales({
       slug: collection.slug,
       marketplace: Marketplace.PancakeSwap,
-      sales,
+      sales: convertedSales,
     });
   } catch (e) {
     await handleError(e, "pancakeswap-adapter:fetchSales");
