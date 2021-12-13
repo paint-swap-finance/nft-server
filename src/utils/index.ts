@@ -32,7 +32,7 @@ export function convertByDecimals(value: number, decimals: number): number {
 
 // TODO optimize
 export function getPriceAtDate(
-  date: string,
+  date: number,
   historicalPrices: number[][] // [0] is a UNIX timestamp, [1] is the price
 ): number | null {
   const givenDate = new Date(date);
