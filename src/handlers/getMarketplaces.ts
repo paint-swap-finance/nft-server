@@ -1,4 +1,4 @@
-import { getGlobalStatistics } from "../utils/dynamodb";
+import { getGlobalStatistics, getCollectionCount } from "../utils/dynamodb";
 import {
   successResponse,
   errorResponse,
@@ -9,6 +9,7 @@ import { Marketplace } from "../types";
 const handler = async (event: any): Promise<IResponse> => {
   try {
     const globalStatistics = await getGlobalStatistics();
+    const collectionCount = await getCollectionCount();
     const marketplaces = Object.entries(Marketplace).map((marketplace) => ({
       displayName: marketplace[0],
       marketplace: marketplace[1],
@@ -18,6 +19,10 @@ const handler = async (event: any): Promise<IResponse> => {
     for (const marketplace of marketplaces) {
       marketplacesData.push({
         ...marketplace,
+        collections:
+          collectionCount.find(
+            (count) => count.SK === `marketplace#${marketplace.marketplace}`
+          ) ?? 0,
         dailyVolumeUSD:
           globalStatistics[globalStatistics.length - 1][
             `marketplace_${marketplace.marketplace}_volumeUSD`

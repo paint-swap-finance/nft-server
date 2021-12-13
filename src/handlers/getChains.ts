@@ -1,4 +1,4 @@
-import { getGlobalStatistics } from "../utils/dynamodb";
+import { getGlobalStatistics, getCollectionCount } from "../utils/dynamodb";
 import {
   successResponse,
   errorResponse,
@@ -9,6 +9,7 @@ import { Blockchain } from "../types";
 const handler = async (event: any): Promise<IResponse> => {
   try {
     const globalStatistics = await getGlobalStatistics();
+    const collectionCount = await getCollectionCount();
     const chains = Object.entries(Blockchain).map((chain) => ({
       displayName: chain[0],
       chain: chain[1],
@@ -18,6 +19,10 @@ const handler = async (event: any): Promise<IResponse> => {
     for (const chain of chains) {
       chainsData.push({
         ...chain,
+        collections:
+          collectionCount.find(
+            (count: any) => count.SK === `chain#${chain.chain}`
+          ) ?? 0,
         dailyVolumeUSD:
           globalStatistics[globalStatistics.length - 1][
             `chain_${chain.chain}_volumeUSD`

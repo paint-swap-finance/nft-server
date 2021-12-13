@@ -365,3 +365,12 @@ export function getLastSaleTime({
       return "0";
     });
 }
+
+export function getCollectionCount() {
+  return dynamodb.query({
+    KeyConditionExpression: "PK = :pk",
+    ExpressionAttributeValues: {
+      ":pk": `collectionCount`,
+    },
+  }).then(result => result.Items);
+}
