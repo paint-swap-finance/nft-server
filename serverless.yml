@@ -63,6 +63,12 @@ functions:
       - http:
           path: collections/marketplace/{marketplace}
           method: get
+  getMarketplaces:
+    handler: src/handlers/getMarketplaces.default
+    events:
+      - http:
+          path: marketplaces
+          method: get
 
 resources:
   # DynamoDB
