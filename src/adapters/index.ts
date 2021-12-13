@@ -6,22 +6,21 @@ import PancakeSwapAdapter from "./pancakeswap-adapter";
 import TreasureAdapter from "./treasure-adapter";
 import RandomEarthAdapter from "./random-earth-adapter";
 import HistoricalStatisticCalculatorAdapter from "./historical-statistic-calculator-adapter";
-import CurrencyConverterAdapter from "./currency-converter-adapter";
 
 export interface DataAdapter {
   run: () => Promise<void>;
 }
 
 const adapters: DataAdapter[] = [
+  //CurrencyConverterAdapter,
+  PancakeSwapAdapter,
   //MoralisAdapter,
   //OpenseaAdapter,
   //MagicEdenAdapter,
   //ImmutableXAdapter,
-  PancakeSwapAdapter,
   //TreasureAdapter,
   //RandomEarthAdapter,
   //HistoricalStatisticCalculatorAdapter,
-  //CurrencyConverterAdapter,
 ];
 
 export { adapters };
