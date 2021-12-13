@@ -27,6 +27,12 @@ functions:
     handler: src/handlers/triggerAdapter.default
     timeout: 900
     memorySize: 512
+  getChains:
+    handler: src/handlers/getChains.default
+    events:
+      - http:
+          path: chains
+          method: get
   getChart:
     handler: src/handlers/getChart.default
     events:

@@ -159,6 +159,18 @@ export async function updateCollectionStatistics({
   }
 }
 
+export async function getGlobalStatistics() {
+  return dynamodb
+    .query({
+      KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: {
+        ":pk": "globalStatistics",
+      },
+      ScanIndexForward: false,
+    })
+    .then((result) => result.Items);
+}
+
 export async function getChart({
   chain,
   marketplace,
