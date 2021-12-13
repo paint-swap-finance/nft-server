@@ -94,7 +94,7 @@ export async function insertSales({
 }: {
   slug: string;
   marketplace: Marketplace;
-  sales: any;
+  sales: any[];
 }) {
   const batchWriteStep = 25;
   for (let i = 0; i < sales.length; i += batchWriteStep) {
@@ -107,6 +107,55 @@ export async function insertSales({
       };
     });
     await dynamodb.batchWrite(items);
+  }
+}
+
+export async function updateCollectionStatistics({
+  slug,
+  chain,
+  marketplace,
+  volumes,
+}: {
+  slug: string;
+  chain: Blockchain;
+  marketplace: Marketplace;
+  volumes: any;
+}) {
+  for (const timestamp in volumes) {
+    const { volume, volumeUSD } = volumes[timestamp];
+    await dynamodb.update({
+      Key: {
+        PK: `statistics#${slug}`,
+        SK: timestamp,
+      },
+      UpdateExpression: `
+        ADD chain_${chain}_volume :volume,
+            chain_${chain}_volumeUSD :volumeUSD,
+            marketplace_${marketplace}_volume :volume,
+            marketplace_${marketplace}_volumeUSD :volumeUSD
+      `,
+      ExpressionAttributeValues: {
+        ":volume": volume,
+        ":volumeUSD": volumeUSD,
+      },
+    });
+
+    await dynamodb.update({
+      Key: {
+        PK: `globalStatistics#${slug}`,
+        SK: timestamp,
+      },
+      UpdateExpression: `
+        ADD chain_${chain}_volume :volume,
+            chain_${chain}_volumeUSD :volumeUSD,
+            marketplace_${marketplace}_volume :volume,
+            marketplace_${marketplace}_volumeUSD :volumeUSD
+      `,
+      ExpressionAttributeValues: {
+        ":volume": volume,
+        ":volumeUSD": volumeUSD,
+      },
+    });
   }
 }
 

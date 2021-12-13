@@ -1,6 +1,7 @@
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
+import { HistoricalStatistics } from "../api/historical-statistics";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { handleError, filterMetadata } from "../utils";
 import {
@@ -93,6 +94,13 @@ async function fetchSales(collection: any): Promise<void> {
 
     insertSales({
       slug: collection.slug,
+      marketplace: Marketplace.PancakeSwap,
+      sales: convertedSales,
+    });
+
+    HistoricalStatistics.updateStatistics({
+      slug: collection.slug,
+      chain: Blockchain.BSC,
       marketplace: Marketplace.PancakeSwap,
       sales: convertedSales,
     });
