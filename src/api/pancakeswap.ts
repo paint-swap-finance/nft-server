@@ -157,9 +157,13 @@ export class PancakeSwap {
         marketplaces: [Marketplace.PancakeSwap],
       },
       statistics: {
+        dailyVolume: parseFloat(dailyVolume),
+        dailyVolumeUSD: roundUSD(dailyVolume * bnbInUsd),
         owners: 0,
         floor,
         floorUSD: roundUSD(floor * bnbInUsd),
+        totalVolume: parseFloat(totalVolume),
+        totalVolumeUSD: roundUSD(totalVolume * bnbInUsd),
         marketCap,
         marketCapUSD: roundUSD(marketCap * bnbInUsd),
       },

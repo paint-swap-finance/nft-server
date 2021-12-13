@@ -73,6 +73,10 @@ export async function upsertCollection({
   if (collectionExists.length) {
     const updateExpression = `
       SET owners = :owners,
+          totalVolume = :totalVolume,
+          totalVolumeUSD = :totalVolumeUSD,
+          dailyVolume = :dailyVolume,
+          dailyVolumeUSD = :dailyVolumeUSD,
           floor = :floor,
           floorUSD = :floorUSD,
           marketCap = :marketCap,
@@ -80,6 +84,10 @@ export async function upsertCollection({
 
     const expressionAttributeValues = {
       ":owners": statistics.owners,
+      ":totalVolume": statistics.totalVolume,
+      ":totalVolumeUSD": statistics.totalVolumeUSD,
+      ":dailyVolume": statistics.dailyVolume,
+      ":dailyVolumeUSD": statistics.dailyVolumeUSD,
       ":floor": statistics.floor,
       ":floorUSD": statistics.floorUSD,
       ":marketCap": statistics.marketCap,
