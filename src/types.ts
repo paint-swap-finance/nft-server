@@ -71,13 +71,13 @@ export interface CollectionData {
 }
 
 export interface StatisticData {
-  dailyVolume: number;
-  dailyVolumeUSD: number;
+  dailyVolume?: number;
+  dailyVolumeUSD?: number;
   owners: number;
   floor: number;
   floorUSD: number;
-  totalVolume: number;
-  totalVolumeUSD: number;
+  totalVolume?: number;
+  totalVolumeUSD?: number;
   marketCap: number;
   marketCapUSD: number;
 }

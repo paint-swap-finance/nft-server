@@ -48,8 +48,7 @@ const dynamodb = {
 };
 export default dynamodb;
 
-// TODO Check if already exists
-export function upsertCollection({
+export async function upsertCollection({
   slug,
   metadata,
   statistics,
@@ -62,7 +61,79 @@ export function upsertCollection({
   chain: Blockchain;
   marketplace: Marketplace;
 }) {
-  return dynamodb.batchWrite([
+  const collectionExists = await dynamodb
+    .query({
+      KeyConditionExpression: "PK = :pk",
+      ExpressionAttributeValues: {
+        ":pk": `collection#${slug}`,
+      },
+    })
+    .then((result) => result.Items);
+
+  if (collectionExists.length) {
+    const updateExpression = `
+      SET owners = :owners,
+          floor = :floor,
+          floorUSD = :floorUSD,
+          marketCap = :marketCap,
+          marketCapUSD = :marketCapUSD`;
+
+    const expressionAttributeValues = {
+      ":owners": statistics.owners,
+      ":floor": statistics.floor,
+      ":floorUSD": statistics.floorUSD,
+      ":marketCap": statistics.marketCap,
+      ":marketCapUSD": statistics.marketCapUSD,
+    };
+
+    await dynamodb.update({
+      Key: {
+        PK: `collection#${slug}`,
+        SK: "overview",
+      },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeValues: expressionAttributeValues,
+    });
+    await dynamodb.update({
+      Key: {
+        PK: `collection#${slug}`,
+        SK: `chain#${chain}`,
+      },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeValues: expressionAttributeValues,
+    });
+    await dynamodb.update({
+      Key: {
+        PK: `collection#${slug}`,
+        SK: `marketplace#${marketplace}`,
+      },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeValues: expressionAttributeValues,
+    });
+    return;
+  }
+
+  await dynamodb.update({
+    Key: {
+      PK: `collectionCount`,
+      SK: `chain#${chain}`,
+    },
+    UpdateExpression: "ADD collections :no",
+    ExpressionAttributeValues: {
+      ":no": 1,
+    },
+  });
+  await dynamodb.update({
+    Key: {
+      PK: `collectionCount`,
+      SK: `marketplace#${marketplace}`,
+    },
+    UpdateExpression: "ADD collections :no",
+    ExpressionAttributeValues: {
+      ":no": 1,
+    },
+  });
+  await dynamodb.batchWrite([
     {
       PK: `collection#${slug}`,
       SK: "overview",
