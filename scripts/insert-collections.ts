@@ -1,5 +1,5 @@
 import { Blockchain, Marketplace } from "../src/types";
-import { upsertCollection } from "../src/utils/dynamodb";
+import { Collection } from "../src/models";
 
 const collections = [
   {
@@ -23,7 +23,7 @@ const main = async () => {
       console.log("Inserting collection", collection.name);
       const { slug, chain, marketplace, totalVolumeUSD, ...metadata } =
         collection;
-      await upsertCollection({
+      await Collection.upsert({
         slug,
         metadata,
         chain,
