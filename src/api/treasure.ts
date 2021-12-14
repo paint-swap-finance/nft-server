@@ -162,7 +162,7 @@ export class Treasure {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: new Date(createdAt * 1000),
+        timestamp: createdAt,
         paymentTokenAddress,
         price,
         priceBase: 0,
