@@ -23,14 +23,21 @@ export class Sale {
   }) {
     const batchWriteStep = 25;
     for (let i = 0; i < sales.length; i += batchWriteStep) {
-      const items = sales.slice(i, i + batchWriteStep).map((sale: any) => {
-        const { timestamp, txnHash, ...data } = sale;
-        return {
-          PK: `sales#${slug}#marketplace#${marketplace}`,
-          SK: `${timestamp}#txnHash#${txnHash}`,
-          ...data,
-        };
-      });
+      const items = sales
+        .slice(i, i + batchWriteStep)
+        .reduce((sales: any, sale) => {
+          const { timestamp, txnHash, ...data } = sale;
+          const sortKeys = sales.map((sale: any) => sale.SK);
+          const sortKey = `${timestamp}#txnHash#${txnHash}`;
+          if (!sortKeys.includes(sortKey)) {
+            sales.push({
+              PK: `sales#${slug}#marketplace#${marketplace}`,
+              SK: sortKey,
+              ...data,
+            });
+          }
+          return sales;
+        }, []);
       await dynamodb.batchWrite(items);
     }
   }
