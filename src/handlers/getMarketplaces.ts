@@ -22,7 +22,7 @@ const handler = async (event: any): Promise<IResponse> => {
         collections:
           collectionCount.find(
             (count) => count.SK === `marketplace#${marketplace.marketplace}`
-          ) ?? 0,
+          )?.collections ?? 0,
         dailyVolumeUSD:
           globalStatistics[globalStatistics.length - 1][
             `marketplace_${marketplace.marketplace}_volumeUSD`
