@@ -1,0 +1,10 @@
+require("dotenv").config();
+
+module.exports = {
+  ETHEREUM_RPC: process.env.ETHEREUM_RPC,
+  OPENSEA_API_KEY: process.env.OPENSEA_API_KEY,
+  SECONDARY_OPENSEA_API_KEY: process.env.SECONDARY_OPENSEA_API_KEY,
+  MORALIS_APP_ID: process.env.MORALIS_APP_ID,
+  MORALIS_SERVER_URL: process.env.MORALIS_SERVER_URL,
+  MOCK_DYNAMODB_ENDPOINT: process.env.MOCK_DYNAMODB_ENDPOINT,
+};

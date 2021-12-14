@@ -1,5 +1,6 @@
 import AWS from "aws-sdk";
-import { MOCK_DYNAMODB_ENDPOINT } from "../../env";
+
+const MOCK_DYNAMODB_ENDPOINT = process.env.MOCK_DYNAMODB_ENDPOINT
 
 const client = new AWS.DynamoDB.DocumentClient({
   ...(MOCK_DYNAMODB_ENDPOINT && {
