@@ -4,7 +4,7 @@ import { Blockchain, Marketplace } from "../types";
 import { ImmutableX, ImmutableXCollectionData } from "../api/immutablex";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
-import { handleError, filterMetadata } from "../utils";
+import { handleError, filterObject } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 
 async function runCollections(): Promise<void> {
@@ -48,7 +48,7 @@ async function fetchCollection(
     ethInUSD
   );
 
-  const filteredMetadata = filterMetadata(metadata);
+  const filteredMetadata = filterObject(metadata);
   const slug = filteredMetadata.slug as string;
 
   await Collection.upsert({
@@ -68,12 +68,13 @@ async function fetchSales(collection: any): Promise<void> {
 
   try {
     const sales = await ImmutableX.getSales(collection, lastSaleTime);
+    const filteredSales = sales.filter((sale) => sale);
 
-    if (sales.length === 0) {
+    if (filteredSales.length === 0) {
       return;
     }
 
-    const convertedSales = await CurrencyConverter.convertSales(sales);
+    const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
     await Sale.insert({
       slug: collection.slug,

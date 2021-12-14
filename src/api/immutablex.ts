@@ -200,7 +200,6 @@ export class ImmutableX {
 
       return {
         collection: null,
-        marketplace: null,
         txnHash: txnHash.toLowerCase(),
         timestamp: createdAt.toString(),
         paymentTokenAddress,
@@ -209,6 +208,8 @@ export class ImmutableX {
         priceUSD: 0,
         buyerAddress: "",
         sellerAddress: seller_address || "",
+        chain: Blockchain.ImmutableX,
+        marketplace: Marketplace.ImmutableX,
       };
     });
   }

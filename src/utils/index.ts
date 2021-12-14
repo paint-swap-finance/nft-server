@@ -66,8 +66,8 @@ export async function handleError(error: Error, context: string) {
   console.error(`Error [${context}] - other error: ${error.message}`);
 }
 
-export function filterMetadata(metadata: any) {
+export function filterObject(object: any) {
   return Object.fromEntries(
-    Object.entries(metadata).filter(([_, v]) => v != null)
+    Object.entries(object).filter(([_, v]) => v != null)
   );
 }

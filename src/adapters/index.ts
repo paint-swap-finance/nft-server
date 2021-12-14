@@ -1,3 +1,4 @@
+import MagicEdenAdapter from "./magic-eden";
 import ImmutableXAdapter from "./immutablex";
 import TreasureAdapter from "./treasure";
 import PancakeSwapAdapter from "./pancakeswap";
@@ -7,6 +8,7 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
+  MagicEdenAdapter,
   ImmutableXAdapter,
   TreasureAdapter,
   PancakeSwapAdapter,

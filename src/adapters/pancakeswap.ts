@@ -3,7 +3,7 @@ import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { Collection, Sale, HistoricalStatistics } from "../models";
-import { handleError, filterMetadata } from "../utils";
+import { handleError, filterObject } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
@@ -55,7 +55,7 @@ async function fetchCollection(
     bnbInUsd
   );
 
-  const filteredMetadata = filterMetadata(metadata);
+  const filteredMetadata = filterObject(metadata);
   const slug = filteredMetadata.slug as string;
 
   if (!slug) {
@@ -79,12 +79,13 @@ async function fetchSales(collection: any): Promise<void> {
 
   try {
     const sales = await PancakeSwap.getSales(collection.address, lastSaleTime);
+    const filteredSales = sales.filter((sale) => sale);
 
-    if (sales.length === 0) {
+    if (filteredSales.length === 0) {
       return;
     }
 
-    const convertedSales = await CurrencyConverter.convertSales(sales);
+    const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
     await Sale.insert({
       slug: collection.slug,

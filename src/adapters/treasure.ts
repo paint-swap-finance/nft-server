@@ -4,7 +4,7 @@ import { Treasure } from "../api/treasure";
 import { CurrencyConverter } from "../api/currency-converter";
 import { HistoricalStatistics } from "../models/historical-statistics";
 import { Collection, Sale } from "../models";
-import { handleError, filterMetadata } from "../utils";
+import { handleError, filterObject } from "../utils";
 import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
@@ -57,7 +57,7 @@ async function fetchCollection(
     magicInEth
   );
 
-  const filteredMetadata = filterMetadata(metadata);
+  const filteredMetadata = filterObject(metadata);
   const slug = filteredMetadata.slug as string;
 
   if (!slug) {
@@ -81,12 +81,13 @@ async function fetchSales(collection: any): Promise<void> {
 
   try {
     const sales = await Treasure.getSales(collection.address, lastSaleTime);
+    const filteredSales = sales.filter((sale) => sale);
 
-    if (sales.length === 0) {
+    if (filteredSales.length === 0) {
       return;
     }
 
-    const convertedSales = await CurrencyConverter.convertSales(sales);
+    const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
     await Sale.insert({
       slug: collection.slug,
