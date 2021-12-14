@@ -1,3 +1,4 @@
+import MoralisAdapter from "./moralis";
 import RandomEarthAdapter from "./random-earth";
 import MagicEdenAdapter from "./magic-eden";
 import ImmutableXAdapter from "./immutablex";
@@ -9,6 +10,7 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
+  MoralisAdapter,
   RandomEarthAdapter,
   MagicEdenAdapter,
   ImmutableXAdapter,
