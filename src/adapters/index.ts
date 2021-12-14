@@ -1,3 +1,4 @@
+import OpenseaAdapter from "./opensea";
 import MoralisAdapter from "./moralis";
 import RandomEarthAdapter from "./random-earth";
 import MagicEdenAdapter from "./magic-eden";
@@ -10,6 +11,7 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
+  OpenseaAdapter,
   MoralisAdapter,
   RandomEarthAdapter,
   MagicEdenAdapter,

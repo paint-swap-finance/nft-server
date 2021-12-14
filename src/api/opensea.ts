@@ -1,10 +1,9 @@
 /* eslint-disable camelcase */
-/*
+
 import axios from "axios";
 import { URLSearchParams } from "url";
 
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { OPENSEA_API_KEY, SECONDARY_OPENSEA_API_KEY } from "../../env";
 import { roundUSD, convertByDecimals } from "../utils";
 import {
   Blockchain,
@@ -15,6 +14,8 @@ import {
   Marketplace,
 } from "../types";
 
+const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
+const SECONDARY_OPENSEA_API_KEY = process.env.SECONDARY_OPENSEA_API_KEY;
 const TEN_ETHER = 10;
 
 export class Opensea {
@@ -154,16 +155,17 @@ export class Opensea {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: timestamp || created_date,
+        timestamp:
+          new Date(timestamp).getTime() || new Date(created_date).getTime(),
         paymentTokenAddress,
         price,
         priceBase: 0,
-        priceUSD: BigInt(0),
+        priceUSD: 0,
         buyerAddress: winner_account?.address || "",
         sellerAddress: seller?.address || "",
+        chain: Blockchain.Ethereum,
+        marketplace: Marketplace.Opensea
       };
     });
   }
 }
-
-*/

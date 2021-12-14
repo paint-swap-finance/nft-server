@@ -33,4 +33,8 @@ export class Contract {
       })
       .then((result) => result.Items);
   }
+
+  static async remove(slug: string) {
+    //TODO  
+  }
 }

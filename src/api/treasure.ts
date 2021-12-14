@@ -166,7 +166,7 @@ export class Treasure {
         paymentTokenAddress,
         price,
         priceBase: 0,
-        priceUSD: BigInt(0),
+        priceUSD: 0,
         buyerAddress,
         sellerAddress,
         chain: Blockchain.Arbitrum,
