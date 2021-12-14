@@ -70,6 +70,7 @@ export async function upsertCollection({
     })
     .then((result) => result.Items);
 
+  // If collection already exists, update statistics only 
   if (collectionExists.length) {
     const updateExpression = `
       SET owners = :owners,
@@ -121,6 +122,8 @@ export async function upsertCollection({
     return;
   }
 
+  // If collection doesn't exist, increment collection counts 
+  // and insert metadata and statistics
   await dynamodb.update({
     Key: {
       PK: `collectionCount`,

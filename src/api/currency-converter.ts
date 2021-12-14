@@ -4,12 +4,7 @@ import { Blockchain } from "../types";
 import { handleError, getPriceAtDate, roundUSD } from "../utils";
 
 export class CurrencyConverter {
-  private static BASE_TOKENS = [
-    Blockchain.Ethereum,
-    Blockchain.Solana,
-    Blockchain.BSC,
-    Blockchain.Terra,
-  ].map((chain) => ({
+  private static BASE_TOKENS = Object.values(Blockchain).map((chain) => ({
     address: DEFAULT_TOKEN_ADDRESSES[chain].toString(),
     fetch: () =>
       Coingecko.getHistoricalPricesById(COINGECKO_IDS[chain].geckoId, "usd"),
@@ -25,7 +20,7 @@ export class CurrencyConverter {
     chain: Blockchain,
     address: string
   ): Promise<number[][]> {
-    return Coingecko.getHistoricalPricesByAddress(
+    return await Coingecko.getHistoricalPricesByAddress(
       COINGECKO_IDS[chain].platform,
       address,
       COINGECKO_IDS[chain].symbol
@@ -61,12 +56,11 @@ export class CurrencyConverter {
     for (const tokenAddress of tokenAddresses) {
       try {
         if (!(tokenAddress.address in CurrencyConverter.tokenAddressPrices)) {
-          const prices =
+          tokenAddressPrices[tokenAddress.address.toString()] =
             await CurrencyConverter.getHistoricalPricesByChainAndAddress(
               tokenAddress.chain as any,
               tokenAddress.address
             );
-          tokenAddressPrices[tokenAddress.address] = prices;
         }
       } catch (e) {
         await handleError(
@@ -92,7 +86,7 @@ export class CurrencyConverter {
 
     for (const sale of sales) {
       const tokenAddress = sale.paymentTokenAddress.toString();
-      const timestamp = (sale.timestamp * 1000);
+      const timestamp = sale.timestamp * 1000;
       const price = sale.price;
       const chain = sale.chain as Blockchain;
 

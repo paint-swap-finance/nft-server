@@ -91,9 +91,10 @@ export class Collection extends BaseEntity {
       .limit(limit)
       .offset(page * limit);
 
+    /*
     if (chain === Blockchain.Any) {
       return qb.getMany();
-    }
+    }*/
 
     return qb.where("collection.chain = :chain", { chain }).getMany();
   }

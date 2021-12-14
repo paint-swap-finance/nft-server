@@ -1,7 +1,6 @@
 import { Collection } from "./models/collection";
 
 export enum Blockchain {
-  Any = "any",
   Ethereum = "ethereum",
   Solana = "solana",
   ImmutableX = "immutablex",

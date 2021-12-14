@@ -1,17 +1,21 @@
-import axios from "axios";
-
 import { DataAdapter } from ".";
-import { Collection } from "../models/collection";
-import { Statistic } from "../models/statistic";
-import { Sale } from "../models/sale";
 import { Coingecko } from "../api/coingecko";
-import { sleep, getSlug, handleError } from "../utils";
-import { ONE_HOUR } from "../constants";
-import { Blockchain, Marketplace } from "../types";
 import { Treasure } from "../api/treasure";
+import { CurrencyConverter } from "../api/currency-converter";
+import { HistoricalStatistics } from "../api/historical-statistics";
+import { handleError, filterMetadata } from "../utils";
+import {
+  getSortedCollections,
+  upsertCollection,
+  insertSales,
+  getLastSaleTime,
+} from "../utils/dynamodb";
+import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
-  const collections = await Collection.findByChain(Blockchain.Arbitrum); // TODO filter by marketplace too
+  const collections = await getSortedCollections({
+    marketplace: Marketplace.Treasure,
+  });
 
   const { usd: magicInUsd, eth: magicInEth } = await Coingecko.getPricesById(
     "magic"
@@ -32,13 +36,13 @@ async function runCollections(): Promise<void> {
     } catch (e) {
       await handleError(e, "treasure-adapter:runCollections");
     }
-    await sleep(1);
   }
-  await Collection.removeDuplicates();
 }
 
 async function runSales(): Promise<void> {
-  const collections = await Collection.findByChain(Blockchain.Arbitrum); // TODO filter by marketplace too
+  const collections = await getSortedCollections({
+    marketplace: Marketplace.Treasure,
+  });
 
   console.log("Fetching sales for Treasure collections:", collections.length);
   for (const collection of collections) {
@@ -48,80 +52,59 @@ async function runSales(): Promise<void> {
 }
 
 async function fetchCollection(
-  collection: Collection,
+  collection: any,
   magicInUsd: number,
   magicInEth: number
 ): Promise<void> {
-  const existingCollection = await Collection.findSingleFetchedSince(
-    getSlug(collection.name),
-    ONE_HOUR
-  );
-
-  if (existingCollection) {
-    // Already exists and has been fetched under the last hour
-    return;
-  }
-
   const { metadata, statistics } = await Treasure.getCollection(
     collection,
     magicInUsd,
     magicInEth
   );
 
-  const filteredMetadata = Object.fromEntries(
-    Object.entries(metadata).filter(([_, v]) => v != null)
-  );
+  const filteredMetadata = filterMetadata(metadata);
+  const slug = filteredMetadata.slug as string;
 
-  const address = metadata.address;
+  if (!slug) {
+    return;
+  }
 
-  const storedCollection = Collection.create({
-    ...filteredMetadata,
+  await upsertCollection({
+    slug,
+    metadata: filteredMetadata,
+    statistics,
     chain: Blockchain.Arbitrum,
-    defaultTokenId: "",
+    marketplace: Marketplace.PancakeSwap,
   });
-
-  const statisticId = (
-    await Collection.findOne(address, { relations: ["statistic"] })
-  )?.statistic?.id;
-
-  storedCollection.statistic = Statistic.create({
-    id: statisticId,
-    ...statistics,
-  });
-  storedCollection.lastFetched = new Date(Date.now());
-  storedCollection.save();
 }
 
-async function fetchSales(collection: Collection): Promise<void> {
-  const mostRecentSaleTime =
-    (
-      await collection.getLastSale(Marketplace.Treasure)
-    )?.timestamp?.getTime() || 0;
+async function fetchSales(collection: any): Promise<void> {
+  const lastSaleTime = await getLastSaleTime({
+    slug: collection.slug,
+    marketplace: Marketplace.Treasure,
+  });
 
   try {
-    const salesEvents = await Treasure.getSales(
-      collection.address,
-      mostRecentSaleTime
-    );
-    if (salesEvents.length === 0) {
-      sleep(3);
+    const sales = await Treasure.getSales(collection.address, lastSaleTime);
+
+    if (sales.length === 0) {
       return;
     }
-    const sales = salesEvents
-      .filter((event) => event !== undefined)
-      .reduce(
-        (allSales, nextSale) => ({
-          ...allSales,
-          [nextSale.txnHash]: Sale.create({
-            ...nextSale,
-            collection,
-            marketplace: Marketplace.Treasure,
-          }),
-        }),
-        {}
-      );
-    Sale.save(Object.values(sales), { chunk: 1000 });
-    await sleep(1);
+
+    const convertedSales = await CurrencyConverter.convertSales(sales);
+
+    insertSales({
+      slug: collection.slug,
+      marketplace: Marketplace.Treasure,
+      sales: convertedSales,
+    });
+
+    HistoricalStatistics.updateStatistics({
+      slug: collection.slug,
+      chain: Blockchain.Arbitrum,
+      marketplace: Marketplace.Treasure,
+      sales: convertedSales,
+    });
   } catch (e) {
     await handleError(e, "treasure-adapter:fetchSales");
   }
@@ -129,10 +112,7 @@ async function fetchSales(collection: Collection): Promise<void> {
 
 async function run(): Promise<void> {
   try {
-    while (true) {
-      await Promise.all([runCollections(), runSales()]);
-      await sleep(60 * 60);
-    }
+    await Promise.all([runCollections(), runSales()]);
   } catch (e) {
     await handleError(e, "treasure-adapter");
   }

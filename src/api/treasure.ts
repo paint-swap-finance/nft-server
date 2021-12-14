@@ -1,6 +1,5 @@
 import { request, gql } from "graphql-request";
 
-import { Collection } from "../models/collection";
 import {
   Blockchain,
   CollectionAndStatisticData,
@@ -69,7 +68,7 @@ const salesQuery = gql`
 
 export class Treasure {
   public static async getCollection(
-    collection: Collection,
+    collection: any,
     magicInUsd: number,
     magicInEth: number
   ): Promise<CollectionAndStatisticData> {
@@ -82,10 +81,13 @@ export class Treasure {
         id: address,
       }
     );
+
+    /*
     const { dailyVolume: dailyVolumeRaw } = await Collection.getDailyVolume(
       address
     );
     const dailyVolume = dailyVolumeRaw || 0;
+    */
 
     const { floorPrice, totalListings, totalVolume: volume } = collectionData;
     const floor = convertByDecimals(parseInt(floorPrice), 18);
@@ -109,8 +111,10 @@ export class Treasure {
         marketplaces: [Marketplace.Treasure],
       },
       statistics: {
-        dailyVolume: dailyVolume * magicInEth,
-        dailyVolumeUSD: roundUSD(dailyVolume * magicInUsd),
+        //dailyVolume: dailyVolume * magicInEth,
+        //dailyVolumeUSD: roundUSD(dailyVolume * magicInUsd),
+        dailyVolume: 0,
+        dailyVolumeUSD: 0,
         owners: 0,
         floor: floor * magicInEth,
         floorUSD: roundUSD(floor * magicInUsd),
@@ -165,6 +169,8 @@ export class Treasure {
         priceUSD: BigInt(0),
         buyerAddress,
         sellerAddress,
+        chain: Blockchain.Arbitrum,
+        marketplace: Marketplace.Treasure,
       };
     });
   }
