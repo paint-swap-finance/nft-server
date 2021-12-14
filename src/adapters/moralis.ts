@@ -51,7 +51,7 @@ async function fetchCollectionAddresses(chain: Blockchain, rpc: string) {
 
       const entryCount = Object.keys(collections).length;
       if (entryCount >= 100) {
-        await Contract.insert(Object.values(collections));
+        await Contract.insert(Object.values(collections), chain);
         collections = {};
         console.log(
           `Finished syncing ${chain} collections from blockNumber ${blockNumber}`
