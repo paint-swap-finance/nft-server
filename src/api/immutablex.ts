@@ -1,14 +1,15 @@
 /* eslint-disable camelcase */
-/*
+
 import axios from "axios";
-import {
-  getSlug,
-  roundUSD,
-  isSameDay,
-  convertByDecimals,
-} from "../utils";
+import { getSlug, roundUSD, isSameDay, convertByDecimals } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { CollectionData, StatisticData, SaleData, Blockchain, Marketplace } from "../types";
+import {
+  CollectionData,
+  StatisticData,
+  SaleData,
+  Blockchain,
+  Marketplace,
+} from "../types";
 import { Collection } from "../models/collection";
 
 export interface ImmutableXCollectionData {
@@ -179,11 +180,14 @@ export class ImmutableX {
     }
 
     return filledOrders.map((sale: ImmutableXOrderData) => {
-      if (new Date(sale.timestamp).getTime() < occurredAfter) {
+      const createdAt = new Date(sale.timestamp).getTime();
+
+      if (createdAt < occurredAfter) {
         return undefined;
       }
 
-      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.ImmutableX];
+      const paymentTokenAddress =
+        DEFAULT_TOKEN_ADDRESSES[Blockchain.ImmutableX];
       const {
         timestamp,
         user: seller_address,
@@ -198,7 +202,7 @@ export class ImmutableX {
         collection: null,
         marketplace: null,
         txnHash: txnHash.toLowerCase(),
-        timestamp,
+        timestamp: createdAt.toString(),
         paymentTokenAddress,
         price,
         priceBase: 0,
@@ -209,4 +213,3 @@ export class ImmutableX {
     });
   }
 }
-*/

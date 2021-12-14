@@ -227,7 +227,7 @@ export class PancakeSwap {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp,
+        timestamp: timestamp * 1000,
         paymentTokenAddress,
         price: parseFloat(price),
         priceBase: 0,

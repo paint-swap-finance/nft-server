@@ -147,6 +147,7 @@ export class Collection {
       .then((result) => result.Items);
   }
 
+  // TODO Get all when getting sales
   static async getSorted({
     chain,
     marketplace,

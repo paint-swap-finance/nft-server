@@ -88,7 +88,7 @@ export interface CollectionAndStatisticData {
 
 export interface SaleData {
   txnHash: string;
-  timestamp: string;
+  timestamp: string; // timestamp in milliseconds
   paymentTokenAddress: string;
   price: number;
   priceBase: number;
