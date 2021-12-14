@@ -1,3 +1,4 @@
+import RandomEarthAdapter from "./random-earth";
 import MagicEdenAdapter from "./magic-eden";
 import ImmutableXAdapter from "./immutablex";
 import TreasureAdapter from "./treasure";
@@ -8,6 +9,7 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
+  RandomEarthAdapter,
   MagicEdenAdapter,
   ImmutableXAdapter,
   TreasureAdapter,

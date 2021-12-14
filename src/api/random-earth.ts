@@ -1,6 +1,5 @@
-
 /* eslint-disable camelcase */
-/*
+
 import axios from "axios";
 import { roundUSD, convertByDecimals, getSlug } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
@@ -89,10 +88,13 @@ export class RandomEarth {
 
     const address = addr.toLowerCase();
 
+    /*
     const { totalVolume: totalVolumeRaw } = await Collection.getTotalVolume(
       address
     );
     const totalVolume = totalVolumeRaw || 0;
+    */
+    const totalVolume = 0;
 
     const slug = getSlug(name);
     const floor = convertByDecimals(floor_price, 6) || 0;
@@ -152,14 +154,16 @@ export class RandomEarth {
       if (!sale.txhash) {
         return undefined;
       }
-      if (new Date(sale.created_at).getTime() < occurredAfter) {
+
+      const createdAt = new Date(sale.created_at).getTime();
+
+      if (createdAt < occurredAfter) {
         return undefined;
       }
 
       const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Terra];
       const {
         txhash: txnHash,
-        created_at: timestamp,
         price: total_price,
         user_from_addr: seller_address,
         user_to_addr: buyer_address,
@@ -169,16 +173,16 @@ export class RandomEarth {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp,
+        timestamp: createdAt.toString(),
         paymentTokenAddress,
         price,
         priceBase: 0,
         priceUSD: 0,
         buyerAddress: buyer_address || "",
         sellerAddress: seller_address || "",
+        chain: Blockchain.Terra,
+        marketplace: Marketplace.RandomEarth,
       };
     });
   }
 }
-
-*/
