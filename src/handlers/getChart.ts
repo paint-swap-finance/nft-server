@@ -1,4 +1,4 @@
-import { getChart } from "../utils/dynamodb";
+import { HistoricalStatistics } from "../models";
 import {
   successResponse,
   errorResponse,
@@ -8,7 +8,7 @@ import {
 const handler = async (event: any): Promise<IResponse> => {
   try {
     const { chain, marketplace } = event?.pathParameters || {};
-    const chart = await getChart({ chain, marketplace });
+    const chart = await HistoricalStatistics.getChart({ chain, marketplace });
     return successResponse(chart);
   } catch (e) {
     console.log(e);

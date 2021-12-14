@@ -32,7 +32,7 @@ export const COINGECKO_IDS: any = {
     symbol: "eth",
   },
   [Blockchain.Arbitrum]: {
-    geckoId: "arbitrum-one",
+    geckoId: "ethereum",
     platform: "arbitrum-one",
     symbol: "eth",
   },

@@ -1,3 +1,4 @@
+/*
 import { ethers } from "ethers";
 import { Collection } from "../models/collection";
 import { DataAdapter } from ".";
@@ -89,3 +90,4 @@ async function run(): Promise<void> {
 
 const MoralisAdapter: DataAdapter = { run };
 export default MoralisAdapter;
+*/

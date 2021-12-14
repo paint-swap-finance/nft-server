@@ -2,18 +2,13 @@ import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
 import { Treasure } from "../api/treasure";
 import { CurrencyConverter } from "../api/currency-converter";
-import { HistoricalStatistics } from "../api/historical-statistics";
+import { HistoricalStatistics } from "../models/historical-statistics";
+import { Collection, Sale } from "../models";
 import { handleError, filterMetadata } from "../utils";
-import {
-  getSortedCollections,
-  upsertCollection,
-  insertSales,
-  getLastSaleTime,
-} from "../utils/dynamodb";
 import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
-  const collections = await getSortedCollections({
+  const collections = await Collection.getSorted({
     marketplace: Marketplace.Treasure,
   });
 
@@ -40,7 +35,7 @@ async function runCollections(): Promise<void> {
 }
 
 async function runSales(): Promise<void> {
-  const collections = await getSortedCollections({
+  const collections = await Collection.getSorted({
     marketplace: Marketplace.Treasure,
   });
 
@@ -69,7 +64,7 @@ async function fetchCollection(
     return;
   }
 
-  await upsertCollection({
+  await Collection.upsert({
     slug,
     metadata: filteredMetadata,
     statistics,
@@ -79,7 +74,7 @@ async function fetchCollection(
 }
 
 async function fetchSales(collection: any): Promise<void> {
-  const lastSaleTime = await getLastSaleTime({
+  const lastSaleTime = await Sale.getLastSaleTime({
     slug: collection.slug,
     marketplace: Marketplace.Treasure,
   });
@@ -93,13 +88,13 @@ async function fetchSales(collection: any): Promise<void> {
 
     const convertedSales = await CurrencyConverter.convertSales(sales);
 
-    insertSales({
+    await Sale.insert({
       slug: collection.slug,
       marketplace: Marketplace.Treasure,
       sales: convertedSales,
     });
 
-    HistoricalStatistics.updateStatistics({
+    await HistoricalStatistics.updateStatistics({
       slug: collection.slug,
       chain: Blockchain.Arbitrum,
       marketplace: Marketplace.Treasure,

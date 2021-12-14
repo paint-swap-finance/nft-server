@@ -1,3 +1,4 @@
+/*
 import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
 import { Statistic } from "../models/statistic";
@@ -156,3 +157,5 @@ async function run(): Promise<void> {
 
 const RandomEarthAdapter: DataAdapter = { run };
 export default RandomEarthAdapter;
+
+*/

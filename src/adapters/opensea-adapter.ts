@@ -1,3 +1,4 @@
+/*
 import axios from "axios";
 import { Opensea } from "../api/opensea";
 import { DataAdapter } from ".";
@@ -154,3 +155,5 @@ async function run(): Promise<void> {
 
 const OpenseaAdapter: DataAdapter = { run };
 export default OpenseaAdapter;
+
+*/

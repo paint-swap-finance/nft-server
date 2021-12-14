@@ -1,4 +1,4 @@
-import { getGlobalStatistics, getCollectionCount } from "../utils/dynamodb";
+import { Collection, HistoricalStatistics } from "../models"
 import {
   successResponse,
   errorResponse,
@@ -8,8 +8,8 @@ import { Blockchain } from "../types";
 
 const handler = async (event: any): Promise<IResponse> => {
   try {
-    const globalStatistics = await getGlobalStatistics();
-    const collectionCount = await getCollectionCount();
+    const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
+    const collectionCount = await Collection.getCount();
     const chains = Object.entries(Blockchain).map((chain) => ({
       displayName: chain[0],
       chain: chain[1],

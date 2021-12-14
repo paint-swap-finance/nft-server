@@ -32,7 +32,12 @@ export class CurrencyConverter {
   ): Promise<Record<string, number[][]>> {
     const tokenAddressPrices: Record<string, number[][]> = {};
     const tokenAddresses = sales.reduce((tokenAddresses: any[], sale: any) => {
-      const unique = !tokenAddresses.includes(sale.paymentTokenAddress);
+      const flattenedTokenAddresses = tokenAddresses.map(
+        (address) => address.address
+      );
+      const unique = !flattenedTokenAddresses.includes(
+        sale.paymentTokenAddress
+      );
       const notBaseToken = !CurrencyConverter.BASE_TOKENS_ADDRESSES.includes(
         sale.paymentTokenAddress
       );

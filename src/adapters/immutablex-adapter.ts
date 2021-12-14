@@ -1,3 +1,4 @@
+/*
 import axios from "axios";
 
 import { DataAdapter } from ".";
@@ -145,3 +146,4 @@ async function run(): Promise<void> {
 
 const ImmutableXAdapter: DataAdapter = { run };
 export default ImmutableXAdapter;
+*/

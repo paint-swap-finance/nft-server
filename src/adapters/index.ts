@@ -1,10 +1,5 @@
-import MoralisAdapter from "./moralis-adapter";
-import OpenseaAdapter from "./opensea-adapter";
-import MagicEdenAdapter from "./magic-eden-adapter";
-import ImmutableXAdapter from "./immutablex-adapter";
-import PancakeSwapAdapter from "./pancakeswap-adapter";
-import TreasureAdapter from "./treasure-adapter";
-import RandomEarthAdapter from "./random-earth-adapter";
+import PancakeSwapAdapter from "./pancakeswap";
+import TreasureAdapter from "./treasure";
 
 export interface DataAdapter {
   run: () => Promise<void>;
@@ -13,11 +8,6 @@ export interface DataAdapter {
 const adapters: DataAdapter[] = [
   TreasureAdapter,
   PancakeSwapAdapter,
-  //MoralisAdapter,
-  //OpenseaAdapter,
-  //MagicEdenAdapter,
-  //ImmutableXAdapter,
-  //RandomEarthAdapter,
 ];
 
 export { adapters };

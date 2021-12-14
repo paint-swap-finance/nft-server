@@ -1,15 +1,9 @@
 import { DataAdapter } from ".";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
-import { HistoricalStatistics } from "../api/historical-statistics";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
+import { Collection, Sale, HistoricalStatistics } from "../models";
 import { handleError, filterMetadata } from "../utils";
-import {
-  upsertCollection,
-  insertSales,
-  getSortedCollections,
-  getLastSaleTime,
-} from "../utils/dynamodb";
 import { COINGECKO_IDS } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
@@ -39,7 +33,7 @@ async function runCollections(): Promise<void> {
 }
 
 async function runSales(): Promise<void> {
-  const collections = await getSortedCollections({
+  const collections = await Collection.getSorted({
     marketplace: Marketplace.PancakeSwap,
   });
   console.log(
@@ -68,7 +62,7 @@ async function fetchCollection(
     return;
   }
 
-  await upsertCollection({
+  await Collection.upsert({
     slug,
     metadata: filteredMetadata,
     statistics,
@@ -78,7 +72,7 @@ async function fetchCollection(
 }
 
 async function fetchSales(collection: any): Promise<void> {
-  const lastSaleTime = await getLastSaleTime({
+  const lastSaleTime = await Sale.getLastSaleTime({
     slug: collection.slug,
     marketplace: Marketplace.PancakeSwap,
   });
@@ -92,13 +86,13 @@ async function fetchSales(collection: any): Promise<void> {
 
     const convertedSales = await CurrencyConverter.convertSales(sales);
 
-    insertSales({
+    await Sale.insert({
       slug: collection.slug,
       marketplace: Marketplace.PancakeSwap,
       sales: convertedSales,
     });
 
-    HistoricalStatistics.updateStatistics({
+    await HistoricalStatistics.updateStatistics({
       slug: collection.slug,
       chain: Blockchain.BSC,
       marketplace: Marketplace.PancakeSwap,

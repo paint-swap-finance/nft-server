@@ -1,4 +1,6 @@
+
 /* eslint-disable camelcase */
+/*
 import axios from "axios";
 import { roundUSD, convertByDecimals, getSlug } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
@@ -178,3 +180,5 @@ export class RandomEarth {
     });
   }
 }
+
+*/

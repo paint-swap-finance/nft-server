@@ -1,3 +1,4 @@
+/*
 import axios from "axios";
 import { DataAdapter } from ".";
 import { Collection } from "../models/collection";
@@ -155,3 +156,4 @@ async function run(): Promise<void> {
 
 const MagicEdenAdapter: DataAdapter = { run };
 export default MagicEdenAdapter;
+*/

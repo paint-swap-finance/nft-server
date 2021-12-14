@@ -1,4 +1,4 @@
-import { getCollection } from "../utils/dynamodb";
+import { Collection } from "../models";
 import {
   successResponse,
   errorResponse,
@@ -8,7 +8,7 @@ import {
 const handler = async (event: any): Promise<IResponse> => {
   try {
     const { slug } = event?.pathParameters || {};
-    const collection = await getCollection(slug);
+    const collection = await Collection.get(slug);
     return successResponse(collection);
   } catch (e) {
     console.log(e);

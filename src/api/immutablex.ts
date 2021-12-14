@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+/*
 import axios from "axios";
 import {
   getSlug,
@@ -208,3 +209,4 @@ export class ImmutableX {
     });
   }
 }
+*/

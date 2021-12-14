@@ -1,216 +1,190 @@
-import {
-  BaseEntity,
-  Column,
-  Entity,
-  Index,
-  OneToMany,
-  OneToOne,
-  PrimaryColumn,
-} from "typeorm";
-
 import { Blockchain, Marketplace } from "../types";
-import { HistoricalStatistic } from "./historical-statistic";
-import { Sale } from "./sale";
-import { Statistic } from "./statistic";
+import dynamodb from "../utils/dynamodb";
 
-@Entity()
-@Index("name_index", { synchronize: false })
-@Index("symbol_index", { synchronize: false })
-export class Collection extends BaseEntity {
-  @PrimaryColumn()
+export class Collection {
   address: string;
-
-  @OneToOne(() => Statistic, (statistic) => statistic.collection, {
-    cascade: true,
-  })
-  statistic: Statistic;
-
-  @OneToMany(
-    () => HistoricalStatistic,
-    (historicalStatistic) => historicalStatistic.collection
-  )
-  historicalStatistics: HistoricalStatistic;
-
-  @OneToMany(() => Sale, (sale) => sale.collection)
-  sales: Sale;
-
-  @Column()
   chain: Blockchain;
-
-  @Column({ default: "" })
   slug: string;
-
-  @Column({ default: "" })
   name: string;
-
-  @Column({ default: "" })
   symbol: string;
-
-  @Column({ default: "" })
   description: string;
-
-  @Column()
-  defaultTokenId: string;
-
-  @Column({ default: "" })
   logo: string;
-
-  @Column({ default: "" })
   website: string;
-
-  @Column({ default: "" })
   discordUrl: string;
-
-  @Column({ default: "" })
   telegramUrl: string;
-
-  @Column({ default: "" })
   twitterUsername: string;
-
-  @Column({ default: "" })
   mediumUsername: string;
 
-  @Column({
-    type: "timestamptz",
-    default: () => "make_timestamp(1970, 1, 1, 0, 0, 0)",
-  })
-  lastFetched: Date;
-
-  static async getSorted(
-    column: string,
-    direction: "ASC" | "DESC",
-    page: number,
-    limit: number,
-    chain: Blockchain
-  ): Promise<Collection[]> {
-    const qb = this.createQueryBuilder("collection")
-      .innerJoinAndSelect("collection.statistic", "statistic")
-      .orderBy({
-        [`statistic.${column}`]: direction,
+  static async upsert({
+    slug,
+    metadata,
+    statistics,
+    chain,
+    marketplace,
+  }: {
+    slug: string;
+    metadata: any;
+    statistics: any;
+    chain: Blockchain;
+    marketplace: Marketplace;
+  }) {
+    const collectionExists = await dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: {
+          ":pk": `collection#${slug}`,
+        },
       })
-      .limit(limit)
-      .offset(page * limit);
+      .then((result) => result.Items);
 
-    /*
-    if (chain === Blockchain.Any) {
-      return qb.getMany();
-    }*/
+    // If collection already exists, update statistics only
+    if (collectionExists.length) {
+      const updateExpression = `
+        SET owners = :owners,
+            totalVolume = :totalVolume,
+            totalVolumeUSD = :totalVolumeUSD,
+            dailyVolume = :dailyVolume,
+            dailyVolumeUSD = :dailyVolumeUSD,
+            floor = :floor,
+            floorUSD = :floorUSD,
+            marketCap = :marketCap,
+            marketCapUSD = :marketCapUSD`;
 
-    return qb.where("collection.chain = :chain", { chain }).getMany();
-  }
+      const expressionAttributeValues = {
+        ":owners": statistics.owners,
+        ":totalVolume": statistics.totalVolume,
+        ":totalVolumeUSD": statistics.totalVolumeUSD,
+        ":dailyVolume": statistics.dailyVolume,
+        ":dailyVolumeUSD": statistics.dailyVolumeUSD,
+        ":floor": statistics.floor,
+        ":floorUSD": statistics.floorUSD,
+        ":marketCap": statistics.marketCap,
+        ":marketCapUSD": statistics.marketCapUSD,
+      };
 
-  static async getDailyVolume(address: string): Promise<any> {
-    const interval = `sale.timestamp >= NOW() - interval '1 days'`;
-    return Sale.createQueryBuilder("sale")
-      .select("SUM(sale.price)", "dailyVolume")
-      .where("sale.collectionAddress = :address", { address })
-      .andWhere(interval)
-      .getRawOne();
-  }
+      await dynamodb.update({
+        Key: {
+          PK: `collection#${slug}`,
+          SK: "overview",
+        },
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
+      });
+      await dynamodb.update({
+        Key: {
+          PK: `collection#${slug}`,
+          SK: `chain#${chain}`,
+        },
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
+      });
+      await dynamodb.update({
+        Key: {
+          PK: `collection#${slug}`,
+          SK: `marketplace#${marketplace}`,
+        },
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
+      });
+      return;
+    }
 
-  static async getTotalVolume(address: string): Promise<any> {
-    return Sale.createQueryBuilder("sale")
-      .select("SUM(sale.price)", "totalVolume")
-      .where("sale.collectionAddress = :address", { address })
-      .getRawOne();
-  }
-
-  public async getLastSale(
-    marketplace: Marketplace
-  ): Promise<Sale | undefined> {
-    return Sale.createQueryBuilder("sale")
-      .where("sale.collectionAddress = :address", { address: this.address })
-      .andWhere("sale.marketplace = :marketplace", { marketplace })
-      .orderBy({
-        "sale.timestamp": "DESC",
-      })
-      .limit(1)
-      .getOne();
-  }
-
-  private static async getDuplicates(): Promise<Collection[]> {
-    const slugs = (
-      await this.createQueryBuilder("collection")
-        .select("collection.slug")
-        .groupBy("collection.slug")
-        .having("COUNT(collection.slug) > 1")
-        .getRawMany()
-    )
-      .map((result) => result.collection_slug)
-      .filter((slug) => slug !== "");
-
-    if (slugs.length === 0) return [];
-
-    return this.createQueryBuilder("collection")
-      .select()
-      .where("collection.slug IN (:...slugs)", { slugs })
-      .getMany();
-  }
-
-  static async removeDuplicates(): Promise<void> {
-    const duplicates = await Collection.getDuplicates();
-    const shouldDelete: any = {};
-    duplicates.forEach((collection) => {
-      if (shouldDelete[collection.slug]) {
-        console.log("Removing duplicate:", collection.slug);
-        collection.remove();
-      } else {
-        shouldDelete[collection.slug] = true;
-      }
+    // If collection doesn't exist, increment collection counts
+    // and insert metadata and statistics
+    await dynamodb.update({
+      Key: {
+        PK: `collectionCount`,
+        SK: `chain#${chain}`,
+      },
+      UpdateExpression: "ADD collections :no",
+      ExpressionAttributeValues: {
+        ":no": 1,
+      },
     });
+    await dynamodb.update({
+      Key: {
+        PK: `collectionCount`,
+        SK: `marketplace#${marketplace}`,
+      },
+      UpdateExpression: "ADD collections :no",
+      ExpressionAttributeValues: {
+        ":no": 1,
+      },
+    });
+    await dynamodb.batchWrite([
+      {
+        PK: `collection#${slug}`,
+        SK: "overview",
+        category: "collections",
+        ...metadata,
+        ...statistics,
+      },
+      {
+        PK: `collection#${slug}`,
+        SK: `chain#${chain}`,
+        category: `collections#chain#${chain}`,
+        ...metadata,
+        ...statistics,
+      },
+      {
+        PK: `collection#${slug}`,
+        SK: `marketplace#${marketplace}`,
+        category: `collections#marketplace#${marketplace}`,
+        ...metadata,
+        ...statistics,
+      },
+    ]);
   }
 
-  static async search(term: string): Promise<Collection[]> {
-    // .where("to_tsvector(collection.name) @@ to_tsquery(:searchTerm)", { searchTerm })
-    return this.createQueryBuilder("collection")
-      .innerJoinAndSelect("collection.statistic", "statistic")
-      .where(
-        "lower(collection.name) LIKE :term OR lower(collection.symbol) LIKE :term",
-        { term: `%${term}%` }
-      )
-      .orderBy({
-        "statistic.dailyVolume": "DESC",
+  static async get(slug: string) {
+    return dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: {
+          ":pk": `collection#${slug}`,
+        },
       })
-      .limit(13)
-      .getMany();
+      .then((result) => result.Items);
   }
 
-  static findSingleFetchedSince(
-    slug: string,
-    hours: number
-  ): Promise<Collection> {
-    const interval = `collection.lastFetched >= NOW() - interval '${hours} hours'`;
-    return this.createQueryBuilder("collection")
-      .leftJoinAndSelect("collection.statistic", "statistic")
-      .where("collection.slug = :slug", { slug })
-      .andWhere(interval)
-      .getOne();
+  static async getSorted({
+    chain,
+    marketplace,
+  }: {
+    chain?: any;
+    marketplace?: any;
+  }) {
+    let category = "collections";
+
+    if (chain) {
+      category = `collections#chain#${chain}`;
+    }
+    if (marketplace) {
+      category = `collections#marketplace#${marketplace}`;
+    }
+
+    if (category) {
+      return dynamodb
+        .query({
+          IndexName: "collectionsIndex",
+          KeyConditionExpression: "category = :category",
+          ExpressionAttributeValues: {
+            ":category": category,
+          },
+          ScanIndexForward: false,
+        })
+        .then((result) => result.Items);
+    }
   }
 
-  static findNotFetchedSince(hours: number): Promise<Collection[]> {
-    const interval = `collection.lastFetched <= NOW() - interval '${hours} hours'`;
-    return this.createQueryBuilder("collection")
-      .leftJoinAndSelect("collection.statistic", "statistic")
-      .where(interval)
-      .orderBy("statistic.dailyVolume", "DESC", "NULLS LAST")
-      .getMany();
-  }
-
-  static findBySlug(slug: string): Promise<Collection> {
-    return this.createQueryBuilder("collection")
-      .where("collection.slug = :slug", { slug })
-      .getOne();
-  }
-
-  static findByAddress(address: string): Promise<Collection> {
-    return this.createQueryBuilder("collection")
-      .where("collection.address = :address", { address })
-      .getOne();
-  }
-
-  static findByChain(chain: Blockchain): Promise<Collection[]> {
-    return this.createQueryBuilder("collection")
-      .where("collection.chain = :chain", { chain })
-      .getMany();
+  static async getCount() {
+    return dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: {
+          ":pk": `collectionCount`,
+        },
+      })
+      .then((result) => result.Items);
   }
 }
