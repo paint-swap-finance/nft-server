@@ -16,7 +16,7 @@ import {
 
 const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
 const SECONDARY_OPENSEA_API_KEY = process.env.SECONDARY_OPENSEA_API_KEY;
-const TEN_ETHER = 10;
+const VOLUME_THRESHOLD = 0.1; //ETH
 
 export class Opensea {
   public static async getCollection(
@@ -48,9 +48,9 @@ export class Opensea {
       market_cap,
     } = collection.stats;
 
-    if (total_volume < TEN_ETHER) {
+    if (total_volume < VOLUME_THRESHOLD) {
       throw new LowVolumeError(
-        `Collection ${name} has volume ${total_volume} < ${TEN_ETHER}`
+        `Collection ${name} has volume ${total_volume} < ${VOLUME_THRESHOLD}`
       );
     }
     return {
