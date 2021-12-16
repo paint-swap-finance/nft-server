@@ -87,18 +87,20 @@ async function fetchSales(collection: any): Promise<void> {
 
     const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
-    await Sale.insert({
+    const salesInserted = await Sale.insert({
       slug: collection.slug,
       marketplace: Marketplace.PancakeSwap,
       sales: convertedSales,
     });
 
-    await HistoricalStatistics.updateStatistics({
-      slug: collection.slug,
-      chain: Blockchain.BSC,
-      marketplace: Marketplace.PancakeSwap,
-      sales: convertedSales,
-    });
+    if (salesInserted) {
+      await HistoricalStatistics.updateStatistics({
+        slug: collection.slug,
+        chain: Blockchain.BSC,
+        marketplace: Marketplace.PancakeSwap,
+        sales: convertedSales,
+      });
+    }
   } catch (e) {
     await handleError(e, "pancakeswap-adapter:fetchSales");
   }

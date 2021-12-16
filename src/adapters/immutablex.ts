@@ -76,18 +76,20 @@ async function fetchSales(collection: any): Promise<void> {
 
     const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
-    await Sale.insert({
+    const salesInserted = await Sale.insert({
       slug: collection.slug,
       marketplace: Marketplace.ImmutableX,
       sales: convertedSales,
     });
 
-    await HistoricalStatistics.updateStatistics({
-      slug: collection.slug,
-      chain: Blockchain.ImmutableX,
-      marketplace: Marketplace.ImmutableX,
-      sales: convertedSales,
-    });
+    if (salesInserted) {
+      await HistoricalStatistics.updateStatistics({
+        slug: collection.slug,
+        chain: Blockchain.ImmutableX,
+        marketplace: Marketplace.ImmutableX,
+        sales: convertedSales,
+      });
+    }
   } catch (e) {
     await handleError(e, "immutablex-adapter:fetchSales");
   }

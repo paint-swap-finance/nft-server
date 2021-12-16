@@ -1,4 +1,5 @@
 import { Blockchain, Marketplace } from "../types";
+import { handleError } from "../utils";
 import dynamodb from "../utils/dynamodb";
 
 export class Collection {
@@ -28,18 +29,19 @@ export class Collection {
     chain: Blockchain;
     marketplace: Marketplace;
   }) {
-    const collectionExists = await dynamodb
-      .query({
-        KeyConditionExpression: "PK = :pk",
-        ExpressionAttributeValues: {
-          ":pk": `collection#${slug}`,
-        },
-      })
-      .then((result) => result.Items);
+    try {
+      const existingCollection = await dynamodb
+        .query({
+          KeyConditionExpression: "PK = :pk",
+          ExpressionAttributeValues: {
+            ":pk": `collection#${slug}`,
+          },
+        })
+        .then((result) => result.Items);
 
-    // If collection already exists, update statistics only
-    if (collectionExists.length) {
-      const updateExpression = `
+      // If collection already exists, update statistics only
+      if (existingCollection.length) {
+        const updateExpression = `
         SET owners = :owners,
             totalVolume = :totalVolume,
             totalVolumeUSD = :totalVolumeUSD,
@@ -50,90 +52,102 @@ export class Collection {
             marketCap = :marketCap,
             marketCapUSD = :marketCapUSD`;
 
-      const expressionAttributeValues = {
-        ":owners": statistics.owners,
-        ":totalVolume": statistics.totalVolume,
-        ":totalVolumeUSD": statistics.totalVolumeUSD,
-        ":dailyVolume": statistics.dailyVolume,
-        ":dailyVolumeUSD": statistics.dailyVolumeUSD,
-        ":floor": statistics.floor,
-        ":floorUSD": statistics.floorUSD,
-        ":marketCap": statistics.marketCap,
-        ":marketCapUSD": statistics.marketCapUSD,
-      };
+        const expressionAttributeValues = {
+          ":owners": statistics.owners,
+          ":totalVolume": statistics.totalVolume,
+          ":totalVolumeUSD": statistics.totalVolumeUSD,
+          ":dailyVolume": statistics.dailyVolume,
+          ":dailyVolumeUSD": statistics.dailyVolumeUSD,
+          ":floor": statistics.floor,
+          ":floorUSD": statistics.floorUSD,
+          ":marketCap": statistics.marketCap,
+          ":marketCapUSD": statistics.marketCapUSD,
+        };
 
-      await dynamodb.update({
-        Key: {
-          PK: `collection#${slug}`,
-          SK: "overview",
-        },
-        UpdateExpression: updateExpression,
-        ExpressionAttributeValues: expressionAttributeValues,
-      });
-      await dynamodb.update({
-        Key: {
-          PK: `collection#${slug}`,
-          SK: `chain#${chain}`,
-        },
-        UpdateExpression: updateExpression,
-        ExpressionAttributeValues: expressionAttributeValues,
-      });
-      await dynamodb.update({
-        Key: {
-          PK: `collection#${slug}`,
-          SK: `marketplace#${marketplace}`,
-        },
-        UpdateExpression: updateExpression,
-        ExpressionAttributeValues: expressionAttributeValues,
-      });
-      return;
+        await dynamodb.transactWrite({
+          updateItems: [
+            {
+              Key: {
+                PK: `collection#${slug}`,
+                SK: "overview",
+              },
+              UpdateExpression: updateExpression,
+              ExpressionAttributeValues: expressionAttributeValues,
+            },
+            {
+              Key: {
+                PK: `collection#${slug}`,
+                SK: `chain#${chain}`,
+              },
+              UpdateExpression: updateExpression,
+              ExpressionAttributeValues: expressionAttributeValues,
+            },
+            {
+              Key: {
+                PK: `collection#${slug}`,
+                SK: `marketplace#${marketplace}`,
+              },
+              UpdateExpression: updateExpression,
+              ExpressionAttributeValues: expressionAttributeValues,
+            },
+          ],
+        });
+      }
+
+      // If collection doesn't exist, increment collection counts
+      // and insert metadata and statistics
+      if (!existingCollection.length) {
+        await dynamodb.transactWrite({
+          updateItems: [
+            {
+              Key: {
+                PK: `collectionCount`,
+                SK: `chain#${chain}`,
+              },
+              UpdateExpression: "ADD collections :no",
+              ExpressionAttributeValues: {
+                ":no": 1,
+              },
+            },
+            {
+              Key: {
+                PK: `collectionCount`,
+                SK: `marketplace#${marketplace}`,
+              },
+              UpdateExpression: "ADD collections :no",
+              ExpressionAttributeValues: {
+                ":no": 1,
+              },
+            },
+          ],
+          putItems: [
+            {
+              PK: `collection#${slug}`,
+              SK: "overview",
+              category: "collections",
+              ...metadata,
+              ...statistics,
+            },
+            {
+              PK: `collection#${slug}`,
+              SK: `chain#${chain}`,
+              category: `collections#chain#${chain}`,
+              ...metadata,
+              ...statistics,
+            },
+            {
+              PK: `collection#${slug}`,
+              SK: `marketplace#${marketplace}`,
+              category: `collections#marketplace#${marketplace}`,
+              ...metadata,
+              ...statistics,
+            },
+          ],
+        });
+      }
+    } catch (e) {
+      handleError(e, "collection-model:upsert");
     }
-
-    // If collection doesn't exist, increment collection counts
-    // and insert metadata and statistics
-    await dynamodb.update({
-      Key: {
-        PK: `collectionCount`,
-        SK: `chain#${chain}`,
-      },
-      UpdateExpression: "ADD collections :no",
-      ExpressionAttributeValues: {
-        ":no": 1,
-      },
-    });
-    await dynamodb.update({
-      Key: {
-        PK: `collectionCount`,
-        SK: `marketplace#${marketplace}`,
-      },
-      UpdateExpression: "ADD collections :no",
-      ExpressionAttributeValues: {
-        ":no": 1,
-      },
-    });
-    await dynamodb.batchWrite([
-      {
-        PK: `collection#${slug}`,
-        SK: "overview",
-        category: "collections",
-        ...metadata,
-        ...statistics,
-      },
-      {
-        PK: `collection#${slug}`,
-        SK: `chain#${chain}`,
-        category: `collections#chain#${chain}`,
-        ...metadata,
-        ...statistics,
-      },
-      {
-        PK: `collection#${slug}`,
-        SK: `marketplace#${marketplace}`,
-        category: `collections#marketplace#${marketplace}`,
-        ...metadata,
-        ...statistics,
-      },
-    ]);
   }
 
   static async get(slug: string) {

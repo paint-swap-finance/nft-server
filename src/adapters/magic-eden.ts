@@ -75,7 +75,7 @@ async function fetchSales(collection: any): Promise<void> {
 
   try {
     const sales = await MagicEden.getSales(collection, lastSaleTime);
-    const filteredSales = sales.filter(sale => sale)
+    const filteredSales = sales.filter((sale) => sale);
 
     if (filteredSales.length === 0) {
       return;
@@ -83,18 +83,20 @@ async function fetchSales(collection: any): Promise<void> {
 
     const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
-    await Sale.insert({
+    const salesInserted = await Sale.insert({
       slug: collection.slug,
       marketplace: Marketplace.MagicEden,
       sales: convertedSales,
     });
 
-    await HistoricalStatistics.updateStatistics({
-      slug: collection.slug,
-      chain: Blockchain.Solana,
-      marketplace: Marketplace.MagicEden,
-      sales: convertedSales,
-    });
+    if (salesInserted) {
+      await HistoricalStatistics.updateStatistics({
+        slug: collection.slug,
+        chain: Blockchain.Solana,
+        marketplace: Marketplace.MagicEden,
+        sales: convertedSales,
+      });
+    }
   } catch (e) {
     await handleError(e, "magic-eden-adapter:fetchSales");
   }

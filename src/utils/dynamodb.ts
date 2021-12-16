@@ -1,6 +1,6 @@
 import AWS from "aws-sdk";
 
-const MOCK_DYNAMODB_ENDPOINT = process.env.MOCK_DYNAMODB_ENDPOINT
+const MOCK_DYNAMODB_ENDPOINT = process.env.MOCK_DYNAMODB_ENDPOINT;
 
 const client = new AWS.DynamoDB.DocumentClient({
   ...(MOCK_DYNAMODB_ENDPOINT && {
@@ -44,6 +44,32 @@ const dynamodb = {
         },
       })
       .promise(),
+  transactWrite: ({
+    putItems = [],
+    updateItems = [],
+  }: {
+    putItems?: Omit<AWS.DynamoDB.DocumentClient.PutItemInput, "TableName">[];
+    updateItems?: Omit<
+      AWS.DynamoDB.DocumentClient.UpdateItemInput,
+      "TableName"
+    >[];
+  }) =>
+    client.transactWrite({
+      TransactItems: [
+        ...putItems.map((item) => ({
+          Put: {
+            TableName,
+            Item: item,
+          },
+        })),
+        ...updateItems.map((item) => ({
+          Update: {
+            TableName,
+            ...(item as any),
+          },
+        })),
+      ],
+    }).promise(),
   scan: () => client.scan({ TableName }).promise(),
 };
 export default dynamodb;

@@ -1,4 +1,5 @@
 import { Blockchain, Marketplace } from "../types";
+import { handleError } from "../utils";
 import dynamodb from "../utils/dynamodb";
 
 const ONE_DAY_SECONDS = 86400;
@@ -76,30 +77,34 @@ export class HistoricalStatistics {
     marketplace: Marketplace;
     sales: any[];
   }) {
-    const volumes: any = {};
-    for (const sale of sales) {
-      // Do not count if sale has been marked excluded
-      if (sale.excluded) {
-        continue;
+    try {
+      const volumes: any = {};
+      for (const sale of sales) {
+        // Do not count if sale has been marked excluded
+        if (sale.excluded) {
+          continue;
+        }
+        // Do not count if sale price is 0 or does not have a USD or base equivalent
+        if (sale.price <= 0 || sale.priceBase <= 0 || sale.priceUSD <= 0) {
+          continue;
+        }
+        const timestamp = sale.timestamp;
+        const startOfDay = timestamp - (timestamp % ONE_DAY_SECONDS);
+        volumes[startOfDay] = {
+          volume: (volumes[startOfDay]?.volume || 0) + sale.priceBase,
+          volumeUSD: (volumes[startOfDay]?.volumeUSD || 0) + sale.priceUSD,
+        };
       }
-      // Do not count if sale price is 0 or does not have a USD or base equivalent
-      if (sale.price <= 0 || sale.priceBase <= 0 || sale.priceUSD <= 0) {
-        continue;
-      }
-      const timestamp = sale.timestamp;
-      const startOfDay = timestamp - (timestamp % ONE_DAY_SECONDS);
-      volumes[startOfDay] = {
-        volume: (volumes[startOfDay]?.volume || 0) + sale.priceBase,
-        volumeUSD: (volumes[startOfDay]?.volumeUSD || 0) + sale.priceUSD,
-      };
-    }
 
-    await HistoricalStatistics.updateCollectionStatistics({
-      slug,
-      chain,
-      marketplace,
-      volumes,
-    });
+      await HistoricalStatistics.updateCollectionStatistics({
+        slug,
+        chain,
+        marketplace,
+        volumes,
+      });
+    } catch (e) {
+      handleError(e, "historical-statistics-model:updateStatistics");
+    }
   }
 
   static async getChart({

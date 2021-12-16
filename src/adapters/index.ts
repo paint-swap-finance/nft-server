@@ -11,13 +11,13 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
+  PancakeSwapAdapter,
   OpenseaAdapter,
   MoralisAdapter,
   RandomEarthAdapter,
   MagicEdenAdapter,
   ImmutableXAdapter,
   TreasureAdapter,
-  PancakeSwapAdapter,
 ];
 
 export { adapters };

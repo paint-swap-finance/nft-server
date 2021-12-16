@@ -80,7 +80,7 @@ async function fetchSales(collection: any): Promise<void> {
 
   try {
     const sales = await RandomEarth.getSales(collection, lastSaleTime);
-    const filteredSales = sales.filter((sale: any) => sale)
+    const filteredSales = sales.filter((sale: any) => sale);
 
     if (sales.length === 0) {
       return;
@@ -88,19 +88,20 @@ async function fetchSales(collection: any): Promise<void> {
 
     const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
-    await Sale.insert({
+    const salesInserted = await Sale.insert({
       slug: collection.slug,
       marketplace: Marketplace.RandomEarth,
       sales: convertedSales,
     });
 
-    await HistoricalStatistics.updateStatistics({
-      slug: collection.slug,
-      chain: Blockchain.Terra,
-      marketplace: Marketplace.RandomEarth,
-      sales: convertedSales,
-    });
-
+    if (salesInserted) {
+      await HistoricalStatistics.updateStatistics({
+        slug: collection.slug,
+        chain: Blockchain.Terra,
+        marketplace: Marketplace.RandomEarth,
+        sales: convertedSales,
+      });
+    }
   } catch (e) {
     await handleError(e, "random-earth-adapter:fetchSales");
   }

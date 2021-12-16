@@ -36,7 +36,7 @@ async function runCollections(): Promise<void> {
       );
     } catch (e) {
       if (e instanceof LowVolumeError) {
-        await Contract.remove(collection.slug)
+        await Contract.remove(collection.slug);
       }
       await handleError(e, "opensea-adapter:runCollections");
     }
@@ -107,19 +107,20 @@ async function fetchSales(collection: any): Promise<void> {
         filteredSales
       );
 
-      await Sale.insert({
+      const salesInserted = await Sale.insert({
         slug: collection.slug,
         marketplace: Marketplace.Opensea,
         sales: convertedSales,
       });
 
-      await HistoricalStatistics.updateStatistics({
-        slug: collection.slug,
-        chain: Blockchain.Ethereum,
-        marketplace: Marketplace.Opensea,
-        sales: convertedSales,
-      });
-
+      if (salesInserted) {
+        await HistoricalStatistics.updateStatistics({
+          slug: collection.slug,
+          chain: Blockchain.Ethereum,
+          marketplace: Marketplace.Opensea,
+          sales: convertedSales,
+        });
+      }
       offset += limit;
       await sleep(1);
     } catch (e) {
@@ -128,6 +129,7 @@ async function fetchSales(collection: any): Promise<void> {
           console.error(
             "Error [opensea-adapter:fetchSales]: offset not valid or server error"
           );
+          break;
         }
       }
       await handleError(e, "opensea-adapter:fetchSales");
