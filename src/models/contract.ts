@@ -7,14 +7,13 @@ export class Contract {
   chain: Blockchain;
 
   static async insert(contracts: any, chain: Blockchain) {
-    const createdDate = new Date().getTime();
     const batchWriteStep = 25;
     for (let i = 0; i < contracts.length; i += batchWriteStep) {
       const items = contracts
         .slice(i, i + batchWriteStep)
         .map((contract: any) => ({
           PK: `contracts#${chain}`,
-          SK: `${createdDate}#${contract.address}`,
+          SK: contract.address,
           ...contract,
         }));
       await dynamodb.batchWrite(items);
@@ -34,7 +33,12 @@ export class Contract {
       .then((result) => result.Items);
   }
 
-  static async remove(slug: string) {
-    //TODO  
+  static async remove(chain: Blockchain, address: string) {
+    return dynamodb.delete({
+      Key: {
+        PK: `contracts#${chain}`,
+        SK: address,
+      },
+    });
   }
 }

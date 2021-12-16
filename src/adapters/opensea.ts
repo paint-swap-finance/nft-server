@@ -36,7 +36,7 @@ async function runCollections(): Promise<void> {
       );
     } catch (e) {
       if (e instanceof LowVolumeError) {
-        await Contract.remove(collection.slug);
+        await Contract.remove(Blockchain.Ethereum, collection.address);
       }
       await handleError(e, "opensea-adapter:runCollections");
     }
