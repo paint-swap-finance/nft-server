@@ -5,14 +5,18 @@ export class AdapterState {
   name: string;
   lastSyncedBlockNumber: bigint;
 
-  static createMoralisAdapterState(chain: Blockchain) {
-    return dynamodb.put({
+  static async createMoralisAdapterState(chain: Blockchain) {
+    await dynamodb.put({
       PK: `adapterState`,
       SK: `moralis#${chain}`,
       lastSyncedBlockNumber: 0,
     });
+
+    return {
+      lastSyncedBlockNumber: 0,
+    };
   }
-  static getMoralisAdapterState(chain: Blockchain) {
+  static async getMoralisAdapterState(chain: Blockchain) {
     return dynamodb
       .query({
         KeyConditionExpression: "PK = :pk and SK = :sk",
@@ -29,7 +33,7 @@ export class AdapterState {
       });
   }
 
-  static updateMoralisLastSyncedBlockNumber(
+  static async updateMoralisLastSyncedBlockNumber(
     chain: Blockchain,
     blockNumber: number
   ) {
