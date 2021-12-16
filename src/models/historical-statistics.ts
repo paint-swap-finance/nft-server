@@ -2,7 +2,7 @@ import { Blockchain, Marketplace } from "../types";
 import { handleError } from "../utils";
 import dynamodb from "../utils/dynamodb";
 
-const ONE_DAY_SECONDS = 86400;
+const ONE_DAY_MILISECONDS = 86400 * 1000;
 
 export class HistoricalStatistics {
   static async getGlobalStatistics() {
@@ -89,7 +89,7 @@ export class HistoricalStatistics {
           continue;
         }
         const timestamp = sale.timestamp;
-        const startOfDay = timestamp - (timestamp % ONE_DAY_SECONDS);
+        const startOfDay = timestamp - (timestamp % ONE_DAY_MILISECONDS);
         volumes[startOfDay] = {
           volume: (volumes[startOfDay]?.volume || 0) + sale.priceBase,
           volumeUSD: (volumes[startOfDay]?.volumeUSD || 0) + sale.priceUSD,
