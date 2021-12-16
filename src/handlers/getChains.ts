@@ -28,7 +28,7 @@ const handler = async (event: any): Promise<IResponse> => {
           ? mostRecentStatistic[`chain_${chain.chain}_volumeUSD`]
           : 0;
       const totalVolumeUSD = globalStatistics.reduce((volume, entry) => {
-        return volume + entry[`chain_${chain.chain}_volumeUSD`] ?? 0;
+        return volume + (entry[`chain_${chain.chain}_volumeUSD`] ?? 0);
       }, 0);
 
       data.push({

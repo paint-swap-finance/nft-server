@@ -33,7 +33,7 @@ const handler = async (event: any): Promise<IResponse> => {
             : 0;
         const totalVolumeUSD = globalStatistics.reduce((volume, entry) => {
           return (
-            volume + entry[`marketplace_${marketplace.marketplace}_volumeUSD`] ?? 0
+            volume + (entry[`marketplace_${marketplace.marketplace}_volumeUSD`] ?? 0)
           );
         }, 0);
 
