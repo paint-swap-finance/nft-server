@@ -91,7 +91,7 @@ export class CurrencyConverter {
 
     for (const sale of sales) {
       const tokenAddress = sale.paymentTokenAddress.toString();
-      const timestamp = sale.timestamp;
+      const timestamp = parseInt(sale.timestamp);
       const price = sale.price;
       const chain = sale.chain as Blockchain;
 
