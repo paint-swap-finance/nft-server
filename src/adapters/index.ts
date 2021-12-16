@@ -11,9 +11,9 @@ export interface DataAdapter {
 }
 
 const adapters: DataAdapter[] = [
+  MoralisAdapter,
   PancakeSwapAdapter,
   OpenseaAdapter,
-  MoralisAdapter,
   RandomEarthAdapter,
   MagicEdenAdapter,
   ImmutableXAdapter,

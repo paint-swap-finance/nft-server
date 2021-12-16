@@ -40,7 +40,7 @@ export class AdapterState {
       },
       UpdateExpression: "SET lastSyncedBlockNumber = :blockNumber",
       ExpressionAttributeValues: {
-        blockNumber,
+        ":blockNumber": blockNumber,
       },
     });
   }
