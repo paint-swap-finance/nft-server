@@ -24,11 +24,11 @@ export enum AdapterType {
 
 export enum Marketplace {
   Opensea = "opensea",
-  MagicEden = "magic-eden",
+  MagicEden = "magiceden",
   ImmutableX = "immutablex",
   PancakeSwap = "pancakeswap",
   Treasure = "treasure",
-  RandomEarth = "random-earth",
+  RandomEarth = "randomearth",
 }
 
 export const MarketplaceReverseLookup = new Map<
