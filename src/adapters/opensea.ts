@@ -82,7 +82,7 @@ async function fetchCollection(
 
 async function fetchSales(collection: any): Promise<void> {
   let offset = 0;
-  const limit = 100;
+  const limit = 300;
   const lastSaleTime = await Sale.getLastSaleTime({
     slug: collection.slug,
     marketplace: Marketplace.Opensea,
