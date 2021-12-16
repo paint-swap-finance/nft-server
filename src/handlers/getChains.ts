@@ -32,7 +32,7 @@ const handler = async (event: any): Promise<IResponse> => {
         }, 0),
       });
     }
-    return successResponse(chainsData);
+    return successResponse(chainsData, 10 * 60);
   } catch (e) {
     console.log(e);
     return errorResponse({ message: "Error" });

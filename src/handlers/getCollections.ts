@@ -9,7 +9,7 @@ const handler = async (event: any): Promise<IResponse> => {
   try {
     const { chain, marketplace } = event?.pathParameters || {};
     const collections = await Collection.getSorted({ chain, marketplace });
-    return successResponse(collections);
+    return successResponse(collections, 10 * 60);
   } catch (e) {
     console.log(e);
     return errorResponse({ message: "Error" });
