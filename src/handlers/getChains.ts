@@ -1,4 +1,4 @@
-import { Collection, HistoricalStatistics } from "../models"
+import { Collection, HistoricalStatistics } from "../models";
 import {
   successResponse,
   errorResponse,
@@ -14,25 +14,34 @@ const handler = async (event: any): Promise<IResponse> => {
       displayName: chain[0],
       chain: chain[1],
     }));
-    let chainsData = [];
 
-    for (const chain of chains) {
-      chainsData.push({
+    const chainsData = chains.reduce((data, chain) => {
+      const collections =
+        collectionCount.find(
+          (count: any) => count.SK === `chain#${chain.chain}`
+        )?.collections ?? 0;
+
+      const mostRecentStatistic =
+        globalStatistics[globalStatistics.length - 1] ?? {};
+      const dailyVolumeUSD =
+        `chain_${chain.chain}_volumeUSD` in mostRecentStatistic
+          ? mostRecentStatistic[`chain_${chain.chain}_volumeUSD`]
+          : 0;
+      const totalVolumeUSD = globalStatistics.reduce((volume, entry) => {
+        return volume + entry[`chain_${chain.chain}_volumeUSD`] ?? 0;
+      }, 0);
+
+      data.push({
         ...chain,
-        collections:
-          collectionCount.find(
-            (count: any) => count.SK === `chain#${chain.chain}`
-          )?.collections ?? 0,
-        dailyVolumeUSD:
-          globalStatistics[globalStatistics.length - 1][
-            `chain_${chain.chain}_volumeUSD`
-          ],
-        totalVolumeUSD: globalStatistics.reduce((volume, entry) => {
-          return volume + entry[`chain_${chain.chain}_volumeUSD`];
-        }, 0),
+        collections,
+        dailyVolumeUSD,
+        totalVolumeUSD,
       });
-    }
-    return successResponse(chainsData, 10 * 60);
+
+      return data;
+    }, []);
+
+    return successResponse(chainsData);
   } catch (e) {
     console.log(e);
     return errorResponse({ message: "Error" });

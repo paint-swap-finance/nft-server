@@ -14,27 +14,41 @@ const handler = async (event: any): Promise<IResponse> => {
       displayName: marketplace[0],
       marketplace: marketplace[1],
     }));
-    let marketplacesData = [];
 
-    for (const marketplace of marketplaces) {
-      marketplacesData.push({
-        ...marketplace,
-        collections:
+    const marketplacesData = marketplaces.reduce(
+      (data: any, marketplace: any) => {
+        const collections =
           collectionCount.find(
             (count) => count.SK === `marketplace#${marketplace.marketplace}`
-          )?.collections ?? 0,
-        dailyVolumeUSD:
-          globalStatistics[globalStatistics.length - 1][
-            `marketplace_${marketplace.marketplace}_volumeUSD`
-          ],
-        totalVolumeUSD: globalStatistics.reduce((volume, entry) => {
+          )?.collections ?? 0;
+
+        const mostRecentStatistic =
+          globalStatistics[globalStatistics.length - 1] ?? {};
+        const dailyVolumeUSD =
+          `marketplace_${marketplace.marketplace}_volumeUSD` in
+          mostRecentStatistic
+            ? mostRecentStatistic[
+                `marketplace_${marketplace.marketplace}_volumeUSD`
+              ]
+            : 0;
+        const totalVolumeUSD = globalStatistics.reduce((volume, entry) => {
           return (
-            volume + entry[`marketplace_${marketplace.marketplace}_volumeUSD`]
+            volume + entry[`marketplace_${marketplace.marketplace}_volumeUSD`] ?? 0
           );
-        }, 0),
-      });
-    }
-    return successResponse(marketplacesData, 10 * 60);
+        }, 0);
+
+        data.push({
+          ...marketplace,
+          collections,
+          dailyVolumeUSD,
+          totalVolumeUSD,
+        });
+        return data;
+      },
+      []
+    );
+
+    return successResponse(marketplacesData);
   } catch (e) {
     console.log(e);
     return errorResponse({ message: "Error" });
