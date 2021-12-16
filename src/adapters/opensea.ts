@@ -44,9 +44,10 @@ async function runCollections(): Promise<void> {
 }
 
 async function runSales(): Promise<void> {
-  const collections = await Collection.getSorted({
+  const { data: collections}  = await Collection.getSorted({
     marketplace: Marketplace.Opensea,
   });
+  
   console.log("Fetching sales for OpenSea collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching sales for OpenSea collection:", collection.name);

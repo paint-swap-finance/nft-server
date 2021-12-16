@@ -8,7 +8,7 @@ import { handleError, filterObject } from "../utils";
 import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
-  const collections = await Collection.getSorted({
+  const { data: collections } = await Collection.getSorted({
     marketplace: Marketplace.Treasure,
   });
 
@@ -35,7 +35,7 @@ async function runCollections(): Promise<void> {
 }
 
 async function runSales(): Promise<void> {
-  const collections = await Collection.getSorted({
+  const { data: collections } = await Collection.getSorted({
     marketplace: Marketplace.Treasure,
   });
 

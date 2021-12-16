@@ -33,7 +33,7 @@ async function runCollections(): Promise<void> {
 }
 
 async function runSales(): Promise<void> {
-  const collections = await Collection.getSorted({
+  const { data: collections } = await Collection.getSorted({
     marketplace: Marketplace.PancakeSwap,
   });
   console.log(

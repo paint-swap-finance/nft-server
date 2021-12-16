@@ -165,9 +165,13 @@ export class Collection {
   static async getSorted({
     chain,
     marketplace,
+    limit = null,
+    cursor = null,
   }: {
     chain?: any;
     marketplace?: any;
+    limit?: string;
+    cursor?: string;
   }) {
     let category = "collections";
 
@@ -187,8 +191,16 @@ export class Collection {
             ":category": category,
           },
           ScanIndexForward: false,
+          ...(limit && { Limit: parseInt(limit) }),
+          ...(cursor && { ExclusiveStartKey: JSON.parse(cursor) }),
         })
-        .then((result) => result.Items);
+        .then((result) => {
+          const { Items, LastEvaluatedKey } = result;
+          return {
+            data: Items,
+            ...(LastEvaluatedKey && { cursor: LastEvaluatedKey }),
+          };
+        });
     }
   }
 
