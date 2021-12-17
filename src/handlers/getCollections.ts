@@ -12,7 +12,7 @@ const handler = async (event: any): Promise<IResponse> => {
     const collectionsData = await Collection.getSorted({
       chain,
       marketplace,
-      limit,
+      limit: limit || "100",
       cursor,
     });
     return successResponse(collectionsData, 10 * 60);
