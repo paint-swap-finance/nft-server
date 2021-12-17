@@ -165,7 +165,7 @@ export class Collection {
   static async getSorted({
     chain,
     marketplace,
-    limit = null,
+    limit = "100",
     cursor = null,
   }: {
     chain?: any;
