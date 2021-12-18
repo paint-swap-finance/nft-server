@@ -58,6 +58,14 @@ export class Sale extends BaseEntity {
       .getMany();
   }
 
+  static async getInvalidPriceSales(): Promise<Sale[]> {
+    return this.createQueryBuilder("sale")
+      .leftJoinAndSelect("sale.collection", "collection")
+      .where("sale.price != 0 AND (sale.priceBase = -1 OR sale.priceUSD = -1)")
+      .limit(500000)
+      .getMany();
+  }
+
   static async getPaymentTokenAddresses(
     all = true
   ): Promise<Record<string, string>[]> {

@@ -24,10 +24,14 @@ const main = () => {
   })
     .then(async (connection) => {
       const sales = await Sale.getUnconvertedSales();
+      const invalidSales = await Sale.getInvalidPriceSales();
       const tokenAddressPrices = await fetchTokenAddressPrices();
 
       console.log("Manually converting sales");
-      await updateSaleCurrencyConversions(sales, tokenAddressPrices);
+      await updateSaleCurrencyConversions(
+        [...sales, ...invalidSales],
+        tokenAddressPrices
+      );
 
       console.log("Recalculating historical statistics");
       await Collection.query(QUERY);
