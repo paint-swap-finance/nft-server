@@ -53,8 +53,7 @@ export class Sale extends BaseEntity {
   static async getUnconvertedSales(): Promise<Sale[]> {
     return this.createQueryBuilder("sale")
       .leftJoinAndSelect("sale.collection", "collection")
-      .where("sale.price != 0")
-      .andWhere("sale.priceBase = 0")
+      .where("sale.price != 0 AND (sale.priceBase = 0 OR sale.priceUSD = 0)")
       .limit(500000)
       .getMany();
   }

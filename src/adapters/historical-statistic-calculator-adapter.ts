@@ -2,7 +2,7 @@ import { Collection } from "../models/collection";
 import { DataAdapter } from ".";
 import { sleep, handleError } from "../utils";
 
-const QUERY = `
+export const QUERY = `
 insert into historical_statistic (
   timestamp,
   "collectionAddress",
