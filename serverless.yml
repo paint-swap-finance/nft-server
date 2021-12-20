@@ -1,27 +1,82 @@
 service: defillama-nft
 
+package:
+  individually: true
+
 provider:
   name: aws
   runtime: nodejs14.x
+  memorySize: 250
   region: eu-central-1
+  stage: dev # Default to dev if no stage is specified
+  tracing: # Enable X-Ray tracing (debugging)
+    apiGateway: true
+    lambda: true
+  iamRoleStatements:
+    - Effect: Allow # X-Ray permissions
+      Action:
+        - xray:PutTraceSegments
+        - xray:PutTelemetryRecords
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:BatchGetItem
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+      Resource:
+        - "Fn::GetAtt": [DynamoTable, Arn]
+    - Effect: Allow # Lambda logs on cloudwatch
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource:
+        - "Fn::Join":
+            - ":"
+            - - "arn:aws:logs"
+              - Ref: "AWS::Region"
+              - Ref: "AWS::AccountId"
+              - "log-group:/aws/lambda/*:*:*"
+    # For warm-up functions
+    - Effect: "Allow"
+      Action:
+        - "lambda:InvokeFunction"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+        - "s3:*Object*"
+      Resource: "*"
   environment:
-    stage: prod
+    tableName: ${self.custom.tableName}
+    stage: ${self:custom.stage}
     ETHEREUM_RPC: ${file(./env.js):ETHEREUM_RPC}
     MORALIS_APP_ID: ${file(./env.js):MORALIS_APP_ID}
     MORALIS_SERVER_URL: ${file(./env.js):MORALIS_SERVER_URL}
     OPENSEA_API_KEY: ${file(./env.js):OPENSEA_API_KEY}
     SECONDARY_OPENSEA_API_KEY: ${file(./env.js):SECONDARY_OPENSEA_API_KEY}
 
-package:
-  individually: true
-
 custom:
-  tableName: prod-nft-table
+  stage: ${opt:stage, self:provider.stage}
+  tableName: ${self:custom.stage}-nft-table
+  streamArn: "" # Enter streamArn here
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
-    packager: 'npm'
+    packager: "npm"
     excludeFiles: src/**/*.test.ts
+  prune:
+    automatic: true
+    number: 5 # Number of versions to keep
 
 functions:
   triggerAdapters:
@@ -32,14 +87,23 @@ functions:
     handler: src/handlers/triggerAdapter.default
     timeout: 900
     memorySize: 512
+  addSearchDocuments:
+    handler: src/handlers/addSearchDocuments.default
+    events:
+      - stream:
+          enabled: true
+          type: dynamodb
+          arn: ${self:custom.streamArn}
   getChains:
     handler: src/handlers/getChains.default
+    timeout: 60
     events:
       - http:
           path: chains
           method: get
   getChart:
     handler: src/handlers/getChart.default
+    timeout: 60
     events:
       - http:
           path: chart
@@ -52,12 +116,14 @@ functions:
           method: get
   getCollection:
     handler: src/handlers/getCollection.default
+    timeout: 60
     events:
       - http:
           path: collection/{slug}
           method: get
   getCollections:
     handler: src/handlers/getCollections.default
+    timeout: 60
     events:
       - http:
           path: collections
@@ -70,6 +136,7 @@ functions:
           method: get
   getMarketplaces:
     handler: src/handlers/getMarketplaces.default
+    timeout: 60
     events:
       - http:
           path: marketplaces
@@ -82,3 +149,4 @@ resources:
 plugins:
   - serverless-webpack
   - serverless-offline
+  - serverless-prune-plugin

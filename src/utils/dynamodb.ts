@@ -1,6 +1,7 @@
 import AWS from "aws-sdk";
 
 const MOCK_DYNAMODB_ENDPOINT = process.env.MOCK_DYNAMODB_ENDPOINT;
+const TableName = "dev-nft-table";
 
 const client = new AWS.DynamoDB.DocumentClient({
   ...(MOCK_DYNAMODB_ENDPOINT && {
@@ -9,7 +10,6 @@ const client = new AWS.DynamoDB.DocumentClient({
     region: "local",
   }),
 });
-export const TableName = "prod-nft-table";
 
 const dynamodb = {
   get: (params: Omit<AWS.DynamoDB.DocumentClient.GetItemInput, "TableName">) =>
