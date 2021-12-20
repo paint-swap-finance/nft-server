@@ -44,10 +44,10 @@ async function runCollections(): Promise<void> {
 }
 
 async function runSales(): Promise<void> {
-  const { data: collections}  = await Collection.getSorted({
+  const { data: collections } = await Collection.getSorted({
     marketplace: Marketplace.Opensea,
   });
-  
+
   console.log("Fetching sales for OpenSea collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching sales for OpenSea collection:", collection.name);
@@ -141,11 +141,17 @@ async function fetchSales(collection: any): Promise<void> {
 
 async function run(): Promise<void> {
   try {
-    await Promise.all([runCollections(), runSales()]);
+    while (true) {
+      await Promise.all([runCollections(), runSales()]);
+      await sleep(60 * 60);
+    }
   } catch (e) {
     await handleError(e, "opensea-adapter");
   }
 }
 
 const OpenseaAdapter: DataAdapter = { run };
+
+OpenseaAdapter.run();
+
 export default OpenseaAdapter;

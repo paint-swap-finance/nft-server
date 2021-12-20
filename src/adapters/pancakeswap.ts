@@ -3,7 +3,7 @@ import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { Collection, Sale, HistoricalStatistics } from "../models";
-import { handleError, filterObject } from "../utils";
+import { sleep, handleError, filterObject } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
@@ -108,11 +108,17 @@ async function fetchSales(collection: any): Promise<void> {
 
 async function run(): Promise<void> {
   try {
-    await Promise.all([runCollections(), runSales()]);
+    while (true) {
+      await Promise.all([runCollections(), runSales()]);
+      await sleep(60 * 60);
+    }
   } catch (e) {
     await handleError(e, "pancakeswap-adapter");
   }
 }
 
 const PancakeSwapAdapter: DataAdapter = { run };
+
+PancakeSwapAdapter.run();
+
 export default PancakeSwapAdapter;

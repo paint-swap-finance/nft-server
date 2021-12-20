@@ -4,7 +4,7 @@ import { Blockchain, Marketplace } from "../types";
 import { ImmutableX, ImmutableXCollectionData } from "../api/immutablex";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
-import { handleError, filterObject } from "../utils";
+import { handleError, filterObject, sleep } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 
 async function runCollections(): Promise<void> {
@@ -97,11 +97,17 @@ async function fetchSales(collection: any): Promise<void> {
 
 async function run(): Promise<void> {
   try {
-    await Promise.all([runCollections(), runSales()]);
+    while (true) {
+      await Promise.all([runCollections(), runSales()]);
+      await sleep(60 * 60);
+    }
   } catch (e) {
     await handleError(e, "immutablex-adapter");
   }
 }
 
 const ImmutableXAdapter: DataAdapter = { run };
+
+ImmutableXAdapter.run();
+
 export default ImmutableXAdapter;

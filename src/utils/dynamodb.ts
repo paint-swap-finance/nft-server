@@ -54,22 +54,24 @@ const dynamodb = {
       "TableName"
     >[];
   }) =>
-    client.transactWrite({
-      TransactItems: [
-        ...putItems.map((item) => ({
-          Put: {
-            TableName,
-            Item: item,
-          },
-        })),
-        ...updateItems.map((item) => ({
-          Update: {
-            TableName,
-            ...(item as any),
-          },
-        })),
-      ],
-    }).promise(),
+    client
+      .transactWrite({
+        TransactItems: [
+          ...putItems.map((item) => ({
+            Put: {
+              TableName,
+              Item: item,
+            },
+          })),
+          ...updateItems.map((item) => ({
+            Update: {
+              TableName,
+              ...(item as any),
+            },
+          })),
+        ],
+      })
+      .promise(),
   scan: () => client.scan({ TableName }).promise(),
 };
 export default dynamodb;

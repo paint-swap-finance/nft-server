@@ -30,8 +30,8 @@
     "serve": "serverless offline start",
     "dev": "ts-node src/app.ts",
     "build": "tsc",
+    "adapters": "node dist/adapters/index.js",
     "dist": "sh ./scripts/dist.sh",
-    "start": "node dist/src/app.js",
     "lint": "eslint -c .eslintrc.js --ext .ts src",
     "test": "npx ts-node test/test.ts",
     "invoke": "serverless invoke local --function triggerAdapter --data '{\"adapterIndex\": 0}' "

@@ -4,7 +4,7 @@ import { Blockchain, Marketplace } from "../types";
 import { MagicEden, MagicEdenCollectionData } from "../api/magic-eden";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
-import { handleError, filterObject } from "../utils";
+import { sleep, handleError, filterObject } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 
 async function runCollections(): Promise<void> {
@@ -104,11 +104,17 @@ async function fetchSales(collection: any): Promise<void> {
 
 async function run(): Promise<void> {
   try {
-    await Promise.all([runCollections(), runSales()]);
+    while (true) {
+      await Promise.all([runCollections(), runSales()]);
+      await sleep(60 * 60);
+    }
   } catch (e) {
     await handleError(e, "magic-eden-adapter");
   }
 }
 
 const MagicEdenAdapter: DataAdapter = { run };
+
+MagicEdenAdapter.run();
+
 export default MagicEdenAdapter;

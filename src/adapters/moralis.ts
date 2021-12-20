@@ -2,7 +2,7 @@ import web3 from "web3";
 import { DataAdapter } from ".";
 import { Contract, AdapterState } from "../models";
 import { Blockchain } from "../types";
-import { handleError } from "../utils";
+import { handleError, sleep } from "../utils";
 import { MORALIS_CHAINS } from "../constants";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Moralis = require("moralis/node");
@@ -68,13 +68,20 @@ async function run(): Promise<void> {
   try {
     Moralis.initialize(MORALIS_APP_ID);
     Moralis.serverURL = MORALIS_SERVER_URL;
-    await Promise.all([
-      fetchCollectionAddresses(Blockchain.Ethereum, ETHEREUM_RPC),
-    ]);
+
+    while (true) {
+      await Promise.all([
+        fetchCollectionAddresses(Blockchain.Ethereum, ETHEREUM_RPC),
+      ]);
+      await sleep(60 * 60);
+    }
   } catch (e) {
     await handleError(e, "moralis-adapter");
   }
 }
 
 const MoralisAdapter: DataAdapter = { run };
+
+MoralisAdapter.run();
+
 export default MoralisAdapter;
