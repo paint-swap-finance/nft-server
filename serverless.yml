@@ -79,14 +79,6 @@ custom:
     number: 5 # Number of versions to keep
 
 functions:
-  triggerAdapters:
-    handler: src/handlers/triggerAdapters.default
-    events:
-      - schedule: cron(0 * * * ? *)
-  triggerAdapter:
-    handler: src/handlers/triggerAdapter.default
-    timeout: 900
-    memorySize: 512
   addSearchDocuments:
     handler: src/handlers/addSearchDocuments.default
     events:
