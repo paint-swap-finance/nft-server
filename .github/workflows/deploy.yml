@@ -11,18 +11,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build bundle
-      run: yarn && yarn build && yarn dist
-    - name: Deploy to EB (API)
-      uses: einaregilsson/beanstalk-deploy@v18
-      with:
-        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: nft-server
-        environment_name: production
-        version_label: ${{github.run_number}}
-        region: eu-central-1
-        deployment_package: dist/deploy.zip
-        use_existing_version_if_available: true
+      run: npm i && npm run build && npm run dist
+    - name: Deploy to Lambda (API)
+      run: npm run deploy
     - name: Deploy to EB (Adapters)
       uses: einaregilsson/beanstalk-deploy@v18
       with:
