@@ -56,6 +56,12 @@ provider:
         - "s3:ListBucket"
         - "s3:*Object*"
       Resource: "*"
+    # For OpenSearch
+    - Effect: "Allow"
+      Action:
+        - "es:ESHttpPost"
+        - "es:ESHttpPut"
+      Resource: "*"
   environment:
     tableName: ${self.custom.tableName}
     stage: ${self:custom.stage}
