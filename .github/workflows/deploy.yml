@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches: 
-    - master
+    - lambda-dynamodb-refactor
     
 jobs:
   deploy:
@@ -20,7 +20,7 @@ jobs:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         application_name: nft-server
-        environment_name: adapters
+        environment_name: adapters-v2
         version_label: ${{github.run_number}}
         region: eu-central-1
         deployment_package: dist/deploy.zip
