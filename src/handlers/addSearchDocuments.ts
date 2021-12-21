@@ -56,4 +56,4 @@ const handler = async (event: any) => {
   }
 };
 
-export { handler };
+export default handler;

@@ -32,8 +32,7 @@ provider:
         - dynamodb:GetRecords
         - dynamodb:GetShardIterator
         - dynamodb:ListStreams
-      Resource:
-        - "Fn::GetAtt": [DynamoTable, Arn]
+      Resource: ${self:custom.tableArn}
     - Effect: Allow # Lambda logs on cloudwatch
       Action:
         - logs:CreateLogGroup
@@ -70,14 +69,15 @@ provider:
     MORALIS_SERVER_URL: ${file(./env.js):MORALIS_SERVER_URL}
     OPENSEA_API_KEY: ${file(./env.js):OPENSEA_API_KEY}
     SECONDARY_OPENSEA_API_KEY: ${file(./env.js):SECONDARY_OPENSEA_API_KEY}
-    OPENSEARCH_DOMAIN: $(file(./env.js):OPENSEARCH_DOMAIN)
-    OPENSEARCH_USERNAME: $(file(./env.js):OPENSEARCH_USERNAME)
-    OPENSEARCH_PASSWORD: $(file(./env.js):OPENSEARCH_PASSWORD)
+    OPENSEARCH_DOMAIN: ${file(./env.js):OPENSEARCH_DOMAIN}
+    OPENSEARCH_USERNAME: ${file(./env.js):OPENSEARCH_USERNAME}
+    OPENSEARCH_PASSWORD: ${file(./env.js):OPENSEARCH_PASSWORD}
 
 custom:
   stage: ${opt:stage, self:provider.stage}
   tableName: ${self:custom.stage}-nft-table
-  streamArn: "" # Enter streamArn here
+  tableArn: ${file(./env.js):TABLE_ARN}
+  streamArn: ${file(./env.js):STREAM_ARN}
   webpack:
     webpackConfig: ./webpack.config.js
     includeModules: true
@@ -143,9 +143,9 @@ functions:
           path: marketplaces
           method: get
 
-resources:
-  # DynamoDB
-  - ${file(resources/dynamodb-table.yml)}
+# Seems to break if table already exists, uncomment on first deploy
+#resources:
+#  - ${file(resources/dynamodb-table.yml)}
 
 plugins:
   - serverless-webpack
