@@ -23,18 +23,13 @@
     "web3": "^1.6.1"
   },
   "scripts": {
-    "deploy:env": "sls deploy --stage $NODE_ENV",
-    "deploy:dev": "export NODE_ENV=dev && npm run deploy:env",
-    "deploy:prod": "export NODE_ENV=prod && npm run deploy:env",
-    "deploy": "npm run deploy:dev",
-    "serve": "serverless offline start",
-    "dev": "ts-node src/app.ts",
+    "dev": "serverless offline start",
     "build": "tsc",
-    "adapters": "node dist/adapters/index.js",
+    "start": "node dist/adapters/index.js",
+    "deploy": "sls deploy --stage prod",
     "dist": "sh ./scripts/dist.sh",
     "lint": "eslint -c .eslintrc.js --ext .ts src",
-    "test": "npx ts-node test/test.ts",
-    "invoke": "serverless invoke local --function triggerAdapter --data '{\"adapterIndex\": 0}' "
+    "test": "npx ts-node test/test.ts"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.87",
