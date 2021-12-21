@@ -8,18 +8,23 @@ const OPENSEARCH_PASSWORD = process.env.OPENSEARCH_PASSWORD;
 const handler = async (event: any) => {
   try {
     const records = event.Records || [];
-    const insertRecords = records.filter(
-      (record: any) => record.eventName === "INSERT"
+    const insertCollectionRecords = records.filter(
+      (record: any) =>
+        record.eventName === "INSERT" &&
+        record.dynamodb.NewImage.PK.S.startsWith("collection#") &&
+        record.dynamodb.NewImage.SK.S.startsWith("overview")
     );
 
-    console.log(`Adding ${insertRecords.length} documents to search index`);
+    console.log(
+      `Adding ${insertCollectionRecords.length} documents to search index`
+    );
 
     const auth = Buffer.from(
       `${OPENSEARCH_USERNAME}:${OPENSEARCH_PASSWORD}`,
       "utf-8"
     ).toString("base64");
 
-    for (const record of records) {
+    for (const record of insertCollectionRecords) {
       const pk = record.dynamodb.NewImage.PK.S;
       const image = record.dynamodb.NewImage;
       const slug = pk.split("#")[1];
@@ -43,7 +48,7 @@ const handler = async (event: any) => {
     }
 
     console.log(
-      `Successfully added ${insertRecords.length} documents to search index`
+      `Successfully added ${insertCollectionRecords.length} documents to search index`
     );
   } catch (e) {
     await handleError(e, "addSearchDocuments");
