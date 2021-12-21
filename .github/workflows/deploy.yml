@@ -12,8 +12,19 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build bundle
       run: npm i && npm run build && npm run dist
-    - name: Deploy to Lambda (API)
-      run: npm run deploy
+#    - name: Deploy to Lambda (API)
+#      run: npm run deploy
+#      env:
+#        ETHEREUM_RPC: ${{ secrets.ETHEREUM_RPC }}
+#        OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+#        SECONDARY_OPENSEA_API_KEY: ${{ secrets.SECONDARY_OPENSEA_API_KEY }}
+#        MORALIS_APP_ID: ${{ secrets.MORALIS_APP_ID }}
+#        MORALIS_SERVER_URL: ${{ secrets.MORALIS_SERVER_URL }}
+#        OPENSEARCH_DOMAIN: ${{ secrets.OPENSEARCH_DOMAIN }}
+#        OPENSEARCH_USERNAME: ${{ secrets.OPENSEARCH_USERNAME }}
+#        OPENSEARCH_PASSWORD: ${{ secrets.OPENSEARCH_PASSWORD }}
+#        TABLE_ARN: ${{ secrets.TABLE_ARN }}
+#        STREAM_ARN: ${{ secrets.STREAM_ARN }}
     - name: Deploy to EB (Adapters)
       uses: einaregilsson/beanstalk-deploy@v18
       with:
