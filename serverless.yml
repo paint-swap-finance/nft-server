@@ -62,7 +62,7 @@ provider:
         - "es:ESHttpPut"
       Resource: "*"
   environment:
-    tableName: ${self.custom.tableName}
+    tableName: ${self:custom.tableName}
     stage: ${self:custom.stage}
     ETHEREUM_RPC: ${file(./env.js):ETHEREUM_RPC}
     MORALIS_APP_ID: ${file(./env.js):MORALIS_APP_ID}
