@@ -142,6 +142,13 @@ functions:
       - http:
           path: marketplaces
           method: get
+  getSearch:
+    handler: src/handlers/getSearch.default
+    timeout: 10
+    events:
+      - http:
+          path: search
+          method: get
 
 # Seems to break if table already exists, uncomment on first deploy
 #resources:

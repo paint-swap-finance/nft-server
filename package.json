@@ -22,7 +22,7 @@
     "web3": "^1.6.1"
   },
   "scripts": {
-    "dev": "serverless offline start",
+    "dev": "serverless offline start --httpPort 3001",
     "build": "tsc",
     "start": "node dist/adapters/index.js",
     "deploy": "sls deploy --stage prod",
