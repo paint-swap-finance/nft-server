@@ -12,7 +12,7 @@ Resources:
         - AttributeName: category
           AttributeType: S
         - AttributeName: totalVolumeUSD
-          AttributeType: S
+          AttributeType: N
       KeySchema:
         - AttributeName: PK
           KeyType: HASH
