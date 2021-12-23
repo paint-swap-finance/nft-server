@@ -4,11 +4,15 @@ const MOCK_DYNAMODB_ENDPOINT = process.env.MOCK_DYNAMODB_ENDPOINT;
 const TableName = "prod-nft-table";
 
 const client = new AWS.DynamoDB.DocumentClient({
-  ...(MOCK_DYNAMODB_ENDPOINT && {
-    endpoint: MOCK_DYNAMODB_ENDPOINT,
-    sslEnabled: false,
-    region: "local",
-  }),
+  ...(MOCK_DYNAMODB_ENDPOINT
+    ? {
+        endpoint: MOCK_DYNAMODB_ENDPOINT,
+        sslEnabled: false,
+        region: "local",
+      }
+    : {
+        region: "eu-central-1",
+      }),
 });
 
 const dynamodb = {
