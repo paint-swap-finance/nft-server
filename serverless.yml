@@ -33,6 +33,10 @@ provider:
         - dynamodb:GetShardIterator
         - dynamodb:ListStreams
       Resource: ${self:custom.tableArn}
+    - Effect: "Allow"
+      Action:
+        - dynamodb:Query
+      Resource: ${self:custom.tableIndexArn}
     - Effect: Allow # Lambda logs on cloudwatch
       Action:
         - logs:CreateLogGroup
@@ -77,6 +81,7 @@ custom:
   stage: ${opt:stage, self:provider.stage}
   tableName: ${self:custom.stage}-nft-table
   tableArn: ${file(./env.js):TABLE_ARN}
+  tableIndexArn: ${file(./env.js):TABLE_INDEX_ARN}
   streamArn: ${file(./env.js):STREAM_ARN}
   webpack:
     webpackConfig: ./webpack.config.js

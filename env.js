@@ -11,5 +11,6 @@ module.exports = {
   OPENSEARCH_USERNAME: process.env.OPENSEARCH_USERNAME,
   OPENSEARCH_PASSWORD: process.env.OPENSEARCH_PASSWORD,
   TABLE_ARN: process.env.TABLE_ARN,
+  TABLE_INDEX_ARN: process.env.TABLE_INDEX_ARN,
   STREAM_ARN: process.env.STREAM_ARN,
 };
