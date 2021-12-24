@@ -120,7 +120,6 @@ export class HistoricalStatistics {
         ExpressionAttributeValues: {
           ":pk": "globalStatistics",
         },
-        ScanIndexForward: false,
       })
       .then((result) => result.Items);
 
