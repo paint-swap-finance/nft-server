@@ -36,6 +36,7 @@ Resources:
               - dailyVolume
               - dailyVolumeUSD
               - floor
+              - floorUSD
               - owners
               - chains
               - marketplaces
