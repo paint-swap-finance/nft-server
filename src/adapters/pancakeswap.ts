@@ -3,7 +3,7 @@ import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
 import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { Collection, Sale, HistoricalStatistics } from "../models";
-import { sleep, handleError, filterObject } from "../utils";
+import { sleep, handleError, filterObject, getSlugFromPK } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 import { Blockchain, Marketplace } from "../types";
 
@@ -72,8 +72,9 @@ async function fetchCollection(
 }
 
 async function fetchSales(collection: any): Promise<void> {
+  const slug = getSlugFromPK(collection.PK);
   const lastSaleTime = await Sale.getLastSaleTime({
-    slug: collection.slug,
+    slug,
     marketplace: Marketplace.PancakeSwap,
   });
 
@@ -88,14 +89,14 @@ async function fetchSales(collection: any): Promise<void> {
     const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
     const salesInserted = await Sale.insert({
-      slug: collection.slug,
+      slug,
       marketplace: Marketplace.PancakeSwap,
       sales: convertedSales,
     });
 
     if (salesInserted) {
       await HistoricalStatistics.updateStatistics({
-        slug: collection.slug,
+        slug,
         chain: Blockchain.BSC,
         marketplace: Marketplace.PancakeSwap,
         sales: convertedSales,

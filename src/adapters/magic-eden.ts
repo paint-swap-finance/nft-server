@@ -4,7 +4,7 @@ import { Blockchain, Marketplace } from "../types";
 import { MagicEden, MagicEdenCollectionData } from "../api/magic-eden";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
-import { sleep, handleError, filterObject } from "../utils";
+import { sleep, handleError, filterObject, getSlugFromPK } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 
 async function runCollections(): Promise<void> {
@@ -68,8 +68,9 @@ async function fetchCollection(
 }
 
 async function fetchSales(collection: any): Promise<void> {
+  const slug = getSlugFromPK(collection.PK);
   const lastSaleTime = await Sale.getLastSaleTime({
-    slug: collection.slug,
+    slug,
     marketplace: Marketplace.MagicEden,
   });
 
@@ -84,14 +85,14 @@ async function fetchSales(collection: any): Promise<void> {
     const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
     const salesInserted = await Sale.insert({
-      slug: collection.slug,
+      slug,
       marketplace: Marketplace.MagicEden,
       sales: convertedSales,
     });
 
     if (salesInserted) {
       await HistoricalStatistics.updateStatistics({
-        slug: collection.slug,
+        slug,
         chain: Blockchain.Solana,
         marketplace: Marketplace.MagicEden,
         sales: convertedSales,

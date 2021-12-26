@@ -4,7 +4,7 @@ import { Treasure } from "../api/treasure";
 import { CurrencyConverter } from "../api/currency-converter";
 import { HistoricalStatistics } from "../models/historical-statistics";
 import { Collection, Sale } from "../models";
-import { sleep, handleError, filterObject } from "../utils";
+import { sleep, handleError, filterObject, getSlugFromPK } from "../utils";
 import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
@@ -74,8 +74,9 @@ async function fetchCollection(
 }
 
 async function fetchSales(collection: any): Promise<void> {
+  const slug = getSlugFromPK(collection.PK);
   const lastSaleTime = await Sale.getLastSaleTime({
-    slug: collection.slug,
+    slug,
     marketplace: Marketplace.Treasure,
   });
 
@@ -90,14 +91,14 @@ async function fetchSales(collection: any): Promise<void> {
     const convertedSales = await CurrencyConverter.convertSales(filteredSales);
 
     const salesInserted = await Sale.insert({
-      slug: collection.slug,
+      slug,
       marketplace: Marketplace.Treasure,
       sales: convertedSales,
     });
 
     if (salesInserted) {
       await HistoricalStatistics.updateStatistics({
-        slug: collection.slug,
+        slug,
         chain: Blockchain.Arbitrum,
         marketplace: Marketplace.Treasure,
         sales: convertedSales,

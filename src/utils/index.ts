@@ -26,6 +26,10 @@ export function getSlug(text: string): string {
     .replace(/[^\w-]+/g, "");
 }
 
+export function getSlugFromPK(PK: string): string {
+  return PK.split("#")[1]
+}
+
 export function convertByDecimals(value: number, decimals: number): number {
   return value / Math.pow(10, decimals);
 }
