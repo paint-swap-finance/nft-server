@@ -137,7 +137,7 @@ export class HistoricalStatistics {
     if (chain) {
       const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
       return globalStatistics.map((statistic) => ({
-        timestamp: statistic.SK,
+        timestamp: Math.floor(statistic.SK / 1000),
         volume: statistic[`chain_${chain}_volume`],
         volumeUSD: statistic[`chain_${chain}_volumeUSD`],
       }));
@@ -146,7 +146,7 @@ export class HistoricalStatistics {
     if (marketplace) {
       const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
       return globalStatistics.map((statistic) => ({
-        timestamp: statistic.SK,
+        timestamp: Math.floor(statistic.SK / 1000),
         volume: statistic[`marketplace_${marketplace}_volume`],
         volumeUSD: statistic[`marketplace_${marketplace}_volumeUSD`],
       }));
@@ -175,7 +175,7 @@ export class HistoricalStatistics {
         }, 0);
 
         return {
-          timestamp: statistic.SK,
+          timestamp: Math.floor(statistic.SK / 1000),
           volume,
           volumeUSD,
         };
@@ -184,7 +184,7 @@ export class HistoricalStatistics {
 
     const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
     return globalStatistics.map((statistic) => ({
-      timestamp: statistic.SK,
+      timestamp: Math.floor(statistic.SK / 1000),
       volume: Object.entries(statistic).reduce((volume, entry) => {
         if (entry[0].startsWith("chain") && entry[0].endsWith("volume")) {
           return volume + entry[1];
