@@ -5,14 +5,29 @@ import dynamodb from "../utils/dynamodb";
 const ONE_DAY_MILISECONDS = 86400 * 1000;
 
 export class HistoricalStatistics {
-  static async getGlobalStatistics() {
+  static async getGlobalStatistics(sortDesc: boolean = false) {
     return dynamodb
       .query({
         KeyConditionExpression: "PK = :pk",
         ExpressionAttributeValues: {
           ":pk": "globalStatistics",
         },
-        ScanIndexForward: false,
+        ScanIndexForward: sortDesc,
+      })
+      .then((result) => result.Items);
+  }
+
+  static async getCollectionStatistics(
+    slug: string,
+    sortDesc: boolean = false
+  ) {
+    return dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: {
+          ":pk": `statistics#${slug}`,
+        },
+        ScanIndexForward: sortDesc,
       })
       .then((result) => result.Items);
   }
@@ -30,38 +45,41 @@ export class HistoricalStatistics {
   }) {
     for (const timestamp in volumes) {
       const { volume, volumeUSD } = volumes[timestamp];
-      await dynamodb.update({
-        Key: {
-          PK: `statistics#${slug}`,
-          SK: timestamp,
-        },
-        UpdateExpression: `
-          ADD chain_${chain}_volume :volume,
-              chain_${chain}_volumeUSD :volumeUSD,
-              marketplace_${marketplace}_volume :volume,
-              marketplace_${marketplace}_volumeUSD :volumeUSD
-        `,
-        ExpressionAttributeValues: {
-          ":volume": volume,
-          ":volumeUSD": volumeUSD,
-        },
-      });
-
-      await dynamodb.update({
-        Key: {
-          PK: `globalStatistics`,
-          SK: timestamp,
-        },
-        UpdateExpression: `
-          ADD chain_${chain}_volume :volume,
-              chain_${chain}_volumeUSD :volumeUSD,
-              marketplace_${marketplace}_volume :volume,
-              marketplace_${marketplace}_volumeUSD :volumeUSD
-        `,
-        ExpressionAttributeValues: {
-          ":volume": volume,
-          ":volumeUSD": volumeUSD,
-        },
+      await dynamodb.transactWrite({
+        updateItems: [
+          {
+            Key: {
+              PK: `statistics#${slug}`,
+              SK: timestamp,
+            },
+            UpdateExpression: `
+      ADD chain_${chain}_volume :volume,
+          chain_${chain}_volumeUSD :volumeUSD,
+          marketplace_${marketplace}_volume :volume,
+          marketplace_${marketplace}_volumeUSD :volumeUSD
+    `,
+            ExpressionAttributeValues: {
+              ":volume": volume,
+              ":volumeUSD": volumeUSD,
+            },
+          },
+          {
+            Key: {
+              PK: `globalStatistics`,
+              SK: timestamp,
+            },
+            UpdateExpression: `
+              ADD chain_${chain}_volume :volume,
+                  chain_${chain}_volumeUSD :volumeUSD,
+                  marketplace_${marketplace}_volume :volume,
+                  marketplace_${marketplace}_volumeUSD :volumeUSD
+            `,
+            ExpressionAttributeValues: {
+              ":volume": volume,
+              ":volumeUSD": volumeUSD,
+            },
+          },
+        ],
       });
     }
   }
@@ -110,20 +128,14 @@ export class HistoricalStatistics {
   static async getChart({
     chain,
     marketplace,
+    slug,
   }: {
-    chain?: any;
-    marketplace?: any;
+    chain?: string;
+    marketplace?: string;
+    slug?: string;
   }) {
-    const globalStatistics = await dynamodb
-      .query({
-        KeyConditionExpression: "PK = :pk",
-        ExpressionAttributeValues: {
-          ":pk": "globalStatistics",
-        },
-      })
-      .then((result) => result.Items);
-
     if (chain) {
+      const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
       return globalStatistics.map((statistic) => ({
         timestamp: statistic.SK,
         volume: statistic[`chain_${chain}_volume`],
@@ -132,6 +144,7 @@ export class HistoricalStatistics {
     }
 
     if (marketplace) {
+      const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
       return globalStatistics.map((statistic) => ({
         timestamp: statistic.SK,
         volume: statistic[`marketplace_${marketplace}_volume`],
@@ -139,6 +152,37 @@ export class HistoricalStatistics {
       }));
     }
 
+    if (slug) {
+      const statistics = await HistoricalStatistics.getCollectionStatistics(
+        slug
+      );
+      // Sums the volumes and USD volumes from every chain for that collection for every timestamp
+      return statistics.map((statistic) => {
+        const chainKeys = Object.keys(statistic).filter((key) => {
+          return key.startsWith("chain_");
+        });
+        const volume = chainKeys.reduce((volume, key) => {
+          if (key.endsWith("volume")) {
+            volume += statistic[key];
+          }
+          return volume;
+        }, 0);
+        const volumeUSD = chainKeys.reduce((volumeUSD, key) => {
+          if (key.endsWith("volumeUSD")) {
+            volumeUSD += statistic[key];
+          }
+          return volumeUSD;
+        }, 0);
+
+        return {
+          timestamp: statistic.SK,
+          volume,
+          volumeUSD,
+        };
+      });
+    }
+
+    const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
     return globalStatistics.map((statistic) => ({
       timestamp: statistic.SK,
       volume: Object.entries(statistic).reduce((volume, entry) => {

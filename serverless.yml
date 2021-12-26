@@ -120,6 +120,9 @@ functions:
       - http:
           path: chart/marketplace/{marketplace}
           method: get
+      - http:
+          path: chart/collection/{slug}
+          method: get
   getCollection:
     handler: src/handlers/getCollection.default
     timeout: 60
