@@ -23,7 +23,8 @@ const handler = async (event: any): Promise<IResponse> => {
       {
         query: {
           query_string: {
-            query: `*${query}*`,
+            query,
+            default_field: "name",
             fuzziness: "AUTO",
           },
         },
