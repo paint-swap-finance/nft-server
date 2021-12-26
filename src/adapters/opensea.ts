@@ -5,7 +5,7 @@ import { Opensea } from "../api/opensea";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
 import { COINGECKO_IDS } from "../constants";
-import { sleep, handleError, filterObject, getSlugFromPK } from "../utils";
+import { sleep, handleError, filterObject } from "../utils";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
@@ -84,7 +84,7 @@ async function fetchCollection(
 async function fetchSales(collection: any): Promise<void> {
   let offset = 0;
   const limit = 300;
-  const slug = getSlugFromPK(collection.PK);
+  const slug = collection.slug;
   const lastSaleTime = await Sale.getLastSaleTime({
     slug,
     marketplace: Marketplace.Opensea,

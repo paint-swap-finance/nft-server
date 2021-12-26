@@ -4,7 +4,7 @@ import { Blockchain, Marketplace } from "../types";
 import { ImmutableX, ImmutableXCollectionData } from "../api/immutablex";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
-import { handleError, filterObject, sleep, getSlugFromPK } from "../utils";
+import { handleError, filterObject, sleep } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 
 async function runCollections(): Promise<void> {
@@ -61,7 +61,7 @@ async function fetchCollection(
 }
 
 async function fetchSales(collection: any): Promise<void> {
-  const slug = getSlugFromPK(collection.PK)
+  const slug = collection.slug;
   const lastSaleTime = await Sale.getLastSaleTime({
     slug,
     marketplace: Marketplace.ImmutableX,

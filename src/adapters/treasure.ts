@@ -4,7 +4,7 @@ import { Treasure } from "../api/treasure";
 import { CurrencyConverter } from "../api/currency-converter";
 import { HistoricalStatistics } from "../models/historical-statistics";
 import { Collection, Sale } from "../models";
-import { sleep, handleError, filterObject, getSlugFromPK } from "../utils";
+import { sleep, handleError, filterObject } from "../utils";
 import { Blockchain, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
@@ -74,7 +74,7 @@ async function fetchCollection(
 }
 
 async function fetchSales(collection: any): Promise<void> {
-  const slug = getSlugFromPK(collection.PK);
+  const slug = collection.slug;
   const lastSaleTime = await Sale.getLastSaleTime({
     slug,
     marketplace: Marketplace.Treasure,

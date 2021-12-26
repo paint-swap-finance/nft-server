@@ -1,5 +1,5 @@
 import { Blockchain, Marketplace } from "../types";
-import { handleError } from "../utils";
+import { getSlugFromPK, handleError } from "../utils";
 import dynamodb from "../utils/dynamodb";
 
 export class Collection {
@@ -197,7 +197,10 @@ export class Collection {
         .then((result) => {
           const { Items, LastEvaluatedKey } = result;
           return {
-            data: Items,
+            data: Items.map((item: any) => ({
+              ...item,
+              slug: getSlugFromPK(item.PK),
+            })),
             ...(LastEvaluatedKey && { cursor: LastEvaluatedKey }),
           };
         });
