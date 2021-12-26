@@ -136,20 +136,24 @@ export class HistoricalStatistics {
   }) {
     if (chain) {
       const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
-      return globalStatistics.map((statistic) => ({
-        timestamp: Math.floor(statistic.SK / 1000),
-        volume: statistic[`chain_${chain}_volume`],
-        volumeUSD: statistic[`chain_${chain}_volumeUSD`],
-      }));
+      return globalStatistics
+        .map((statistic) => ({
+          timestamp: Math.floor(statistic.SK / 1000),
+          volume: statistic[`chain_${chain}_volume`],
+          volumeUSD: statistic[`chain_${chain}_volumeUSD`],
+        }))
+        .filter((statistic) => statistic.volume && statistic.volumeUSD);
     }
 
     if (marketplace) {
       const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
-      return globalStatistics.map((statistic) => ({
-        timestamp: Math.floor(statistic.SK / 1000),
-        volume: statistic[`marketplace_${marketplace}_volume`],
-        volumeUSD: statistic[`marketplace_${marketplace}_volumeUSD`],
-      }));
+      return globalStatistics
+        .map((statistic) => ({
+          timestamp: Math.floor(statistic.SK / 1000),
+          volume: statistic[`marketplace_${marketplace}_volume`],
+          volumeUSD: statistic[`marketplace_${marketplace}_volumeUSD`],
+        }))
+        .filter((statistic) => statistic.volume && statistic.volumeUSD);
     }
 
     if (slug) {
@@ -157,29 +161,31 @@ export class HistoricalStatistics {
         slug
       );
       // Sums the volumes and USD volumes from every chain for that collection for every timestamp
-      return statistics.map((statistic) => {
-        const chainKeys = Object.keys(statistic).filter((key) => {
-          return key.startsWith("chain_");
-        });
-        const volume = chainKeys.reduce((volume, key) => {
-          if (key.endsWith("volume")) {
-            volume += statistic[key];
-          }
-          return volume;
-        }, 0);
-        const volumeUSD = chainKeys.reduce((volumeUSD, key) => {
-          if (key.endsWith("volumeUSD")) {
-            volumeUSD += statistic[key];
-          }
-          return volumeUSD;
-        }, 0);
+      return statistics
+        .map((statistic) => {
+          const chainKeys = Object.keys(statistic).filter((key) => {
+            return key.startsWith("chain_");
+          });
+          const volume = chainKeys.reduce((volume, key) => {
+            if (key.endsWith("volume")) {
+              volume += statistic[key];
+            }
+            return volume;
+          }, 0);
+          const volumeUSD = chainKeys.reduce((volumeUSD, key) => {
+            if (key.endsWith("volumeUSD")) {
+              volumeUSD += statistic[key];
+            }
+            return volumeUSD;
+          }, 0);
 
-        return {
-          timestamp: Math.floor(statistic.SK / 1000),
-          volume,
-          volumeUSD,
-        };
-      });
+          return {
+            timestamp: Math.floor(statistic.SK / 1000),
+            volume,
+            volumeUSD,
+          };
+        })
+        .filter((statistic) => statistic.volume && statistic.volumeUSD);
     }
 
     const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
