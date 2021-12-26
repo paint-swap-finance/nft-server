@@ -5,14 +5,14 @@ import dynamodb from "../utils/dynamodb";
 const ONE_DAY_MILISECONDS = 86400 * 1000;
 
 export class HistoricalStatistics {
-  static async getGlobalStatistics(sortDesc: boolean = false) {
+  static async getGlobalStatistics(sortAsc: boolean = true) {
     return dynamodb
       .query({
         KeyConditionExpression: "PK = :pk",
         ExpressionAttributeValues: {
           ":pk": "globalStatistics",
         },
-        ScanIndexForward: sortDesc,
+        ScanIndexForward: sortAsc,
       })
       .then((result) => result.Items);
   }
