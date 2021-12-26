@@ -19,7 +19,7 @@ export class HistoricalStatistics {
 
   static async getCollectionStatistics(
     slug: string,
-    sortDesc: boolean = false
+    sortAsc: boolean = true
   ) {
     return dynamodb
       .query({
@@ -27,7 +27,7 @@ export class HistoricalStatistics {
         ExpressionAttributeValues: {
           ":pk": `statistics#${slug}`,
         },
-        ScanIndexForward: sortDesc,
+        ScanIndexForward: sortAsc,
       })
       .then((result) => result.Items);
   }
