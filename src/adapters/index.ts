@@ -9,7 +9,7 @@ const adapters: String[] = [
   "moralis",
   "pancakeswap",
   "opensea",
-  "random-earth",
+  //"random-earth",
   "magic-eden",
   "immutablex",
   "treasure",
