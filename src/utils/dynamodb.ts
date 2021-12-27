@@ -11,7 +11,7 @@ const client = new AWS.DynamoDB.DocumentClient({
         region: "local",
       }
     : {
-        region: "eu-central-1",
+        region: "eu-west-2", // For running the adapters locally but using the prod DB
       }),
 });
 
