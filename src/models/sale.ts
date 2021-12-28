@@ -2,6 +2,8 @@ import { Marketplace } from "../types";
 import { handleError } from "../utils";
 import dynamodb from "../utils/dynamodb";
 
+const ONE_DAY_MILISECONDS = 86400 * 1000;
+
 export class Sale {
   txnHash: string;
   sellerAddress: string;
@@ -47,6 +49,72 @@ export class Sale {
       handleError(e, "sale-model: insert");
       return false;
     }
+  }
+
+  // Removes the sale from the database and subtracts the prices from statistics
+  static async delete({
+    slug,
+    chain,
+    marketplace,
+    timestamp,
+    txnHash,
+    priceUSD,
+    priceBase,
+  }: {
+    slug: string;
+    chain: string;
+    marketplace: string;
+    timestamp: string;
+    txnHash: string;
+    priceUSD: string;
+    priceBase: string;
+  }) {
+    const startOfDay =
+      parseInt(timestamp) - (parseInt(timestamp) % ONE_DAY_MILISECONDS);
+    return dynamodb.transactWrite({
+      deleteItems: [
+        {
+          Key: {
+            PK: `sales#${slug}#marketplace#${marketplace}`,
+            SK: `${timestamp}#txnHash#${txnHash}`,
+          },
+        },
+      ],
+      updateItems: [
+        {
+          Key: {
+            PK: `statistics#${slug}`,
+            SK: startOfDay.toString(),
+          },
+          UpdateExpression: `
+              ADD chain_${chain}_volume :volume,
+                  chain_${chain}_volumeUSD :volumeUSD,
+                  marketplace_${marketplace}_volume :volume,
+                  marketplace_${marketplace}_volumeUSD :volumeUSD
+            `,
+          ExpressionAttributeValues: {
+            ":volume": -parseInt(priceBase),
+            ":volumeUSD": -parseInt(priceUSD),
+          },
+        },
+        {
+          Key: {
+            PK: `globalStatistics`,
+            SK: startOfDay.toString(),
+          },
+          UpdateExpression: `
+              ADD chain_${chain}_volume :volume,
+                  chain_${chain}_volumeUSD :volumeUSD,
+                  marketplace_${marketplace}_volume :volume,
+                  marketplace_${marketplace}_volumeUSD :volumeUSD
+            `,
+          ExpressionAttributeValues: {
+            ":volume": -parseInt(priceBase),
+            ":volumeUSD": -parseInt(priceUSD),
+          },
+        },
+      ],
+    });
   }
 
   static async getLastSaleTime({

@@ -53,11 +53,11 @@ export class HistoricalStatistics {
               SK: timestamp,
             },
             UpdateExpression: `
-      ADD chain_${chain}_volume :volume,
-          chain_${chain}_volumeUSD :volumeUSD,
-          marketplace_${marketplace}_volume :volume,
-          marketplace_${marketplace}_volumeUSD :volumeUSD
-    `,
+              ADD chain_${chain}_volume :volume,
+                  chain_${chain}_volumeUSD :volumeUSD,
+                  marketplace_${marketplace}_volume :volume,
+                  marketplace_${marketplace}_volumeUSD :volumeUSD
+            `,
             ExpressionAttributeValues: {
               ":volume": volume,
               ":volumeUSD": volumeUSD,
