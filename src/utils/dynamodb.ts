@@ -51,10 +51,15 @@ const dynamodb = {
   transactWrite: ({
     putItems = [],
     updateItems = [],
+    deleteItems = [],
   }: {
     putItems?: Omit<AWS.DynamoDB.DocumentClient.PutItemInput, "TableName">[];
     updateItems?: Omit<
       AWS.DynamoDB.DocumentClient.UpdateItemInput,
+      "TableName"
+    >[];
+    deleteItems?: Omit<
+      AWS.DynamoDB.DocumentClient.DeleteItemInput,
       "TableName"
     >[];
   }) =>
@@ -69,6 +74,12 @@ const dynamodb = {
           })),
           ...updateItems.map((item) => ({
             Update: {
+              TableName,
+              ...(item as any),
+            },
+          })),
+          ...deleteItems.map((item) => ({
+            Delete: {
               TableName,
               ...(item as any),
             },
