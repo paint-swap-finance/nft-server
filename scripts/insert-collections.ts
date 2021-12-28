@@ -1,6 +1,7 @@
 import { Blockchain, Marketplace } from "../src/types";
 import { Collection } from "../src/models";
 
+// Example (Treasure collections)
 const collections = [
   {
     address: "",
