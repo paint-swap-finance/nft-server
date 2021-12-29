@@ -8,15 +8,17 @@ const OPENSEARCH_PASSWORD = process.env.OPENSEARCH_PASSWORD;
 const handler = async (event: any) => {
   try {
     const records = event.Records || [];
-    const insertCollectionRecords = records.filter(
+
+    // Only consider insert or update events for collection overviews
+    const collectionRecords = records.filter(
       (record: any) =>
-        record.eventName === "INSERT" &&
+        (record.eventName === "INSERT" || record.eventName === "MODIFY") &&
         record.dynamodb.NewImage.PK.S.startsWith("collection#") &&
         record.dynamodb.NewImage.SK.S.startsWith("overview")
     );
 
     console.log(
-      `Adding ${insertCollectionRecords.length} documents to search index`
+      `Adding or updating ${collectionRecords.length} documents to search index`
     );
 
     const auth = Buffer.from(
@@ -24,18 +26,20 @@ const handler = async (event: any) => {
       "utf-8"
     ).toString("base64");
 
-    for (const record of insertCollectionRecords) {
+    for (const record of collectionRecords) {
       const pk = record.dynamodb.NewImage.PK.S;
       const image = record.dynamodb.NewImage;
       const slug = pk.split("#")[1];
       const document = {} as any;
 
+      // Only add flattened name, logo, slug, and symbol to search index
       Object.keys(image).forEach((key) => {
-        if (key !== "PK" && key !== "SK") {
+        if (["name", "logo", "slug", "symbol"].includes(key)) {
           document[key] = image[key].S;
         }
       });
 
+      // Create new document in collections index or update existing document
       await axios.post(
         `${OPENSEARCH_DOMAIN}/collections/_doc/${slug}`,
         document,
@@ -48,7 +52,7 @@ const handler = async (event: any) => {
     }
 
     console.log(
-      `Successfully added ${insertCollectionRecords.length} documents to search index`
+      `Successfully added ${collectionRecords.length} documents to search index`
     );
   } catch (e) {
     await handleError(e, "addSearchDocuments");
