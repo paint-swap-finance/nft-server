@@ -8,6 +8,8 @@ const collections = [
     slug: "",
     chain: Blockchain.Arbitrum,
     marketplace: Marketplace.Treasure,
+    chains: [Blockchain.Arbitrum],
+    marketplaces: [Marketplace.Treasure],
     name: "",
     symbol: "",
     description: "",
