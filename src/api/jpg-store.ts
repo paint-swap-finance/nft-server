@@ -73,7 +73,6 @@ export class JpgStore {
     return collections;
   }
 
-  /*
   public static async getCollection(
     collection: JpgStoreCollectionData,
     adaInUSD: number
@@ -136,6 +135,7 @@ export class JpgStore {
     };
   }
 
+  /*
   public static async getSales(
     collection: Collection,
     occurredAfter: number

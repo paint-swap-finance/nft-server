@@ -1,7 +1,7 @@
 import { DataAdapter } from ".";
 import { Collection, Sale, HistoricalStatistics } from "../models";
 import { Blockchain, Marketplace } from "../types";
-import { JpgStore } from "../api/jpg-store";
+import { JpgStore, JpgStoreCollectionData } from "../api/jpg-store";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
 import { sleep, handleError, filterObject } from "../utils";
@@ -25,7 +25,7 @@ async function runCollections(): Promise<void> {
         "Fetching metadata for Jpg Store collection:",
         collection.display_name
       );
-      //  await fetchCollection(collection, lunaInUSD);
+      await fetchCollection(collection, adaInUSD);
     } catch (e) {
       await handleError(e, "jpg-store-adapter:runCollections");
     }
@@ -47,14 +47,15 @@ async function runSales(): Promise<void> {
     await fetchSales(collection);
   }
 }
+*/
 
 async function fetchCollection(
-  collection: RandomEarthCollectionData,
-  lunaInUSD: number
+  collection: JpgStoreCollectionData,
+  adaInUSD: number
 ): Promise<void> {
-  const { metadata, statistics } = await RandomEarth.getCollection(
+  const { metadata, statistics } = await JpgStore.getCollection(
     collection,
-    lunaInUSD
+    adaInUSD
   );
 
   const filteredMetadata = filterObject(metadata);
@@ -68,11 +69,12 @@ async function fetchCollection(
     slug,
     metadata: filteredMetadata,
     statistics,
-    chain: Blockchain.Terra,
-    marketplace: Marketplace.RandomEarth,
+    chain: Blockchain.Cardano,
+    marketplace: Marketplace.JpgStore,
   });
 }
 
+/*
 async function fetchSales(collection: any): Promise<void> {
   const slug = collection.slug;
   const lastSaleTime = await Sale.getLastSaleTime({

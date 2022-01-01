@@ -30,14 +30,7 @@ export class Collection {
     marketplace: Marketplace;
   }) {
     try {
-      const existingCollection = await dynamodb
-        .query({
-          KeyConditionExpression: "PK = :pk",
-          ExpressionAttributeValues: {
-            ":pk": `collection#${slug}`,
-          },
-        })
-        .then((result) => result.Items);
+      const existingCollection = await Collection.get(slug);
 
       // If collection already exists, update statistics only
       if (existingCollection.length) {
