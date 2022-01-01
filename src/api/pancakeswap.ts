@@ -1,8 +1,13 @@
 import axios from "axios";
 import { request, gql } from "graphql-request";
 
-import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
-import { formatUSD, getSlug, roundUSD } from "../utils";
+import {
+  Blockchain,
+  Marketplace,
+  CollectionAndStatisticData,
+  SaleData,
+} from "../types";
+import { roundUSD, getSlug } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
 
 export interface PancakeSwapCollectionBanner {
@@ -69,7 +74,7 @@ const salesQuery = gql`
     transactions(
       first: $first
       skip: $skip
-      where: { collection: $id, timestamp_gte: $timestamp }
+      where: { collection: $id, timestamp_gt: $timestamp }
       orderBy: timestamp
       orderDirection: asc
     ) {
@@ -143,22 +148,24 @@ export class PancakeSwap {
         symbol,
         description,
         logo,
-        website: "",
+        website: `https://pancakeswap.finance/nfts/collections/${address}`,
         discord_url: "",
         telegram_url: "",
         twitter_username: "",
         medium_username: "",
+        chains: [Blockchain.BSC],
+        marketplaces: [Marketplace.PancakeSwap],
       },
       statistics: {
-        dailyVolume,
-        dailyVolumeUSD: formatUSD(dailyVolume * bnbInUsd),
+        dailyVolume: parseFloat(dailyVolume),
+        dailyVolumeUSD: roundUSD(dailyVolume * bnbInUsd),
         owners: 0,
-        floor: floor,
+        floor,
         floorUSD: roundUSD(floor * bnbInUsd),
         totalVolume: parseFloat(totalVolume),
-        totalVolumeUSD: formatUSD(totalVolume * bnbInUsd),
+        totalVolumeUSD: roundUSD(totalVolume * bnbInUsd),
         marketCap,
-        marketCapUSD: formatUSD(marketCap * bnbInUsd),
+        marketCapUSD: roundUSD(marketCap * bnbInUsd),
       },
     };
   }
@@ -169,10 +176,7 @@ export class PancakeSwap {
   ): Promise<(SaleData | undefined)[]> {
     const first = 1000; // Maximum value accepted by subgraph
     let skip = 0;
-    let timestamp =
-      occurredFrom > 1000
-        ? (occurredFrom / 1000).toString()
-        : occurredFrom.toString();
+    let timestamp = occurredFrom.toString();
     let allTransactions = [] as any;
     let transactionCount = 0;
 
@@ -216,26 +220,22 @@ export class PancakeSwap {
     }
 
     return allTransactions.map((sale: any) => {
-      const {
-        id: txnHash,
-        askPrice: price,
-        timestamp: createdAt,
-        buyer,
-        seller,
-      } = sale;
+      const { id: txnHash, askPrice: price, timestamp, buyer, seller } = sale;
       const { id: buyerAddress } = buyer;
       const { id: sellerAddress } = seller;
       const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.BSC];
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: new Date(createdAt * 1000),
+        timestamp: timestamp * 1000,
         paymentTokenAddress,
         price: parseFloat(price),
         priceBase: 0,
-        priceUSD: BigInt(0),
+        priceUSD: 0,
         buyerAddress,
         sellerAddress,
+        chain: Blockchain.BSC,
+        marketplace: Marketplace.PancakeSwap,
       };
     });
   }

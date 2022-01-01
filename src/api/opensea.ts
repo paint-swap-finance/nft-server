@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
+
 import axios from "axios";
 import { URLSearchParams } from "url";
 
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { OPENSEA_API_KEY, SECONDARY_OPENSEA_API_KEY } from "../../env";
 import { roundUSD, convertByDecimals } from "../utils";
 import {
   Blockchain,
@@ -11,9 +11,12 @@ import {
   CollectionData,
   SaleData,
   LowVolumeError,
+  Marketplace,
 } from "../types";
 
-const TEN_ETHER = 10;
+const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
+const SECONDARY_OPENSEA_API_KEY = process.env.SECONDARY_OPENSEA_API_KEY;
+const VOLUME_THRESHOLD = 0.1; //ETH
 
 export class Opensea {
   public static async getCollection(
@@ -45,9 +48,9 @@ export class Opensea {
       market_cap,
     } = collection.stats;
 
-    if (total_volume < TEN_ETHER) {
+    if (total_volume < VOLUME_THRESHOLD) {
       throw new LowVolumeError(
-        `Collection ${name} has volume ${total_volume} < ${TEN_ETHER}`
+        `Collection ${name} has volume ${total_volume} < ${VOLUME_THRESHOLD}`
       );
     }
     return {
@@ -63,17 +66,19 @@ export class Opensea {
         telegram_url,
         twitter_username,
         medium_username,
+        chains: [Blockchain.Ethereum],
+        marketplaces: [Marketplace.Opensea],
       },
       statistics: {
         dailyVolume: one_day_volume,
-        dailyVolumeUSD: BigInt(roundUSD(one_day_volume * ethInUSD)),
+        dailyVolumeUSD: roundUSD(one_day_volume * ethInUSD),
         owners: num_owners,
         floor: floor_price || 0,
         floorUSD: roundUSD(floor_price * ethInUSD),
         totalVolume: total_volume,
-        totalVolumeUSD: BigInt(roundUSD(total_volume * ethInUSD)),
+        totalVolumeUSD: roundUSD(total_volume * ethInUSD),
         marketCap: market_cap,
-        marketCapUSD: BigInt(roundUSD(market_cap * ethInUSD)),
+        marketCapUSD: roundUSD(market_cap * ethInUSD),
       },
     };
   }
@@ -110,6 +115,8 @@ export class Opensea {
       telegram_url,
       twitter_username,
       medium_username,
+      chains: [Blockchain.Ethereum],
+      marketplaces: [Marketplace.Opensea],
     };
   }
 
@@ -148,13 +155,16 @@ export class Opensea {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: timestamp || created_date,
+        timestamp:
+          new Date(timestamp).getTime() || new Date(created_date).getTime(),
         paymentTokenAddress,
         price,
         priceBase: 0,
-        priceUSD: BigInt(0),
+        priceUSD: 0,
         buyerAddress: winner_account?.address || "",
         sellerAddress: seller?.address || "",
+        chain: Blockchain.Ethereum,
+        marketplace: Marketplace.Opensea
       };
     });
   }

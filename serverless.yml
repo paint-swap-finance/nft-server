@@ -1,0 +1,168 @@
+service: defillama-nft
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  memorySize: 250
+  region: eu-west-2
+  stage: dev # Default to dev if no stage is specified
+  tracing: # Enable X-Ray tracing (debugging)
+    apiGateway: true
+    lambda: true
+  iamRoleStatements:
+    - Effect: Allow # X-Ray permissions
+      Action:
+        - xray:PutTraceSegments
+        - xray:PutTelemetryRecords
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:BatchGetItem
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+      Resource: ${self:custom.tableArn}
+    - Effect: "Allow"
+      Action:
+        - dynamodb:Query
+      Resource: ${self:custom.tableIndexArn}
+    - Effect: Allow # Lambda logs on cloudwatch
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource:
+        - "Fn::Join":
+            - ":"
+            - - "arn:aws:logs"
+              - Ref: "AWS::Region"
+              - Ref: "AWS::AccountId"
+              - "log-group:/aws/lambda/*:*:*"
+    # For warm-up functions
+    - Effect: "Allow"
+      Action:
+        - "lambda:InvokeFunction"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+        - "s3:*Object*"
+      Resource: "*"
+    # For OpenSearch
+    - Effect: "Allow"
+      Action:
+        - "es:ESHttpPost"
+        - "es:ESHttpPut"
+      Resource: "*"
+  environment:
+    tableName: ${self:custom.tableName}
+    stage: ${self:custom.stage}
+    ETHEREUM_RPC: ${file(./env.js):ETHEREUM_RPC}
+    MORALIS_APP_ID: ${file(./env.js):MORALIS_APP_ID}
+    MORALIS_SERVER_URL: ${file(./env.js):MORALIS_SERVER_URL}
+    OPENSEA_API_KEY: ${file(./env.js):OPENSEA_API_KEY}
+    SECONDARY_OPENSEA_API_KEY: ${file(./env.js):SECONDARY_OPENSEA_API_KEY}
+    OPENSEARCH_DOMAIN: ${file(./env.js):OPENSEARCH_DOMAIN}
+    OPENSEARCH_USERNAME: ${file(./env.js):OPENSEARCH_USERNAME}
+    OPENSEARCH_PASSWORD: ${file(./env.js):OPENSEARCH_PASSWORD}
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  tableName: ${self:custom.stage}-nft-table
+  tableArn: ${file(./env.js):TABLE_ARN}
+  tableIndexArn: ${file(./env.js):TABLE_INDEX_ARN}
+  streamArn: ${file(./env.js):STREAM_ARN}
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+    packager: "npm"
+    excludeFiles: src/**/*.test.ts
+  prune:
+    automatic: true
+    number: 5 # Number of versions to keep
+
+functions:
+  addSearchDocuments:
+    handler: src/handlers/addSearchDocuments.default
+    events:
+      - stream:
+          enabled: true
+          type: dynamodb
+          arn: ${self:custom.streamArn}
+  getChains:
+    handler: src/handlers/getChains.default
+    timeout: 60
+    events:
+      - http:
+          path: chains
+          method: get
+  getChart:
+    handler: src/handlers/getChart.default
+    timeout: 60
+    events:
+      - http:
+          path: chart
+          method: get
+      - http:
+          path: chart/chain/{chain}
+          method: get
+      - http:
+          path: chart/marketplace/{marketplace}
+          method: get
+      - http:
+          path: chart/collection/{slug}
+          method: get
+  getCollection:
+    handler: src/handlers/getCollection.default
+    timeout: 60
+    events:
+      - http:
+          path: collection/{slug}
+          method: get
+  getCollections:
+    handler: src/handlers/getCollections.default
+    timeout: 60
+    events:
+      - http:
+          path: collections
+          method: get
+      - http:
+          path: collections/chain/{chain}
+          method: get
+      - http:
+          path: collections/marketplace/{marketplace}
+          method: get
+  getMarketplaces:
+    handler: src/handlers/getMarketplaces.default
+    timeout: 60
+    events:
+      - http:
+          path: marketplaces
+          method: get
+  getSearch:
+    handler: src/handlers/getSearch.default
+    timeout: 10
+    events:
+      - http:
+          path: search
+          method: get
+
+# Seems to break if table already exists, uncomment on first deploy
+#resources:
+#  - ${file(resources/dynamodb-table.yml)}
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - serverless-prune-plugin

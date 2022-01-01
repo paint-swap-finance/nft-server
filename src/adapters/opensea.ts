@@ -1,19 +1,15 @@
 import axios from "axios";
-import { Opensea } from "../api/opensea";
 import { DataAdapter } from ".";
-import { Collection } from "../models/collection";
-import { Sale } from "../models/sale";
-import { Statistic } from "../models/statistic";
-import { COINGECKO_IDS, ONE_HOUR } from "../constants";
-import { sleep, handleError } from "../utils";
+import { Collection, Contract, Sale, HistoricalStatistics } from "../models";
+import { Opensea } from "../api/opensea";
 import { Coingecko } from "../api/coingecko";
+import { CurrencyConverter } from "../api/currency-converter";
+import { COINGECKO_IDS } from "../constants";
+import { sleep, handleError, filterObject } from "../utils";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
-  const allCollections = await Collection.findNotFetchedSince(ONE_HOUR);
-  const collections = allCollections.filter(
-    (collection) => collection.chain === Blockchain.Ethereum
-  ); // TODO filter from query
+  const collections = await Contract.getAll(Blockchain.Ethereum);
 
   if (collections.length === 0) {
     console.log("No OpenSea collections to request...");
@@ -40,24 +36,18 @@ async function runCollections(): Promise<void> {
       );
     } catch (e) {
       if (e instanceof LowVolumeError) {
-        collection.remove();
+        await Contract.remove(Blockchain.Ethereum, collection.address);
       }
       await handleError(e, "opensea-adapter:runCollections");
     }
-    await sleep(1);
   }
-  await Collection.removeDuplicates();
 }
 
 async function runSales(): Promise<void> {
-  const MAX_INT = 2_147_483_647;
-  const collections = await Collection.getSorted(
-    "totalVolume",
-    "DESC",
-    0,
-    MAX_INT,
-    Blockchain.Ethereum
-  );
+  const { data: collections } = await Collection.getSorted({
+    marketplace: Marketplace.Opensea,
+  });
+
   console.log("Fetching sales for OpenSea collections:", collections.length);
   for (const collection of collections) {
     console.log("Fetching sales for OpenSea collection:", collection.name);
@@ -80,51 +70,59 @@ async function fetchCollection(
     slug || fetchedSlug,
     ethInUSD
   );
-  const filteredMetadata = Object.fromEntries(
-    Object.entries(metadata).filter(([_, v]) => v != null)
-  );
+  const filteredMetadata = filterObject(metadata);
 
-  const statisticId = (
-    await Collection.findOne(address, { relations: ["statistic"] })
-  ).statistic?.id;
-  const collection = Collection.create({ ...filteredMetadata });
-  collection.statistic = Statistic.create({ id: statisticId, ...statistics });
-  collection.lastFetched = new Date(Date.now());
-  collection.save();
+  await Collection.upsert({
+    slug: slug || fetchedSlug,
+    metadata: filteredMetadata,
+    statistics,
+    chain: Blockchain.Ethereum,
+    marketplace: Marketplace.Opensea,
+  });
 }
 
-async function fetchSales(collection: Collection): Promise<void> {
+async function fetchSales(collection: any): Promise<void> {
   let offset = 0;
-  const limit = 100;
-  const mostRecentSaleTime =
-    (await collection.getLastSale(Marketplace.Opensea))?.timestamp?.getTime() ||
-    0;
+  const limit = 300;
+  const slug = collection.slug;
+  const lastSaleTime = await Sale.getLastSaleTime({
+    slug,
+    marketplace: Marketplace.Opensea,
+  });
+
   while (offset <= 10000) {
     try {
-      const salesEvents = await Opensea.getSales(
+      const sales = await Opensea.getSales(
         collection.address,
-        mostRecentSaleTime,
+        lastSaleTime,
         offset,
         limit
       );
-      if (salesEvents.length === 0) {
+      const filteredSales = sales.filter((sale) => sale);
+
+      if (filteredSales.length === 0) {
         sleep(3);
         return;
       }
-      const sales = salesEvents
-        .filter((event) => event !== undefined)
-        .reduce(
-          (allSales, nextSale) => ({
-            ...allSales,
-            [nextSale.txnHash]: Sale.create({
-              ...nextSale,
-              collection: collection,
-              marketplace: Marketplace.Opensea,
-            }),
-          }),
-          {}
-        );
-      Sale.save(Object.values(sales));
+
+      const convertedSales = await CurrencyConverter.convertSales(
+        filteredSales
+      );
+
+      const salesInserted = await Sale.insert({
+        slug,
+        marketplace: Marketplace.Opensea,
+        sales: convertedSales,
+      });
+
+      if (salesInserted) {
+        await HistoricalStatistics.updateStatistics({
+          slug,
+          chain: Blockchain.Ethereum,
+          marketplace: Marketplace.Opensea,
+          sales: convertedSales,
+        });
+      }
       offset += limit;
       await sleep(1);
     } catch (e) {
@@ -133,6 +131,7 @@ async function fetchSales(collection: Collection): Promise<void> {
           console.error(
             "Error [opensea-adapter:fetchSales]: offset not valid or server error"
           );
+          break;
         }
       }
       await handleError(e, "opensea-adapter:fetchSales");
@@ -153,4 +152,7 @@ async function run(): Promise<void> {
 }
 
 const OpenseaAdapter: DataAdapter = { run };
+
+OpenseaAdapter.run();
+
 export default OpenseaAdapter;

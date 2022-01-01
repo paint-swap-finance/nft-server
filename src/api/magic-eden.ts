@@ -1,8 +1,14 @@
 /* eslint-disable camelcase */
+
 import axios from "axios";
-import { formatUSD, roundUSD, convertByDecimals } from "../utils";
+import { roundUSD, convertByDecimals } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { Blockchain, CollectionAndStatisticData, SaleData } from "../types";
+import {
+  Blockchain,
+  CollectionAndStatisticData,
+  Marketplace,
+  SaleData,
+} from "../types";
 import { Collection } from "../models/collection";
 
 interface MagicEdenParsedTransaction {
@@ -71,6 +77,8 @@ export class MagicEden {
 
     const { name, image: logo, description, symbol: slug } = collection;
 
+    const address =
+      collection.candyMachineIds?.length && collection.candyMachineIds[0]; //TODO Fix
     const floor = convertByDecimals(floor_price, 9) || 0;
     const dailyVolume = convertByDecimals(one_day_volume, 9) || 0;
     const totalVolume = convertByDecimals(total_volume, 9) || 0;
@@ -78,7 +86,7 @@ export class MagicEden {
 
     return {
       metadata: {
-        address: null,
+        address,
         name,
         slug,
         description,
@@ -88,18 +96,20 @@ export class MagicEden {
         discord_url: null,
         telegram_url: null,
         twitter_username: null,
-        medium_username: null,
+        medium_username: "",
+        chains: [Blockchain.Solana],
+        marketplaces: [Marketplace.MagicEden],
       },
       statistics: {
         dailyVolume,
-        dailyVolumeUSD: formatUSD(dailyVolume * solInUSD),
+        dailyVolumeUSD: roundUSD(dailyVolume * solInUSD),
         owners: 0, // TODO add owners, data is not available from Magic Eden
         floor,
         floorUSD: roundUSD(floor * solInUSD),
         totalVolume,
-        totalVolumeUSD: formatUSD(totalVolume * solInUSD),
+        totalVolumeUSD: roundUSD(totalVolume * solInUSD),
         marketCap,
-        marketCapUSD: formatUSD(marketCap * solInUSD),
+        marketCapUSD: roundUSD(marketCap * solInUSD),
       },
     };
   }
@@ -117,15 +127,17 @@ export class MagicEden {
     }
 
     return response.data.results.map((sale: MagicEdenTransactionData) => {
+      const createdAt = new Date(sale.createdAt).getTime();
+
       if (sale.txType !== "exchange") {
         return undefined;
       }
-      if (new Date(sale.createdAt).getTime() < occurredAfter) {
+      if (createdAt <= occurredAfter) {
         return undefined;
       }
 
       const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Solana];
-      const { transaction_id: txnHash, createdAt: timestamp } = sale;
+      const { transaction_id: txnHash } = sale;
       const {
         total_amount: total_price,
         buyer_address,
@@ -136,13 +148,15 @@ export class MagicEden {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: timestamp,
+        timestamp: createdAt.toString(),
         paymentTokenAddress,
         price,
         priceBase: 0,
         priceUSD: 0,
         buyerAddress: buyer_address || "",
         sellerAddress: seller_address || "",
+        chain: Blockchain.Solana,
+        marketplace: Marketplace.MagicEden,
       };
     });
   }

@@ -1,15 +1,11 @@
-version: "3.8"
+version: '3.8'
 services:
-  postgres:
-    container_name: pg
-    image: "postgres:latest"
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -sharedDb -optimizeDbBeforeStartup -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: "nfts"
-      POSTGRES_PASSWORD: "local"
-      POSTGRES_DB: "nfts"
+      - "8000:8000"
     volumes:
-      - pg_data:/var/lib/postgresql/data/
-volumes:
-  pg_data:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal

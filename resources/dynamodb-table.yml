@@ -1,0 +1,46 @@
+Resources:
+  DynamoTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain # Make sure the tables can't be deleted by CloudFormation/Serverless
+    Properties:
+      TableName: ${self:custom.tableName}
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: category
+          AttributeType: S
+        - AttributeName: totalVolumeUSD
+          AttributeType: N
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: collectionsIndex
+          KeySchema:
+            - AttributeName: category
+              KeyType: HASH
+            - AttributeName: totalVolumeUSD
+              KeyType: RANGE
+          Projection:
+            ProjectionType: INCLUDE
+            NonKeyAttributes:
+              - address
+              - name
+              - logo
+              - totalVolume
+              - totalVolumeUSD
+              - dailyVolume
+              - dailyVolumeUSD
+              - floor
+              - floorUSD
+              - owners
+              - chains
+              - marketplaces
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      # Set the capacity to auto-scale
+      BillingMode: PAY_PER_REQUEST

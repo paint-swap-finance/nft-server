@@ -11,10 +11,6 @@ export function roundUSD(num: number): number {
   return Math.round(num ?? 0);
 }
 
-export function formatUSD(price: number): bigint {
-  return BigInt(roundUSD(price ?? 0));
-}
-
 export function isSameDay(d1: Date, d2: Date): boolean {
   return (
     d1.getUTCDate() === d2.getUTCDate() &&
@@ -30,13 +26,17 @@ export function getSlug(text: string): string {
     .replace(/[^\w-]+/g, "");
 }
 
+export function getSlugFromPK(PK: string): string {
+  return PK.split("#")[1]
+}
+
 export function convertByDecimals(value: number, decimals: number): number {
   return value / Math.pow(10, decimals);
 }
 
 // TODO optimize
 export function getPriceAtDate(
-  date: string,
+  date: number,
   historicalPrices: number[][] // [0] is a UNIX timestamp, [1] is the price
 ): number | null {
   const givenDate = new Date(date);
@@ -55,21 +55,23 @@ export function getPriceAtDate(
 
 export async function handleError(error: Error, context: string) {
   if (axios.isAxiosError(error)) {
-    if (error.response.status === 404) {
+    if (error.response?.status === 404) {
       console.error(`Error [${context}] - not found: ${error.message}`);
     }
-    if (error.response.status === 429) {
+    if (error.response?.status === 429) {
       // Backoff for 1 minute if rate limited
-      console.error(
-        `Error [${context}] - too many requests: ${error.message}`
-      );
+      console.error(`Error [${context}] - too many requests: ${error.message}`);
       await sleep(60);
     }
-    if (error.response.status === 500 || error.response.status === 504) {
-      console.error(
-        `Error [${context}] - server error: ${error.message}`
-      );
+    if (error.response?.status === 500 || error.response.status === 504) {
+      console.error(`Error [${context}] - server error: ${error.message}`);
     }
   }
   console.error(`Error [${context}] - other error: ${error.message}`);
+}
+
+export function filterObject(object: any) {
+  return Object.fromEntries(
+    Object.entries(object).filter(([_, v]) => v != null)
+  );
 }

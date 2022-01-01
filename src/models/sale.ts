@@ -1,91 +1,144 @@
-import {
-  BaseEntity,
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryColumn,
-} from "typeorm";
-import { Collection } from "./collection";
 import { Marketplace } from "../types";
+import { handleError } from "../utils";
+import dynamodb from "../utils/dynamodb";
 
-@Entity()
-export class Sale extends BaseEntity {
-  @PrimaryColumn()
+const ONE_DAY_MILISECONDS = 86400 * 1000;
+
+export class Sale {
   txnHash: string;
-
-  @ManyToOne(() => Collection, (collection) => collection.sales, {
-    onDelete: "CASCADE",
-  })
-  @JoinColumn()
-  collection: Collection;
-
-  @Column({ type: "timestamptz" })
-  timestamp: Date;
-
-  @Column()
   sellerAddress: string;
-
-  @Column()
   buyerAddress: string;
-
-  @Column()
   marketplace: Marketplace;
-
-  // The price denominated in the paymentTokenAddress token
-  @Column({ type: "double precision" })
   price: number;
-
-  // The price denominated in the chain's native token
-  @Column({ type: "double precision", default: 0 })
   priceBase: number;
-
-  // The price denominated in USD
-  @Column({ type: "double precision", default: 0 })
-  priceUSD: bigint;
-
-  @Column()
+  priceUSD: number;
   paymentTokenAddress: string;
+  excluded: boolean;
 
-  @Column({ default: false })
-  blacklisted: boolean;
-
-  static async getUnconvertedSales(): Promise<Sale[]> {
-    return this.createQueryBuilder("sale")
-      .leftJoinAndSelect("sale.collection", "collection")
-      .where("sale.price != 0 AND (sale.priceBase = 0 OR sale.priceUSD = 0)")
-      .limit(500000)
-      .getMany();
-  }
-
-  static async getInvalidPriceSales(): Promise<Sale[]> {
-    return this.createQueryBuilder("sale")
-      .leftJoinAndSelect("sale.collection", "collection")
-      .where("sale.price != 0 AND (sale.priceBase = -1 OR sale.priceUSD = -1)")
-      .limit(500000)
-      .getMany();
-  }
-
-  static async getPaymentTokenAddresses(
-    all = true
-  ): Promise<Record<string, string>[]> {
-    if (all) {
-      return this.createQueryBuilder("sale")
-        .select("collection.chain", "chain")
-        .addSelect("sale.paymentTokenAddress", "address")
-        .distinct(true)
-        .leftJoin("sale.collection", "collection")
-        .getRawMany();
+  static async insert({
+    slug,
+    marketplace,
+    sales,
+  }: {
+    slug: string;
+    marketplace: Marketplace;
+    sales: any[];
+  }) {
+    try {
+      const batchWriteStep = 25;
+      for (let i = 0; i < sales.length; i += batchWriteStep) {
+        const items = sales
+          .slice(i, i + batchWriteStep)
+          .reduce((sales: any, sale) => {
+            const { timestamp, txnHash, ...data } = sale;
+            const sortKeys = sales.map((sale: any) => sale.SK);
+            const sortKey = `${timestamp}#txnHash#${txnHash}`;
+            if (!sortKeys.includes(sortKey)) {
+              sales.push({
+                PK: `sales#${slug}#marketplace#${marketplace}`,
+                SK: sortKey,
+                ...data,
+              });
+            }
+            return sales;
+          }, []);
+        await dynamodb.batchWrite(items);
+      }
+      return true;
+    } catch (e) {
+      handleError(e, "sale-model: insert");
+      return false;
     }
+  }
 
-    return this.createQueryBuilder("sale")
-      .select("collection.chain", "chain")
-      .addSelect("sale.paymentTokenAddress", "address")
-      .distinct(true)
-      .leftJoin("sale.collection", "collection")
-      .where("sale.price != 0")
-      .andWhere("sale.priceBase = 0")
-      .andWhere("sale.priceUSD = 0")
-      .getRawMany();
+  // Removes the sale from the database and subtracts the prices from statistics
+  static async delete({
+    slug,
+    chain,
+    marketplace,
+    timestamp,
+    txnHash,
+    priceUSD,
+    priceBase,
+  }: {
+    slug: string;
+    chain: string;
+    marketplace: string;
+    timestamp: string;
+    txnHash: string;
+    priceUSD: string;
+    priceBase: string;
+  }) {
+    const startOfDay =
+      parseInt(timestamp) - (parseInt(timestamp) % ONE_DAY_MILISECONDS);
+    return dynamodb.transactWrite({
+      deleteItems: [
+        {
+          Key: {
+            PK: `sales#${slug}#marketplace#${marketplace}`,
+            SK: `${timestamp}#txnHash#${txnHash}`,
+          },
+        },
+      ],
+      updateItems: [
+        {
+          Key: {
+            PK: `statistics#${slug}`,
+            SK: startOfDay.toString(),
+          },
+          UpdateExpression: `
+              ADD chain_${chain}_volume :volume,
+                  chain_${chain}_volumeUSD :volumeUSD,
+                  marketplace_${marketplace}_volume :volume,
+                  marketplace_${marketplace}_volumeUSD :volumeUSD
+            `,
+          ExpressionAttributeValues: {
+            ":volume": -parseInt(priceBase),
+            ":volumeUSD": -parseInt(priceUSD),
+          },
+        },
+        {
+          Key: {
+            PK: `globalStatistics`,
+            SK: startOfDay.toString(),
+          },
+          UpdateExpression: `
+              ADD chain_${chain}_volume :volume,
+                  chain_${chain}_volumeUSD :volumeUSD,
+                  marketplace_${marketplace}_volume :volume,
+                  marketplace_${marketplace}_volumeUSD :volumeUSD
+            `,
+          ExpressionAttributeValues: {
+            ":volume": -parseInt(priceBase),
+            ":volumeUSD": -parseInt(priceUSD),
+          },
+        },
+      ],
+    });
+  }
+
+  static async getLastSaleTime({
+    slug,
+    marketplace,
+  }: {
+    slug: string;
+    marketplace: Marketplace;
+  }) {
+    return dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: {
+          ":pk": `sales#${slug}#marketplace#${marketplace}`,
+        },
+        Limit: 1,
+        ScanIndexForward: false,
+      })
+      .then((result) => {
+        const results = result.Items;
+        if (results.length) {
+          return results[0]?.SK?.split("#")[0];
+        }
+        return "0";
+      });
   }
 }

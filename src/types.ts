@@ -1,13 +1,13 @@
 import { Collection } from "./models/collection";
 
 export enum Blockchain {
-  Any = "any",
   Ethereum = "ethereum",
   Solana = "solana",
   ImmutableX = "immutablex",
   BSC = "bsc",
   Arbitrum = "arbitrum",
   Terra = "terra",
+  Cardano = "cardano",
 }
 
 export const BlockchainReverseLookup = new Map<
@@ -25,11 +25,12 @@ export enum AdapterType {
 
 export enum Marketplace {
   Opensea = "opensea",
-  MagicEden = "magic-eden",
+  MagicEden = "magiceden",
   ImmutableX = "immutablex",
   PancakeSwap = "pancakeswap",
   Treasure = "treasure",
-  RandomEarth = "random-earth",
+  RandomEarth = "randomearth",
+  JpgStore = "jpgstore",
 }
 
 export const MarketplaceReverseLookup = new Map<
@@ -66,18 +67,20 @@ export interface CollectionData {
   telegram_url: string;
   twitter_username: string;
   medium_username: string;
+  chains: Blockchain[];
+  marketplaces: Marketplace[];
 }
 
 export interface StatisticData {
-  dailyVolume: number;
-  dailyVolumeUSD: bigint;
+  dailyVolume?: number;
+  dailyVolumeUSD?: number;
   owners: number;
   floor: number;
   floorUSD: number;
-  totalVolume: number;
-  totalVolumeUSD: bigint;
+  totalVolume?: number;
+  totalVolumeUSD?: number;
   marketCap: number;
-  marketCapUSD: bigint;
+  marketCapUSD: number;
 }
 
 export interface CollectionAndStatisticData {
@@ -87,13 +90,12 @@ export interface CollectionAndStatisticData {
 
 export interface SaleData {
   txnHash: string;
-  timestamp: string;
+  timestamp: string; // timestamp in milliseconds
   paymentTokenAddress: string;
   price: number;
   priceBase: number;
-  priceUSD: bigint;
+  priceUSD: number;
   sellerAddress: string;
   buyerAddress: string;
   marketplace: Marketplace;
-  collection: Collection;
 }

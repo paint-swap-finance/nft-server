@@ -1,14 +1,15 @@
 /* eslint-disable camelcase */
+
 import axios from "axios";
-import {
-  getSlug,
-  roundUSD,
-  isSameDay,
-  convertByDecimals,
-  formatUSD,
-} from "../utils";
+import { getSlug, roundUSD, isSameDay, convertByDecimals } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { CollectionData, StatisticData, SaleData, Blockchain } from "../types";
+import {
+  CollectionData,
+  StatisticData,
+  SaleData,
+  Blockchain,
+  Marketplace,
+} from "../types";
 import { Collection } from "../models/collection";
 
 export interface ImmutableXCollectionData {
@@ -90,6 +91,8 @@ export class ImmutableX {
       telegram_url: null,
       twitter_username: null,
       medium_username: null,
+      chains: [Blockchain.ImmutableX],
+      marketplaces: [Marketplace.ImmutableX],
     };
   }
 
@@ -152,14 +155,14 @@ export class ImmutableX {
 
     return {
       dailyVolume,
-      dailyVolumeUSD: formatUSD(dailyVolume * ethInUSD),
+      dailyVolumeUSD: roundUSD(dailyVolume * ethInUSD),
       owners: 0, //TODO get owners
       floor,
       floorUSD: roundUSD(floor * ethInUSD),
       totalVolume,
-      totalVolumeUSD: formatUSD(totalVolume * ethInUSD),
+      totalVolumeUSD: roundUSD(totalVolume * ethInUSD),
       marketCap,
-      marketCapUSD: formatUSD(marketCap * ethInUSD),
+      marketCapUSD: roundUSD(marketCap * ethInUSD),
     };
   }
 
@@ -177,11 +180,14 @@ export class ImmutableX {
     }
 
     return filledOrders.map((sale: ImmutableXOrderData) => {
-      if (new Date(sale.timestamp).getTime() < occurredAfter) {
+      const createdAt = new Date(sale.timestamp).getTime();
+
+      if (createdAt <= occurredAfter) {
         return undefined;
       }
 
-      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.ImmutableX];
+      const paymentTokenAddress =
+        DEFAULT_TOKEN_ADDRESSES[Blockchain.ImmutableX];
       const {
         timestamp,
         user: seller_address,
@@ -194,15 +200,16 @@ export class ImmutableX {
 
       return {
         collection: null,
-        marketplace: null,
         txnHash: txnHash.toLowerCase(),
-        timestamp,
+        timestamp: createdAt.toString(),
         paymentTokenAddress,
         price,
         priceBase: 0,
-        priceUSD: BigInt(0),
+        priceUSD: 0,
         buyerAddress: "",
         sellerAddress: seller_address || "",
+        chain: Blockchain.ImmutableX,
+        marketplace: Marketplace.ImmutableX,
       };
     });
   }

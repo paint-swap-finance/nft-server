@@ -1,8 +1,12 @@
 import { request, gql } from "graphql-request";
 
-import { Collection } from "../models/collection";
-import { CollectionAndStatisticData, SaleData } from "../types";
-import { convertByDecimals, formatUSD, roundUSD } from "../utils";
+import {
+  Blockchain,
+  CollectionAndStatisticData,
+  Marketplace,
+  SaleData,
+} from "../types";
+import { convertByDecimals, roundUSD } from "../utils";
 
 export interface TreasureCollectionData {
   floorPrice: string;
@@ -64,7 +68,7 @@ const salesQuery = gql`
 
 export class Treasure {
   public static async getCollection(
-    collection: Collection,
+    collection: any,
     magicInUsd: number,
     magicInEth: number
   ): Promise<CollectionAndStatisticData> {
@@ -77,10 +81,13 @@ export class Treasure {
         id: address,
       }
     );
+
+    /*
     const { dailyVolume: dailyVolumeRaw } = await Collection.getDailyVolume(
       address
     );
     const dailyVolume = dailyVolumeRaw || 0;
+    */
 
     const { floorPrice, totalListings, totalVolume: volume } = collectionData;
     const floor = convertByDecimals(parseInt(floorPrice), 18);
@@ -100,17 +107,21 @@ export class Treasure {
         telegram_url: null,
         twitter_username: null,
         medium_username: null,
+        chains: [Blockchain.Arbitrum],
+        marketplaces: [Marketplace.Treasure],
       },
       statistics: {
-        dailyVolume: dailyVolume * magicInEth,
-        dailyVolumeUSD: formatUSD(dailyVolume * magicInUsd),
+        //dailyVolume: dailyVolume * magicInEth,
+        //dailyVolumeUSD: roundUSD(dailyVolume * magicInUsd),
+        dailyVolume: 0,
+        dailyVolumeUSD: 0,
         owners: 0,
         floor: floor * magicInEth,
         floorUSD: roundUSD(floor * magicInUsd),
         totalVolume: totalVolume * magicInEth,
-        totalVolumeUSD: formatUSD(totalVolume * magicInUsd),
+        totalVolumeUSD: roundUSD(totalVolume * magicInUsd),
         marketCap: marketCap * magicInEth,
-        marketCapUSD: formatUSD(marketCap * magicInUsd),
+        marketCapUSD: roundUSD(marketCap * magicInUsd),
       },
     };
   }
@@ -127,7 +138,7 @@ export class Treasure {
     const { listings: transactions } = collection;
 
     return transactions.map((sale: any) => {
-      if (sale.blockTimestamp * 1000 < occurredFrom) {
+      if (sale.blockTimestamp * 1000 <= occurredFrom) {
         return undefined;
       }
 
@@ -151,13 +162,15 @@ export class Treasure {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: new Date(createdAt * 1000),
+        timestamp: createdAt * 1000,
         paymentTokenAddress,
         price,
         priceBase: 0,
-        priceUSD: BigInt(0),
+        priceUSD: 0,
         buyerAddress,
         sellerAddress,
+        chain: Blockchain.Arbitrum,
+        marketplace: Marketplace.Treasure,
       };
     });
   }
