@@ -13,6 +13,7 @@ const adapters: String[] = [
   "magic-eden",
   "immutablex",
   "treasure",
+  "jpg-store",
 ];
 
 for (const adapter of adapters) {
@@ -23,9 +24,7 @@ for (const adapter of adapters) {
   });
 
   child.on("exit", (exitCode) => {
-    console.log(
-      `${adapter}-adapter: returned with code ${exitCode}`
-    );
+    console.log(`${adapter}-adapter: returned with code ${exitCode}`);
   });
 }
 
