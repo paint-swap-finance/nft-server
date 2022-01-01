@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches: 
-    - lambda-dynamodb-refactor
+    - master
     
 jobs:
   deploy:
