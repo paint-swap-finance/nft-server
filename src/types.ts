@@ -98,5 +98,4 @@ export interface SaleData {
   sellerAddress: string;
   buyerAddress: string;
   marketplace: Marketplace;
-  collection: Collection;
 }
