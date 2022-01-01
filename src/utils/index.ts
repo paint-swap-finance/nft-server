@@ -13,9 +13,9 @@ export function roundUSD(num: number): number {
 
 export function isSameDay(d1: Date, d2: Date): boolean {
   return (
-    d1.getDate() === d2.getDate() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getFullYear() === d2.getFullYear()
+    d1.getUTCDate() === d2.getUTCDate() &&
+    d1.getUTCMonth() === d2.getUTCMonth() &&
+    d1.getUTCFullYear() === d2.getUTCFullYear()
   );
 }
 
