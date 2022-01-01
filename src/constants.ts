@@ -16,6 +16,7 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
   [Blockchain.ImmutableX]: MoralisChain.None,
   [Blockchain.Arbitrum]: MoralisChain.None,
   [Blockchain.Terra]: MoralisChain.None,
+  [Blockchain.Cardano]: MoralisChain.None,
   [Blockchain.Ethereum]: MoralisChain.Ethereum,
   [Blockchain.BSC]: MoralisChain.BSC,
 };
@@ -50,5 +51,10 @@ export const COINGECKO_IDS: any = {
     geckoId: "terra-luna",
     platform: "terra",
     symbol: "luna",
+  },
+  [Blockchain.Cardano]: {
+    geckoId: "cardano",
+    platform: "cardano",
+    symbol: "ada",
   },
 };

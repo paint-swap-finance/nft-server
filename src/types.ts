@@ -7,6 +7,7 @@ export enum Blockchain {
   BSC = "bsc",
   Arbitrum = "arbitrum",
   Terra = "terra",
+  Cardano = "cardano",
 }
 
 export const BlockchainReverseLookup = new Map<
@@ -29,6 +30,7 @@ export enum Marketplace {
   PancakeSwap = "pancakeswap",
   Treasure = "treasure",
   RandomEarth = "randomearth",
+  JpgStore = "jpgstore",
 }
 
 export const MarketplaceReverseLookup = new Map<
