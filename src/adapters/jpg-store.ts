@@ -32,22 +32,17 @@ async function runCollections(): Promise<void> {
   }
 }
 
-/*
 async function runSales(): Promise<void> {
   const { data: collections } = await Collection.getSorted({
-    marketplace: Marketplace.RandomEarth,
+    marketplace: Marketplace.JpgStore,
   });
 
-  console.log(
-    "Fetching sales for Random Earth collections:",
-    collections.length
-  );
+  console.log("Fetching sales for Jpg Store collections:", collections.length);
   for (const collection of collections) {
-    console.log("Fetching sales for Random Earth collection:", collection.name);
+    console.log("Fetching sales for Jpg Store collection:", collection.name);
     await fetchSales(collection);
   }
 }
-*/
 
 async function fetchCollection(
   collection: JpgStoreCollectionData,
@@ -74,19 +69,18 @@ async function fetchCollection(
   });
 }
 
-/*
 async function fetchSales(collection: any): Promise<void> {
   const slug = collection.slug;
   const lastSaleTime = await Sale.getLastSaleTime({
     slug,
-    marketplace: Marketplace.RandomEarth,
+    marketplace: Marketplace.JpgStore,
   });
 
   try {
-    const sales = await RandomEarth.getSales(collection, lastSaleTime);
+    const sales = await JpgStore.getSales(collection, lastSaleTime);
     const filteredSales = sales.filter((sale: any) => sale);
 
-    if (sales.length === 0) {
+    if (filteredSales.length === 0) {
       return;
     }
 
@@ -94,31 +88,27 @@ async function fetchSales(collection: any): Promise<void> {
 
     const salesInserted = await Sale.insert({
       slug,
-      marketplace: Marketplace.RandomEarth,
+      marketplace: Marketplace.JpgStore,
       sales: convertedSales,
     });
 
     if (salesInserted) {
       await HistoricalStatistics.updateStatistics({
         slug,
-        chain: Blockchain.Terra,
-        marketplace: Marketplace.RandomEarth,
+        chain: Blockchain.Cardano,
+        marketplace: Marketplace.JpgStore,
         sales: convertedSales,
       });
     }
   } catch (e) {
-    await handleError(e, "random-earth-adapter:fetchSales");
+    await handleError(e, "jpg-store-adapter:fetchSales");
   }
 }
-*/
 
 async function run(): Promise<void> {
   try {
     while (true) {
-      await Promise.all([
-        runCollections(),
-        // runSales()
-      ]);
+      await Promise.all([runCollections(), runSales()]);
       await sleep(60 * 60);
     }
   } catch (e) {

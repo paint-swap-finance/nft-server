@@ -12,17 +12,26 @@ import {
 import { Collection } from "../models/collection";
 
 interface JpgStoreTransactionData {
-  _id: string;
-  transaction_id: string;
-  blockTime: number;
-  buyer_address: string;
-  collection_symbol: string;
-  createdAt: string;
-  mint: string;
+  id: number;
+  tx_hash: string;
+  policy_id: string;
+  asset: string;
+  datum_hash: string;
+  action: string;
+  price_lovelace: string;
+  signer_address: string;
+  script_address: string;
+  created_at: string;
   seller_address: string;
-  slot: number;
-  source: string;
-  txType: string;
+  royalty_address: string;
+  royalty_percentage_thousands: number;
+  deleted_at?: string;
+  asset_display_name: string;
+  is_confirmed: boolean;
+  asset_image: string;
+  listing_id?: number;
+  bundle_count?: number;
+  asset_image_file_type: string;
 }
 
 export interface JpgStoreCollectionData {
@@ -135,38 +144,57 @@ export class JpgStore {
     };
   }
 
-  /*
   public static async getSales(
     collection: Collection,
     occurredAfter: number
   ): Promise<(SaleData | undefined)[]> {
-    const url = `https://www.jpg.store/api/policy/ee6da4b71e0913cbebec02edc23653f9b970af69324fdddfed1285d9/sales/1`;
+    const url = `https://www.jpg.store/api/policy/${collection.address}/sales/total`;
     const response = await axios.get(url);
-    const results = response.data?.results;
+    const {
+      _count: { policy_id },
+    } = response.data;
+    const pages = Math.ceil(policy_id / 100);
+    let sales = [] as JpgStoreTransactionData[];
 
-    if (!results) {
-      return [];
+    for (let page = pages - 1; page >= 0; page--) {
+      if (page >= 0) {
+        const url = `https://www.jpg.store/api/policy/${collection.address}/sales/${page}`;
+        const response = await axios.get(url);
+        const results = response.data;
+
+        if (!results) {
+          continue;
+        }
+
+        const oldestResult = results.slice(-1)[0];
+        const oldestTimestamp = new Date(oldestResult?.created_at).getTime();
+
+        if (oldestTimestamp < occurredAfter) {
+          break;
+        }
+
+        sales = [...sales, ...results];
+      }
     }
 
-    return response.data.results.map((sale: JpgStoreTransactionData) => {
-      const createdAt = new Date(sale.createdAt).getTime();
+    return sales.map((sale: JpgStoreTransactionData) => {
+      const createdAt = new Date(sale?.created_at).getTime();
 
-      if (sale.txType !== "exchange") {
+      if (sale.action !== "buy") {
         return undefined;
       }
-      if (createdAt < occurredAfter) {
+      if (createdAt <= occurredAfter) {
         return undefined;
       }
 
-      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Solana];
-      const { transaction_id: txnHash } = sale;
+      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Cardano];
       const {
-        total_amount: total_price,
-        buyer_address,
+        tx_hash: txnHash,
+        price_lovelace,
+        signer_address: buyer_address,
         seller_address,
-      } = sale.parsedTransaction;
-
-      const price = convertByDecimals(total_price, 9);
+      } = sale;
+      const price = convertByDecimals(parseInt(price_lovelace), 6);
 
       return {
         txnHash: txnHash.toLowerCase(),
@@ -177,10 +205,9 @@ export class JpgStore {
         priceUSD: 0,
         buyerAddress: buyer_address || "",
         sellerAddress: seller_address || "",
-        chain: Blockchain.Solana,
+        chain: Blockchain.Cardano,
         marketplace: Marketplace.JpgStore,
       };
     });
   }
-  */
 }
