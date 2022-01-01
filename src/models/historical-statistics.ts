@@ -17,10 +17,7 @@ export class HistoricalStatistics {
       .then((result) => result.Items);
   }
 
-  static async getCollectionStatistics(
-    slug: string,
-    sortAsc: boolean = true
-  ) {
+  static async getCollectionStatistics(slug: string, sortAsc: boolean = true) {
     return dynamodb
       .query({
         KeyConditionExpression: "PK = :pk",
@@ -204,5 +201,40 @@ export class HistoricalStatistics {
         return volumeUSD;
       }, 0),
     }));
+  }
+
+  static async getCollectionDailyVolume({
+    slug,
+    marketplace,
+  }: {
+    slug: string;
+    marketplace: Marketplace;
+  }) {
+    return dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: {
+          ":pk": `statistics#${slug}`,
+        },
+        ScanIndexForward: false,
+        Limit: 1,
+      })
+      .then((result) => {
+        const item = result.Items[0];
+
+        if (item) {
+          const dailyVolume = item[`marketplace_${marketplace}_volume`];
+          const dailyVolumeUSD = item[`marketplace_${marketplace}_volumeUSD`];
+          return {
+            dailyVolume: dailyVolume ? parseInt(dailyVolume) : 0,
+            dailyVolumeUSD: dailyVolumeUSD ? parseInt(dailyVolumeUSD) : 0,
+          };
+        }
+
+        return {
+          dailyVolume: 0,
+          dailyVolumeUSD: 0,
+        };
+      });
   }
 }
