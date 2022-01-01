@@ -9,7 +9,7 @@ import {
   Marketplace,
   SaleData,
 } from "../types";
-import { Collection } from "../models/collection";
+import { HistoricalStatistics, Collection } from "../models";
 
 interface JpgStoreTransactionData {
   id: number;
@@ -102,9 +102,14 @@ export class JpgStore {
       medium_link,
     } = collection;
 
+    const { dailyVolume, dailyVolumeUSD } =
+      await HistoricalStatistics.getCollectionDailyVolume({
+        slug,
+        marketplace: Marketplace.JpgStore,
+      });
+
     const logo = `https://d3exlhvlmmfsby.cloudfront.net/photos/hero-image/${slug}.webp`;
     const floor = convertByDecimals(parseInt(floor_price), 6) || 0;
-    const dailyVolume = 0; // TODO
     const totalVolume = convertByDecimals(parseInt(total_volume), 6) || 0;
     const marketCap = items * floor || 0;
     const twitter_username = twitter_link
@@ -132,7 +137,7 @@ export class JpgStore {
       },
       statistics: {
         dailyVolume,
-        dailyVolumeUSD: roundUSD(dailyVolume * adaInUSD),
+        dailyVolumeUSD,
         owners,
         floor,
         floorUSD: roundUSD(floor * adaInUSD),
