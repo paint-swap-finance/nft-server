@@ -132,7 +132,7 @@ export class MagicEden {
       if (sale.txType !== "exchange") {
         return undefined;
       }
-      if (createdAt < occurredAfter) {
+      if (createdAt <= occurredAfter) {
         return undefined;
       }
 

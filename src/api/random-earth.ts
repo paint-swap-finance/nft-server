@@ -157,7 +157,7 @@ export class RandomEarth {
 
       const createdAt = new Date(sale.created_at).getTime();
 
-      if (createdAt < occurredAfter) {
+      if (createdAt <= occurredAfter) {
         return undefined;
       }
 

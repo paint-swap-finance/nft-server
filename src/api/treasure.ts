@@ -138,7 +138,7 @@ export class Treasure {
     const { listings: transactions } = collection;
 
     return transactions.map((sale: any) => {
-      if (sale.blockTimestamp * 1000 < occurredFrom) {
+      if (sale.blockTimestamp * 1000 <= occurredFrom) {
         return undefined;
       }
 

@@ -182,7 +182,7 @@ export class ImmutableX {
     return filledOrders.map((sale: ImmutableXOrderData) => {
       const createdAt = new Date(sale.timestamp).getTime();
 
-      if (createdAt < occurredAfter) {
+      if (createdAt <= occurredAfter) {
         return undefined;
       }
 
