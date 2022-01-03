@@ -112,7 +112,7 @@ async function run(): Promise<void> {
       await sleep(60 * 60);
     }
   } catch (e) {
-    await handleError(e, "random-earth-adapter");
+    await handleError(e, "jpg-store-adapter");
   }
 }
 
