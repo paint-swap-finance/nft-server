@@ -1,3 +1,4 @@
+import { Collection } from ".";
 import { Blockchain, Marketplace } from "../types";
 import { handleError } from "../utils";
 import dynamodb from "../utils/dynamodb";
@@ -203,6 +204,67 @@ export class HistoricalStatistics {
     }));
   }
 
+  static async getCollectionTotalVolume({
+    slug,
+    marketplace,
+  }: {
+    slug: string;
+    marketplace: Marketplace;
+  }) {
+    const overviewStatistics = await Collection.getStatisticsByMarketplace(
+      slug,
+      marketplace
+    );
+
+    console.log("overview stats")
+    console.log(overviewStatistics)
+
+    if (overviewStatistics) {
+      const { totalVolume, totalVolumeUSD } = overviewStatistics;
+      return {
+        totalVolume,
+        totalVolumeUSD,
+      };
+    }
+
+    const historicalStatistics =
+      await HistoricalStatistics.getCollectionStatistics(slug);
+
+    console.log("historical stats")
+    console.log(historicalStatistics)
+    if (!historicalStatistics.length) {
+      return {
+        totalVolume: -1,
+        totalVolumeUSD: -1,
+      };
+    }
+
+    return historicalStatistics.reduce((totalVolumes, statistic) => {
+      const marketplaceKeys = Object.keys(statistic).filter((key) => {
+        return key.startsWith(`marketplace_${marketplace}`);
+      });
+      const volume = marketplaceKeys.reduce((volume, key) => {
+        if (key.endsWith("volume")) {
+          volume += statistic[key];
+        }
+        return volume;
+      }, 0);
+      const volumeUSD = marketplaceKeys.reduce((volumeUSD, key) => {
+        if (key.endsWith("volumeUSD")) {
+          volumeUSD += statistic[key];
+        }
+        return volumeUSD;
+      }, 0);
+
+      return {
+        volume: totalVolumes.volume ? totalVolumes.volume + volume : volume,
+        volumeUSD: totalVolumes.volumeUSD
+          ? totalVolumes.volumeUSD + volumeUSD
+          : volumeUSD,
+      };
+    }, {});
+  }
+
   static async getCollectionDailyVolume({
     slug,
     marketplace,
@@ -232,8 +294,8 @@ export class HistoricalStatistics {
         }
 
         return {
-          dailyVolume: 0,
-          dailyVolumeUSD: 0,
+          dailyVolume: -1,
+          dailyVolumeUSD: -1,
         };
       });
   }
