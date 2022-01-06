@@ -89,6 +89,7 @@ export class Treasure {
     const dailyVolume = dailyVolumeRaw || 0;
     */
 
+    const { name, slug } = collection;
     const { floorPrice, totalListings, totalVolume: volume } = collectionData;
     const floor = convertByDecimals(parseInt(floorPrice), 18);
     const totalVolume = convertByDecimals(parseInt(volume), 18);
@@ -97,8 +98,8 @@ export class Treasure {
     return {
       metadata: {
         address,
-        name: null,
-        slug: null,
+        name,
+        slug,
         symbol: null,
         description: null,
         logo: null,
