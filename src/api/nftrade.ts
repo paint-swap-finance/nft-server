@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 
 import axios from "axios";
+import web3 from "web3";
 import { roundUSD, convertByDecimals, getSlug } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
 import {
@@ -96,7 +97,7 @@ export class NFTrade {
         slug,
         marketplace: Marketplace.NFTrade,
       });
-      
+
     const { dailyVolume, dailyVolumeUSD } =
       await HistoricalStatistics.getCollectionDailyVolume({
         slug,
@@ -135,72 +136,70 @@ export class NFTrade {
     };
   }
 
-  /*
-  public static async getSales(
-    collection: Collection,
-    occurredAfter: number
-  ): Promise<(SaleData | undefined)[]> {
-    const url = `https://www.jpg.store/api/policy/${collection.address}/sales/total`;
-    const response = await axios.get(url);
-    const {
-      _count: { policy_id },
-    } = response.data;
-    const pages = Math.ceil(policy_id / 100);
-    let sales = [] as NFTradeTransactionData[];
+  public static async getSales(lastSyncedBlockNumber: number) {
+    const provider = new web3("https://api.avax.network/ext/bc/C/rpc");
+    const latestBlock = await provider.eth.getBlockNumber();
 
-    for (let page = pages - 1; page >= 0; page--) {
-      if (page >= 0) {
-        const url = `https://www.jpg.store/api/policy/${collection.address}/sales/${page}`;
-        const response = await axios.get(url);
-        const results = response.data;
+    const params = {
+      fromBlock: lastSyncedBlockNumber,
+      toBlock: latestBlock,
+    };
 
-        if (!results) {
-          continue;
+    let logs = [] as any;
+    let blockSpread = params.toBlock - params.fromBlock;
+    let currentBlock = params.fromBlock;
+    while (currentBlock < params.toBlock) {
+      const nextBlock = Math.min(params.toBlock, currentBlock + blockSpread);
+      try {
+        const partLogs = await provider.eth.getPastLogs({
+          fromBlock: currentBlock,
+          toBlock: nextBlock,
+          address: "0xcFB6Ee27d82beb1B0f3aD501B968F01CD7Cc5961",
+          topics: [
+            "0x6869791f0a34781b29882982cc39e882768cf2c96995c2a110c577c53bc932d5",
+          ],
+        });
+        console.log(
+          `Fetched sales for NFTrade collections from block number ${currentBlock} --> ${nextBlock}`
+        );
+        logs = logs.concat(partLogs);
+        currentBlock = nextBlock;
+      } catch (e) {
+        if (blockSpread >= 1000) {
+          // We got too many results
+          // We could chop it up into 2K block spreads as that is guaranteed to always return but then we'll have to make a lot of queries (easily >1000), so instead we'll keep dividing the block spread by two until we make it
+          blockSpread = Math.floor(blockSpread / 2);
+        } else {
+          throw e;
         }
-
-        const oldestResult = results.slice(-1)[0];
-        const oldestTimestamp = new Date(oldestResult?.created_at).getTime();
-
-        if (oldestTimestamp < occurredAfter) {
-          break;
-        }
-
-        sales = [...sales, ...results];
       }
     }
 
-    return sales.map((sale: NFTradeTransactionData) => {
-      const createdAt = new Date(sale?.created_at).getTime();
+    const parsedLogs = [];
+    for (const log of logs) {
+      const { topics, data, blockNumber, transactionHash } = log;
+      const sellerAddress = "0x" + topics[1].slice(26);
+      const contractAddress = "0x" + data.slice(282, 322);
+      const priceWei = Number("0x" + data.slice(450, 514)).toString();
+      const price = web3.utils.fromWei(priceWei, "ether");
+      const block = await provider.eth.getBlock(blockNumber);
+      const timestamp = (1000 * (block.timestamp as number)).toString();
 
-      if (sale.action !== "buy") {
-        return undefined;
-      }
-      if (createdAt <= occurredAfter) {
-        return undefined;
-      }
-
-      const paymentTokenAddress = DEFAULT_TOKEN_ADDRESSES[Blockchain.Cardano];
-      const {
-        tx_hash: txnHash,
-        price_lovelace,
-        signer_address: buyer_address,
-        seller_address,
-      } = sale;
-      const price = convertByDecimals(parseInt(price_lovelace), 6);
-
-      return {
-        txnHash: txnHash.toLowerCase(),
-        timestamp: createdAt.toString(),
-        paymentTokenAddress,
+      parsedLogs.push({
+        txnHash: transactionHash.toLowerCase(),
+        paymentTokenAddress: DEFAULT_TOKEN_ADDRESSES[Blockchain.Avalanche],
+        timestamp,
+        sellerAddress,
+        buyerAddress: "",
+        contractAddress,
         price,
         priceBase: 0,
         priceUSD: 0,
-        buyerAddress: buyer_address || "",
-        sellerAddress: seller_address || "",
-        chain: Blockchain.Cardano,
+        chain: Blockchain.Avalanche,
         marketplace: Marketplace.NFTrade,
-      };
-    });
+      });
+    }
+
+    return { sales: parsedLogs, latestBlock };
   }
-  */
 }

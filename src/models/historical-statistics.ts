@@ -216,9 +216,6 @@ export class HistoricalStatistics {
       marketplace
     );
 
-    console.log("overview stats")
-    console.log(overviewStatistics)
-
     if (overviewStatistics) {
       const { totalVolume, totalVolumeUSD } = overviewStatistics;
       return {
@@ -230,8 +227,6 @@ export class HistoricalStatistics {
     const historicalStatistics =
       await HistoricalStatistics.getCollectionStatistics(slug);
 
-    console.log("historical stats")
-    console.log(historicalStatistics)
     if (!historicalStatistics.length) {
       return {
         totalVolume: -1,

@@ -6,14 +6,15 @@ export interface DataAdapter {
 }
 
 const adapters: String[] = [
-  "moralis",
-  "pancakeswap",
-  "opensea",
+  //"moralis",
+  //"pancakeswap",
+  //"opensea",
   //"random-earth",
-  "magic-eden",
-  "immutablex",
-  "treasure",
-  "jpg-store",
+  //"magic-eden",
+  //"immutablex",
+  //"treasure",
+  //"jpg-store",
+  "nftrade",
 ];
 
 for (const adapter of adapters) {

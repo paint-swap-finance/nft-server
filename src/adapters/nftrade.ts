@@ -1,5 +1,10 @@
 import { DataAdapter } from ".";
-import { Collection, Sale, HistoricalStatistics } from "../models";
+import {
+  Collection,
+  Sale,
+  HistoricalStatistics,
+  AdapterState,
+} from "../models";
 import { Blockchain, Marketplace } from "../types";
 import { NFTrade, NFTradeCollectionData } from "../api/nftrade";
 import { Coingecko } from "../api/coingecko";
@@ -26,19 +31,34 @@ async function runCollections(): Promise<void> {
   }
 }
 
-/*
 async function runSales(): Promise<void> {
   const { data: collections } = await Collection.getSorted({
     marketplace: Marketplace.NFTrade,
   });
 
-  console.log("Fetching sales for Jpg Store collections:", collections.length);
-  for (const collection of collections) {
-    console.log("Fetching sales for Jpg Store collection:", collection.name);
-    await fetchSales(collection);
+  if (!collections.length) {
+    return;
   }
+
+  let adapterState = await AdapterState.getSalesAdapterState(
+    Marketplace.NFTrade
+  );
+
+  if (!adapterState) {
+    adapterState = await AdapterState.createSalesAdapterState(
+      Marketplace.NFTrade
+    );
+  }
+
+  const { lastSyncedBlockNumber } = adapterState;
+
+  console.log(
+    "Fetching sales for NFTrade collections from block number",
+    lastSyncedBlockNumber
+  );
+
+  await fetchSales(collections, lastSyncedBlockNumber);
 }
-*/
 
 async function fetchCollection(
   collection: NFTradeCollectionData,
@@ -56,11 +76,6 @@ async function fetchCollection(
     return;
   }
 
-  console.log("SLUG:", slug);
-  console.log(filteredMetadata);
-  console.log(statistics);
-
-  /*
   await Collection.upsert({
     slug,
     metadata: filteredMetadata,
@@ -68,54 +83,60 @@ async function fetchCollection(
     chain: Blockchain.Cardano,
     marketplace: Marketplace.NFTrade,
   });
-  */
 }
 
-/*
-async function fetchSales(collection: any): Promise<void> {
-  const slug = collection.slug;
-  const lastSaleTime = await Sale.getLastSaleTime({
-    slug,
-    marketplace: Marketplace.NFTrade,
-  });
-
+async function fetchSales(
+  collections: Collection[],
+  lastSyncedBlockNumber: number
+): Promise<void> {
   try {
-    const sales = await NFTrade.getSales(collection, lastSaleTime);
-    const filteredSales = sales.filter((sale: any) => sale);
+    const { sales, latestBlock } = await NFTrade.getSales(
+      lastSyncedBlockNumber
+    );
+    console.log("Matching sales to NFTrade collections:", collections.length);
+    for (const collection of collections) {
+      console.log("Matching sales for NFTrade collection:", collection.name);
+      const salesByCollection = sales.filter(
+        (sale) => sale.contractAddress === collection.address
+      );
 
-    if (filteredSales.length === 0) {
-      return;
-    }
+      if (!salesByCollection.length) {
+        console.log("No sales found for NFTrade collection", collection.name);
+      }
 
-    const convertedSales = await CurrencyConverter.convertSales(filteredSales);
+      const convertedSales = await CurrencyConverter.convertSales(
+        salesByCollection
+      );
 
-    const salesInserted = await Sale.insert({
-      slug,
-      marketplace: Marketplace.NFTrade,
-      sales: convertedSales,
-    });
-
-    if (salesInserted) {
-      await HistoricalStatistics.updateStatistics({
+      const slug = collection.slug;
+      const salesInserted = await Sale.insert({
         slug,
-        chain: Blockchain.Cardano,
         marketplace: Marketplace.NFTrade,
         sales: convertedSales,
       });
+
+      if (salesInserted) {
+        await HistoricalStatistics.updateStatistics({
+          slug,
+          chain: Blockchain.Avalanche,
+          marketplace: Marketplace.NFTrade,
+          sales: convertedSales,
+        });
+        await AdapterState.updateSalesLastSyncedBlockNumber(
+          Marketplace.NFTrade,
+          latestBlock
+        );
+      }
     }
   } catch (e) {
     await handleError(e, "nftrade-adapter:fetchSales");
   }
 }
-*/
 
 async function run(): Promise<void> {
   try {
     while (true) {
-      await Promise.all([
-        runCollections(),
-        //runSales()
-      ]);
+      await Promise.all([runCollections(), runSales()]);
       await sleep(60 * 60);
     }
   } catch (e) {

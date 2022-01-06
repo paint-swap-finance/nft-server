@@ -1,7 +1,7 @@
 import AWS from "aws-sdk";
 
 const MOCK_DYNAMODB_ENDPOINT = process.env.MOCK_DYNAMODB_ENDPOINT;
-const TableName = "prod-nft-table";
+const TableName = "dev-nft-table";
 
 const client = new AWS.DynamoDB.DocumentClient({
   ...(MOCK_DYNAMODB_ENDPOINT
