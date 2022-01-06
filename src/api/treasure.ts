@@ -1,4 +1,5 @@
 import { request, gql } from "graphql-request";
+import { HistoricalStatistics } from "../models";
 
 import {
   Blockchain,
@@ -82,14 +83,12 @@ export class Treasure {
       }
     );
 
-    /*
-    const { dailyVolume: dailyVolumeRaw } = await Collection.getDailyVolume(
-      address
-    );
-    const dailyVolume = dailyVolumeRaw || 0;
-    */
-
     const { name, slug } = collection;
+    const { dailyVolume, dailyVolumeUSD } =
+      await HistoricalStatistics.getCollectionDailyVolume({
+        slug,
+        marketplace: Marketplace.Treasure,
+      });
     const { floorPrice, totalListings, totalVolume: volume } = collectionData;
     const floor = convertByDecimals(parseInt(floorPrice), 18);
     const totalVolume = convertByDecimals(parseInt(volume), 18);
@@ -112,10 +111,8 @@ export class Treasure {
         marketplaces: [Marketplace.Treasure],
       },
       statistics: {
-        //dailyVolume: dailyVolume * magicInEth,
-        //dailyVolumeUSD: roundUSD(dailyVolume * magicInUsd),
-        dailyVolume: 0,
-        dailyVolumeUSD: 0,
+        dailyVolume,
+        dailyVolumeUSD,
         owners: 0,
         floor: floor * magicInEth,
         floorUSD: roundUSD(floor * magicInUsd),
