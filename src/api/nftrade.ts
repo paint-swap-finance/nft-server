@@ -175,29 +175,77 @@ export class NFTrade {
       }
     }
 
+    if (!logs.length) {
+      return {
+        sales: [],
+        latestBlock,
+      };
+    }
+
+    const oldestBlock = await provider.eth.getBlock(logs[0].blockNumber);
+    const newestBlock = await provider.eth.getBlock(
+      logs.slice(-1)[0].blockNumber
+    );
+    const oldestTimestamp = new Date(
+      (oldestBlock.timestamp as number) * 1000
+    ).setUTCHours(0, 0, 0, 0);
+    const newestTimestamp = new Date(
+      (newestBlock.timestamp as number) * 1000
+    ).setUTCHours(0, 0, 0, 0);
+
+    const timestamps: Record<string, number> = {};
+
+    for (
+      let timestamp = oldestTimestamp;
+      timestamp <= newestTimestamp;
+      timestamp += 86400 * 1000
+    ) {
+      if (timestamp) {
+        const response = await axios.get(
+          `https://coins.llama.fi/block/avax/${Math.floor(timestamp / 1000)}`
+        );
+        const { height } = response.data;
+        timestamps[height] = timestamp;
+      }
+    }
+
     const parsedLogs = [];
     for (const log of logs) {
-      const { topics, data, blockNumber, transactionHash } = log;
-      const sellerAddress = "0x" + topics[1].slice(26);
-      const contractAddress = "0x" + data.slice(282, 322);
-      const priceWei = Number("0x" + data.slice(450, 514)).toString();
-      const price = web3.utils.fromWei(priceWei, "ether");
-      const block = await provider.eth.getBlock(blockNumber);
-      const timestamp = (1000 * (block.timestamp as number)).toString();
+      try {
+        const { topics, data, blockNumber, transactionHash } = log;
+        const sellerAddress = "0x" + topics[1].slice(26);
+        const buyerAddress = "0x" + data.slice(282, 322);
+        const contractAddress = "0x" + data.slice(802, 842);
+        const priceWei = Number("0x" + data.slice(450, 514));
+        const price = priceWei / Math.pow(10, 18);
 
-      parsedLogs.push({
-        txnHash: transactionHash.toLowerCase(),
-        paymentTokenAddress: DEFAULT_TOKEN_ADDRESSES[Blockchain.Avalanche],
-        timestamp,
-        sellerAddress,
-        buyerAddress: "",
-        contractAddress,
-        price,
-        priceBase: 0,
-        priceUSD: 0,
-        chain: Blockchain.Avalanche,
-        marketplace: Marketplace.NFTrade,
-      });
+        // Get the closest block number in timestamps object
+        const dayBlockNumber = Object.keys(timestamps).reduce(
+          (a: string, b: string) =>
+            Math.abs(parseInt(b) - parseInt(blockNumber)) <
+            Math.abs(parseInt(a) - parseInt(blockNumber))
+              ? b
+              : a
+        );
+        const timestamp = timestamps[dayBlockNumber].toString();
+
+        parsedLogs.push({
+          txnHash: transactionHash.toLowerCase(),
+          paymentTokenAddress: DEFAULT_TOKEN_ADDRESSES[Blockchain.Avalanche],
+          timestamp,
+          sellerAddress,
+          buyerAddress,
+          contractAddress,
+          price,
+          priceBase: 0,
+          priceUSD: 0,
+          chain: Blockchain.Avalanche,
+          marketplace: Marketplace.NFTrade,
+        });
+      } catch (e) {
+        console.log(e);
+        continue;
+      }
     }
 
     return { sales: parsedLogs, latestBlock };

@@ -80,7 +80,7 @@ async function fetchCollection(
     slug,
     metadata: filteredMetadata,
     statistics,
-    chain: Blockchain.Cardano,
+    chain: Blockchain.Avalanche,
     marketplace: Marketplace.NFTrade,
   });
 }
@@ -93,6 +93,12 @@ async function fetchSales(
     const { sales, latestBlock } = await NFTrade.getSales(
       lastSyncedBlockNumber
     );
+
+    if (!sales.length) {
+      console.log("No new sales for NFTrade collections")
+      return;
+    }
+
     console.log("Matching sales to NFTrade collections:", collections.length);
     for (const collection of collections) {
       console.log("Matching sales for NFTrade collection:", collection.name);
@@ -102,6 +108,7 @@ async function fetchSales(
 
       if (!salesByCollection.length) {
         console.log("No sales found for NFTrade collection", collection.name);
+        continue;
       }
 
       const convertedSales = await CurrencyConverter.convertSales(
