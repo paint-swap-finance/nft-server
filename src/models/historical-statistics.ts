@@ -211,6 +211,7 @@ export class HistoricalStatistics {
     slug: string;
     marketplace: Marketplace;
   }) {
+    /*
     const overviewStatistics = await Collection.getStatisticsByMarketplace(
       slug,
       marketplace
@@ -218,11 +219,13 @@ export class HistoricalStatistics {
 
     if (overviewStatistics) {
       const { totalVolume, totalVolumeUSD } = overviewStatistics;
-      return {
-        totalVolume,
-        totalVolumeUSD,
-      };
-    }
+      if (totalVolume !== -1 && totalVolumeUSD !== -1) {
+        return {
+          totalVolume,
+          totalVolumeUSD,
+        };
+      }
+    }*/
 
     const historicalStatistics =
       await HistoricalStatistics.getCollectionStatistics(slug);
@@ -252,9 +255,9 @@ export class HistoricalStatistics {
       }, 0);
 
       return {
-        volume: totalVolumes.volume ? totalVolumes.volume + volume : volume,
-        volumeUSD: totalVolumes.volumeUSD
-          ? totalVolumes.volumeUSD + volumeUSD
+        totalVolume: totalVolumes.totalVolume ? totalVolumes.totalVolume + volume : volume,
+        totalVolumeUSD: totalVolumes.totalVolumeUSD
+          ? totalVolumes.totalVolumeUSD + volumeUSD
           : volumeUSD,
       };
     }, {});
