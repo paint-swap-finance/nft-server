@@ -9,23 +9,60 @@ import { sleep, handleError, filterObject } from "../utils";
 import { Blockchain, LowVolumeError, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
-  const collections = await Contract.getAll(Blockchain.Ethereum);
-
-  if (collections.length === 0) {
-    console.log("No OpenSea collections to request...");
-    return;
-  }
-
   const { usd: ethInUSD } = await Coingecko.getPricesById(
     COINGECKO_IDS[Blockchain.Ethereum].geckoId
   );
+  await Promise.all([fetchContracts(ethInUSD), fetchCollections(ethInUSD)]);
+}
 
-  console.log("Fetching metadata for Opensea collections:", collections.length);
+async function fetchContracts(ethInUSD: number) {
+  const contracts = await Contract.getAll(Blockchain.Ethereum);
+
+  if (contracts.length === 0) {
+    console.log("No Ethereum contracts to fetch...");
+    return;
+  }
+
+  console.log("Fetching metadata for Ethereum contracts:", contracts.length);
+
+  for (const contract of contracts) {
+    try {
+      console.log(
+        "Fetching metadata for Ethereum contract:",
+        contract?.name || "No name"
+      );
+      await fetchCollection(
+        contract.slug,
+        contract.address,
+        contract.defaultTokenId,
+        ethInUSD
+      );
+      await Contract.remove(Blockchain.Ethereum, contract.address);
+    } catch (e) {
+      if (e instanceof LowVolumeError) {
+        await Contract.remove(Blockchain.Ethereum, contract.address);
+      }
+      await handleError(e, "opensea-adapter:fetchContracts");
+    }
+  }
+}
+
+async function fetchCollections(ethInUSD: number) {
+  const { data: collections } = await Collection.getSorted({
+    marketplace: Marketplace.Opensea,
+  });
+
+  if (collections.length === 0) {
+    console.log("No OpenSea collections to fetch...");
+    return;
+  }
+
+  console.log("Fetching metadata for OpenSea collections:", collections.length);
 
   for (const collection of collections) {
     try {
       console.log(
-        "Fetching metadata for Opensea collection:",
+        "Fetching metadata for OpenSea collection:",
         collection?.name || "No name"
       );
       await fetchCollection(
@@ -38,7 +75,7 @@ async function runCollections(): Promise<void> {
       if (e instanceof LowVolumeError) {
         await Contract.remove(Blockchain.Ethereum, collection.address);
       }
-      await handleError(e, "opensea-adapter:runCollections");
+      await handleError(e, "opensea-adapter:fetchCollections");
     }
   }
 }
