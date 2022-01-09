@@ -27,10 +27,7 @@ async function fetchContracts(ethInUSD: number) {
 
   for (const contract of contracts) {
     try {
-      console.log(
-        "Fetching metadata for Ethereum contract:",
-        contract?.name || "No name"
-      );
+      console.log("Fetching metadata for Ethereum contract:", contract.address);
       await fetchCollection(
         contract.slug,
         contract.address,
