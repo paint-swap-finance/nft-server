@@ -154,6 +154,36 @@ export class Collection {
       .then((result) => result.Items);
   }
 
+  static async getStatisticsByChain(
+    slug: string,
+    chain: Blockchain
+  ) {
+    return dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk and SK = :sk",
+        ExpressionAttributeValues: {
+          ":pk": `collection#${slug}`,
+          ":sk": `chain#${chain}`,
+        },
+      })
+      .then((result) => result.Items[0]);
+  }
+
+  static async getStatisticsByMarketplace(
+    slug: string,
+    marketplace: Marketplace
+  ) {
+    return dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk and SK = :sk",
+        ExpressionAttributeValues: {
+          ":pk": `collection#${slug}`,
+          ":sk": `marketplace#${marketplace}`,
+        },
+      })
+      .then((result) => result.Items[0]);
+  }
+
   // TODO Get all when getting sales
   static async getSorted({
     chain,

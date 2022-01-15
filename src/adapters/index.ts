@@ -14,6 +14,7 @@ const adapters: String[] = [
   "immutablex",
   "treasure",
   "jpg-store",
+  "nftrade",
 ];
 
 for (const adapter of adapters) {

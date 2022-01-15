@@ -1,3 +1,4 @@
+import { Collection } from ".";
 import { Blockchain, Marketplace } from "../types";
 import { handleError } from "../utils";
 import dynamodb from "../utils/dynamodb";
@@ -203,6 +204,65 @@ export class HistoricalStatistics {
     }));
   }
 
+  static async getCollectionTotalVolume({
+    slug,
+    marketplace,
+  }: {
+    slug: string;
+    marketplace: Marketplace;
+  }) {
+    /*
+    const overviewStatistics = await Collection.getStatisticsByMarketplace(
+      slug,
+      marketplace
+    );
+
+    if (overviewStatistics) {
+      const { totalVolume, totalVolumeUSD } = overviewStatistics;
+      if (totalVolume !== -1 && totalVolumeUSD !== -1) {
+        return {
+          totalVolume,
+          totalVolumeUSD,
+        };
+      }
+    }*/
+
+    const historicalStatistics =
+      await HistoricalStatistics.getCollectionStatistics(slug);
+
+    if (!historicalStatistics.length) {
+      return {
+        totalVolume: -1,
+        totalVolumeUSD: -1,
+      };
+    }
+
+    return historicalStatistics.reduce((totalVolumes, statistic) => {
+      const marketplaceKeys = Object.keys(statistic).filter((key) => {
+        return key.startsWith(`marketplace_${marketplace}`);
+      });
+      const volume = marketplaceKeys.reduce((volume, key) => {
+        if (key.endsWith("volume")) {
+          volume += statistic[key];
+        }
+        return volume;
+      }, 0);
+      const volumeUSD = marketplaceKeys.reduce((volumeUSD, key) => {
+        if (key.endsWith("volumeUSD")) {
+          volumeUSD += statistic[key];
+        }
+        return volumeUSD;
+      }, 0);
+
+      return {
+        totalVolume: totalVolumes.totalVolume ? totalVolumes.totalVolume + volume : volume,
+        totalVolumeUSD: totalVolumes.totalVolumeUSD
+          ? totalVolumes.totalVolumeUSD + volumeUSD
+          : volumeUSD,
+      };
+    }, {});
+  }
+
   static async getCollectionDailyVolume({
     slug,
     marketplace,
@@ -232,8 +292,8 @@ export class HistoricalStatistics {
         }
 
         return {
-          dailyVolume: 0,
-          dailyVolumeUSD: 0,
+          dailyVolume: -1,
+          dailyVolumeUSD: -1,
         };
       });
   }
