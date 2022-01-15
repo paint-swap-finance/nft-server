@@ -2,38 +2,10 @@
 
 import axios from "axios";
 import web3 from "web3";
-import { roundUSD, convertByDecimals, getSlug } from "../utils";
+import { getSlug } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import {
-  Blockchain,
-  CollectionAndStatisticData,
-  Marketplace,
-  SaleData,
-} from "../types";
-import { HistoricalStatistics, Collection } from "../models";
-
-interface NFTradeTransactionData {
-  id: number;
-  tx_hash: string;
-  policy_id: string;
-  asset: string;
-  datum_hash: string;
-  action: string;
-  price_lovelace: string;
-  signer_address: string;
-  script_address: string;
-  created_at: string;
-  seller_address: string;
-  royalty_address: string;
-  royalty_percentage_thousands: number;
-  deleted_at?: string;
-  asset_display_name: string;
-  is_confirmed: boolean;
-  asset_image: string;
-  listing_id?: number;
-  bundle_count?: number;
-  asset_image_file_type: string;
-}
+import { Blockchain, CollectionAndStatisticData, Marketplace } from "../types";
+import { HistoricalStatistics } from "../models";
 
 export interface NFTradeCollectionData {
   id: string;
