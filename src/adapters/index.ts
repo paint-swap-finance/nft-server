@@ -14,6 +14,7 @@ const adapters: string[] = [
   "immutablex",
   "treasure",
   "jpg-store",
+  "nftrade",
 ];
 
 const runAdapter = (name: string, attempt: number = 1) => {
