@@ -19,13 +19,17 @@ async function runCollections(): Promise<void> {
     COINGECKO_IDS[Blockchain.Fantom].geckoId
   );
 
-  console.log(ftmInUSD)
-  console.log("Fetching metadata for PaintSwap collections:", collections.length);
+  console.log(
+    "Fetching metadata for PaintSwap collections:",
+    collections.length
+  );
 
-  
   for (const collection of collections) {
     try {
-      console.log("Fetching metadata for PaintSwap collection:", collection.name);
+      console.log(
+        "Fetching metadata for PaintSwap collection:",
+        collection.name
+      );
       await fetchCollection(collection, ftmInUSD);
     } catch (e) {
       await handleError(e, "paintswap-adapter:runCollections");
@@ -33,34 +37,34 @@ async function runCollections(): Promise<void> {
   }
 }
 
-// async function runSales(): Promise<void> {
-//   const { data: collections } = await Collection.getSorted({
-//     marketplace: Marketplace.PaintSwap,
-//   });
+async function runSales(): Promise<void> {
+  const { data: collections } = await Collection.getSorted({
+    marketplace: Marketplace.PaintSwap,
+  });
 
-//   if (!collections.length) {
-//     return;
-//   }
+  if (!collections.length) {
+    return;
+  }
 
-//   let adapterState = await AdapterState.getSalesAdapterState(
-//     Marketplace.PaintSwap
-//   );
+  let adapterState = await AdapterState.getSalesAdapterState(
+    Marketplace.PaintSwap
+  );
 
-//   if (!adapterState) {
-//     adapterState = await AdapterState.createSalesAdapterState(
-//       Marketplace.PaintSwap
-//     );
-//   }
+  if (!adapterState) {
+    adapterState = await AdapterState.createSalesAdapterState(
+      Marketplace.PaintSwap
+    );
+  }
 
-//   const { lastSyncedBlockNumber } = adapterState;
+  const { lastSyncedBlockNumber } = adapterState;
 
-//   console.log(
-//     "Fetching sales for PaintSwap collections from block number",
-//     lastSyncedBlockNumber
-//   );
+  console.log(
+    "Fetching sales for PaintSwap collections from block number",
+    lastSyncedBlockNumber
+  );
 
-//   await fetchSales(collections, lastSyncedBlockNumber);
-// }
+  await fetchSales(collections, lastSyncedBlockNumber);
+}
 
 async function fetchCollection(
   collection: PaintSwapCollectionData,
@@ -87,7 +91,6 @@ async function fetchCollection(
   });
 }
 
-/*
 async function fetchSales(
   collections: Collection[],
   lastSyncedBlockNumber: number
@@ -142,15 +145,11 @@ async function fetchSales(
     await handleError(e, "paintswap-adapter:fetchSales");
   }
 }
-*/
 
 async function run(): Promise<void> {
   try {
     while (true) {
-      await Promise.all([
-        runCollections()
-        //runSales()
-      ]);
+      await Promise.all([runCollections(), runSales()]);
       await sleep(60 * 60);
     }
   } catch (e) {

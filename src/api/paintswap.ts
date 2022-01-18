@@ -123,9 +123,8 @@ export class PaintSwap {
     };
   }
 
-  /*
   public static async getSales(lastSyncedBlockNumber: number) {
-    const provider = new web3("https://api.avax.network/ext/bc/C/rpc");
+    const provider = new web3("https://rpc.ftm.tools");
     const latestBlock = await provider.eth.getBlockNumber();
 
     const params = {
@@ -142,9 +141,9 @@ export class PaintSwap {
         const partLogs = await provider.eth.getPastLogs({
           fromBlock: currentBlock,
           toBlock: nextBlock,
-          address: "0xcFB6Ee27d82beb1B0f3aD501B968F01CD7Cc5961",
+          address: "0x6125fd14b6790d5f66509b7aa53274c93dae70b9",
           topics: [
-            "0x6869791f0a34781b29882982cc39e882768cf2c96995c2a110c577c53bc932d5",
+            "0x0cda439d506dbc3b73fe10f062cf285c4e75fe85d310decf4b8239841879ed61",
           ],
         });
         console.log(
@@ -190,7 +189,7 @@ export class PaintSwap {
     ) {
       if (timestamp) {
         const response = await axios.get(
-          `https://coins.llama.fi/block/avax/${Math.floor(timestamp / 1000)}`
+          `https://coins.llama.fi/block/fantom/${Math.floor(timestamp / 1000)}`
         );
         const { height } = response.data;
         timestamps[height] = timestamp;
@@ -200,11 +199,11 @@ export class PaintSwap {
     const parsedLogs = [];
     for (const log of logs) {
       try {
-        const { topics, data, blockNumber, transactionHash } = log;
-        const sellerAddress = "0x" + topics[1].slice(26);
-        const buyerAddress = "0x" + data.slice(282, 322);
-        const contractAddress = "0x" + data.slice(802, 842);
-        const priceWei = Number("0x" + data.slice(450, 514));
+        const { data, blockNumber, transactionHash } = log;
+        const sellerAddress = "0x" + data.slice(410, 450);
+        const buyerAddress = "0x" + data.slice(346, 386);
+        const contractAddress = "0x" + data.slice(602, 642);
+        const priceWei = Number("0x" + data.slice(258, 322));
         const price = priceWei / Math.pow(10, 18);
 
         // Get the closest block number in timestamps object
@@ -238,5 +237,4 @@ export class PaintSwap {
 
     return { sales: parsedLogs, latestBlock };
   }
-  */
 }
