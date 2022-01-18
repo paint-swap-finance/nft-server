@@ -1,5 +1,3 @@
-import { Collection } from "./models/collection";
-
 export enum Blockchain {
   Ethereum = "ethereum",
   Solana = "solana",
@@ -9,6 +7,7 @@ export enum Blockchain {
   Terra = "terra",
   Cardano = "cardano",
   Avalanche = "avalanche",
+  Fantom = "fantom"
 }
 
 export const BlockchainReverseLookup = new Map<
@@ -33,6 +32,7 @@ export enum Marketplace {
   RandomEarth = "randomearth",
   JpgStore = "jpgstore",
   NFTrade = "nftrade",
+  PaintSwap = "paintswap"
 }
 
 export const MarketplaceReverseLookup = new Map<
