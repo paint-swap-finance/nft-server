@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Coingecko } from "../api/coingecko";
 import { DEFAULT_TOKEN_ADDRESSES, COINGECKO_IDS } from "../constants";
 import { Blockchain } from "../types";
@@ -20,11 +21,48 @@ export class CurrencyConverter {
     chain: Blockchain,
     address: string
   ): Promise<number[][]> {
-    return await Coingecko.getHistoricalPricesByAddress(
-      COINGECKO_IDS[chain].platform,
-      address,
-      COINGECKO_IDS[chain].symbol
-    );
+    try {
+      const data = await Coingecko.getHistoricalPricesByAddress(
+        COINGECKO_IDS[chain].platform,
+        address,
+        COINGECKO_IDS[chain].symbol
+      );
+
+      if (!data.length) {
+        throw "Error";
+      }
+
+      return data;
+    } catch (e) {
+      // If the vs_currency is not supported, get values versus USD
+      // and calculate price array versus base token manually
+      const data = await Coingecko.getHistoricalPricesByAddress(
+        COINGECKO_IDS[chain].platform,
+        address,
+        "usd"
+      );
+      const baseData = await Coingecko.getHistoricalPricesById(
+        COINGECKO_IDS[chain].platform,
+        "usd"
+      );
+
+      if (!data.length || !baseData.length) {
+        return []
+      }
+
+      return data.map((elem) => {
+        const timestamp = elem[0];
+        const matchingBaseData = baseData.find(
+          (baseElem) => baseElem[0] === timestamp
+        );
+
+        if (matchingBaseData) {
+          return [elem[0], elem[1] / matchingBaseData[1]];
+        }
+
+        return elem;
+      });
+    }
   }
 
   public static async fetchTokenAddressPrices(
