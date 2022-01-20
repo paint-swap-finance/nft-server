@@ -12,6 +12,7 @@ export const DEFAULT_TOKEN_ADDRESSES: Record<Blockchain, string> = {
   [Blockchain.Cardano]: "addr11111111111111111111111111111111",
   [Blockchain.Avalanche]: "avax:0x0000000000000000000000000000000000000000",
   [Blockchain.Fantom]: "ftm:0x0000000000000000000000000000000000000000",
+  [Blockchain.Harmony]: "one:0x0000000000000000000000000000000000000000"
 };
 
 export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
@@ -21,6 +22,7 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
   [Blockchain.Terra]: MoralisChain.None,
   [Blockchain.Cardano]: MoralisChain.None,
   [Blockchain.Fantom]: MoralisChain.None,
+  [Blockchain.Harmony]: MoralisChain.None,
   [Blockchain.Avalanche]: MoralisChain.None,
   [Blockchain.Ethereum]: MoralisChain.Ethereum,
   [Blockchain.BSC]: MoralisChain.BSC,
@@ -71,5 +73,10 @@ export const COINGECKO_IDS: Record<Blockchain, any> = {
     geckoId: "fantom",
     platform: "fantom",
     symbol: "ftm"
+  },
+  [Blockchain.Harmony]: {
+    geckoId: "harmony",
+    platform: "harmony-shard-0",
+    symbol: "one"
   }
 };
