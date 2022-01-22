@@ -63,7 +63,7 @@ async function runSales(): Promise<void> {
     lastSyncedBlockNumber
   );
 
-  await fetchSales(collections, lastSyncedBlockNumber);
+  await fetchSales(collections, parseInt(lastSyncedBlockNumber));
 }
 
 async function fetchCollection(
