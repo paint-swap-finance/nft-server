@@ -31,51 +31,61 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
 export const COINGECKO_IDS: Record<Blockchain, any> = {
   [Blockchain.Ethereum]: {
     geckoId: "ethereum",
+    llamaId: "ethereum",
     platform: "ethereum",
     symbol: "eth",
   },
   [Blockchain.ImmutableX]: {
     geckoId: "ethereum",
+    llamaId: "",
     platform: "ethereum",
     symbol: "eth",
   },
   [Blockchain.Arbitrum]: {
     geckoId: "ethereum",
+    llamaId: "",
     platform: "arbitrum-one",
     symbol: "eth",
   },
   [Blockchain.Solana]: {
     geckoId: "solana",
+    llamaId: "",
     platform: "solana",
     symbol: "sol",
   },
   [Blockchain.BSC]: {
     geckoId: "binancecoin",
+    llamaId: "",
     platform: "binance-smart-chain",
     symbol: "bnb",
   },
   [Blockchain.Terra]: {
     geckoId: "terra-luna",
+    llamaId: "",
     platform: "terra",
     symbol: "luna",
   },
   [Blockchain.Cardano]: {
     geckoId: "cardano",
+    llamaId: "",
     platform: "cardano",
     symbol: "ada",
   },
   [Blockchain.Avalanche]: {
     geckoId: "avalanche-2",
+    llamaId: "avax",
     platform: "avalanche",
     symbol: "avax",
   },
   [Blockchain.Fantom]: {
     geckoId: "fantom",
+    llamaId: "fantom",
     platform: "fantom",
     symbol: "ftm"
   },
   [Blockchain.Harmony]: {
     geckoId: "harmony",
+    llamaId: "harmony",
     platform: "harmony-shard-0",
     symbol: "one"
   }
