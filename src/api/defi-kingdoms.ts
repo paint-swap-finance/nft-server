@@ -1,4 +1,4 @@
-import { request, gql } from "graphql-request";
+import axios from "axios";
 import { HistoricalStatistics } from "../models";
 
 import {
@@ -28,45 +28,6 @@ export interface DefiKingdomsTransactionData {
   transactionLink: string;
 }
 
-const TREASURE_ENDPOINT =
-  "https://api.thegraph.com/subgraphs/name/wyze/treasure-marketplace";
-
-const collectionQuery = gql`
-  query getCollectionStats($id: ID!) {
-    collection(id: $id) {
-      floorPrice
-      totalListings
-      totalVolume
-    }
-  }
-`;
-
-const salesQuery = gql`
-  query getActivity($id: ID!, $orderBy: Listing_orderBy!) {
-    collection(id: $id) {
-      listings(
-        where: { status: Sold }
-        orderBy: $orderBy
-        orderDirection: desc
-      ) {
-        ...ListingFields
-      }
-    }
-  }
-  fragment ListingFields on Listing {
-    blockTimestamp
-    buyer {
-      id
-    }
-    pricePerItem
-    quantity
-    seller: user {
-      id
-    }
-    transactionLink
-  }
-`;
-
 export class DefiKingdoms {
   public static async getCollection(
     collection: any,
@@ -77,10 +38,10 @@ export class DefiKingdoms {
     const { name, slug } = collection;
 
     const { totalVolume, totalVolumeUSD } =
-    await HistoricalStatistics.getCollectionTotalVolume({
-      slug,
-      marketplace: Marketplace.DefiKingdoms,
-    });
+      await HistoricalStatistics.getCollectionTotalVolume({
+        slug,
+        marketplace: Marketplace.DefiKingdoms,
+      });
 
     const { dailyVolume, dailyVolumeUSD } =
       await HistoricalStatistics.getCollectionDailyVolume({
@@ -88,8 +49,32 @@ export class DefiKingdoms {
         marketplace: Marketplace.DefiKingdoms,
       });
 
-    // const floor = convertByDecimals(parseInt(floorPrice), 18);
-    // const marketCap = floor * parseInt(totalListings);
+    const response = await axios.post(
+      "https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes",
+      {
+        limit: 1,
+        offset: 0,
+        order: {
+          orderBy: "saleprice",
+          orderDir: "asc",
+        },
+        params: [
+          {
+            field: "saleprice",
+            operator: ">=",
+            value: "1000000000000000000",
+          },
+        ],
+      }
+    );
+
+    const floorHero = (response.data &&
+      response.data.length &&
+      response.data[0]) || {
+      saleprice: 0,
+    };
+    const { saleprice: floorRaw } = floorHero;
+    const floor = convertByDecimals(parseInt(floorRaw), 18);
 
     return {
       metadata: {
@@ -111,12 +96,12 @@ export class DefiKingdoms {
         dailyVolume,
         dailyVolumeUSD,
         owners: 0,
-        floor: 0, // floor * jewelInOne,
-        floorUSD: 0, //roundUSD(floor * jewelInUsd),
+        floor: floor * jewelInOne,
+        floorUSD: roundUSD(floor * jewelInUsd),
         totalVolume,
         totalVolumeUSD,
-        marketCap: 0, //marketCap * jewelInOne,
-        marketCapUSD: 0, //roundUSD(marketCap * jewelInUsd),
+        marketCap: 0,
+        marketCapUSD: 0,
       },
     };
   }
@@ -125,48 +110,6 @@ export class DefiKingdoms {
     address: string,
     occurredFrom: number
   ): Promise<(SaleData | undefined)[]> {
-    const { collection } = await request(TREASURE_ENDPOINT, salesQuery, {
-      id: address,
-      orderBy: "blockTimestamp",
-    });
-
-    const { listings: transactions } = collection;
-
-    return transactions.map((sale: any) => {
-      if (sale.blockTimestamp * 1000 <= occurredFrom) {
-        return undefined;
-      }
-
-      const {
-        transactionLink,
-        pricePerItem,
-        quantity,
-        blockTimestamp: createdAt,
-        buyer,
-        seller,
-      } = sale;
-      const { id: buyerAddress } = buyer;
-      const { id: sellerAddress } = seller;
-      const paymentTokenAddress = "0x539bde0d7dbd336b79148aa742883198bbf60342";
-      const splitLink = transactionLink ? transactionLink.split("/") : [];
-      const txnHash = splitLink.length ? splitLink[splitLink.length - 1] : "";
-      const price = convertByDecimals(
-        parseInt(pricePerItem) * parseInt(quantity),
-        18
-      );
-
-      return {
-        txnHash: txnHash.toLowerCase(),
-        timestamp: createdAt * 1000,
-        paymentTokenAddress,
-        price,
-        priceBase: 0,
-        priceUSD: 0,
-        buyerAddress,
-        sellerAddress,
-        chain: Blockchain.Arbitrum,
-        marketplace: Marketplace.DefiKingdoms,
-      };
-    });
+    return;
   }
 }
