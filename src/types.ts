@@ -7,7 +7,8 @@ export enum Blockchain {
   Terra = "terra",
   Cardano = "cardano",
   Avalanche = "avalanche",
-  Fantom = "fantom"
+  Fantom = "fantom",
+  Harmony = "harmony"
 }
 
 export const BlockchainReverseLookup = new Map<
@@ -32,7 +33,8 @@ export enum Marketplace {
   RandomEarth = "randomearth",
   JpgStore = "jpgstore",
   NFTrade = "nftrade",
-  PaintSwap = "paintswap"
+  PaintSwap = "paintswap",
+  DefiKingdoms = "defi-kingdoms"
 }
 
 export const MarketplaceReverseLookup = new Map<

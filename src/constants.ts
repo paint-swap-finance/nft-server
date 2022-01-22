@@ -12,6 +12,7 @@ export const DEFAULT_TOKEN_ADDRESSES: Record<Blockchain, string> = {
   [Blockchain.Cardano]: "addr11111111111111111111111111111111",
   [Blockchain.Avalanche]: "avax:0x0000000000000000000000000000000000000000",
   [Blockchain.Fantom]: "ftm:0x0000000000000000000000000000000000000000",
+  [Blockchain.Harmony]: "one:0x0000000000000000000000000000000000000000"
 };
 
 export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
@@ -21,6 +22,7 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
   [Blockchain.Terra]: MoralisChain.None,
   [Blockchain.Cardano]: MoralisChain.None,
   [Blockchain.Fantom]: MoralisChain.None,
+  [Blockchain.Harmony]: MoralisChain.None,
   [Blockchain.Avalanche]: MoralisChain.None,
   [Blockchain.Ethereum]: MoralisChain.Ethereum,
   [Blockchain.BSC]: MoralisChain.BSC,
@@ -29,47 +31,62 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
 export const COINGECKO_IDS: Record<Blockchain, any> = {
   [Blockchain.Ethereum]: {
     geckoId: "ethereum",
+    llamaId: "ethereum",
     platform: "ethereum",
     symbol: "eth",
   },
   [Blockchain.ImmutableX]: {
     geckoId: "ethereum",
+    llamaId: "",
     platform: "ethereum",
     symbol: "eth",
   },
   [Blockchain.Arbitrum]: {
     geckoId: "ethereum",
+    llamaId: "",
     platform: "arbitrum-one",
     symbol: "eth",
   },
   [Blockchain.Solana]: {
     geckoId: "solana",
+    llamaId: "",
     platform: "solana",
     symbol: "sol",
   },
   [Blockchain.BSC]: {
     geckoId: "binancecoin",
+    llamaId: "",
     platform: "binance-smart-chain",
     symbol: "bnb",
   },
   [Blockchain.Terra]: {
     geckoId: "terra-luna",
+    llamaId: "",
     platform: "terra",
     symbol: "luna",
   },
   [Blockchain.Cardano]: {
     geckoId: "cardano",
+    llamaId: "",
     platform: "cardano",
     symbol: "ada",
   },
   [Blockchain.Avalanche]: {
     geckoId: "avalanche-2",
+    llamaId: "avax",
     platform: "avalanche",
     symbol: "avax",
   },
   [Blockchain.Fantom]: {
     geckoId: "fantom",
+    llamaId: "fantom",
     platform: "fantom",
     symbol: "ftm"
+  },
+  [Blockchain.Harmony]: {
+    geckoId: "harmony",
+    llamaId: "harmony",
+    platform: "harmony-shard-0",
+    symbol: "one"
   }
 };

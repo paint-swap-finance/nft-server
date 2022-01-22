@@ -51,11 +51,17 @@ export class HistoricalStatistics {
               SK: timestamp,
             },
             UpdateExpression: `
-              ADD chain_${chain}_volume :volume,
-                  chain_${chain}_volumeUSD :volumeUSD,
-                  marketplace_${marketplace}_volume :volume,
-                  marketplace_${marketplace}_volumeUSD :volumeUSD
+              ADD #chainvolume :volume,
+                  #chainvolumeUSD :volumeUSD,
+                  #marketplacevolume :volume,
+                  #marketplacevolumeUSD :volumeUSD
             `,
+            ExpressionAttributeNames: {
+              "#chainvolume": `chain_${chain}_volume`,
+              "#chainvolumeUSD": `chain_${chain}_volumeUSD`,
+              "#marketplacevolume": `marketplace_${marketplace}_volume`,
+              "#marketplacevolumeUSD": `marketplace_${marketplace}_volumeUSD`,
+            },
             ExpressionAttributeValues: {
               ":volume": volume,
               ":volumeUSD": volumeUSD,
@@ -67,11 +73,17 @@ export class HistoricalStatistics {
               SK: timestamp,
             },
             UpdateExpression: `
-              ADD chain_${chain}_volume :volume,
-                  chain_${chain}_volumeUSD :volumeUSD,
-                  marketplace_${marketplace}_volume :volume,
-                  marketplace_${marketplace}_volumeUSD :volumeUSD
+              ADD #chainvolume :volume,
+                  #chainvolumeUSD :volumeUSD,
+                  #marketplacevolume :volume,
+                  #marketplacevolumeUSD :volumeUSD
             `,
+            ExpressionAttributeNames: {
+              "#chainvolume": `chain_${chain}_volume`,
+              "#chainvolumeUSD": `chain_${chain}_volumeUSD`,
+              "#marketplacevolume": `marketplace_${marketplace}_volume`,
+              "#marketplacevolumeUSD": `marketplace_${marketplace}_volumeUSD`,
+            },
             ExpressionAttributeValues: {
               ":volume": volume,
               ":volumeUSD": volumeUSD,
@@ -255,7 +267,9 @@ export class HistoricalStatistics {
       }, 0);
 
       return {
-        totalVolume: totalVolumes.totalVolume ? totalVolumes.totalVolume + volume : volume,
+        totalVolume: totalVolumes.totalVolume
+          ? totalVolumes.totalVolume + volume
+          : volume,
         totalVolumeUSD: totalVolumes.totalVolumeUSD
           ? totalVolumes.totalVolumeUSD + volumeUSD
           : volumeUSD,

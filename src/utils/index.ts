@@ -75,3 +75,35 @@ export function filterObject(object: any) {
     Object.entries(object).filter(([_, v]) => v != null)
   );
 }
+
+export const getTimestampsInBlockSpread = async (
+  oldestBlock: any,
+  newestBlock: any,
+  llamaId: string
+) => {
+  const oldestTimestamp = new Date(
+    (oldestBlock.timestamp as number) * 1000
+  ).setUTCHours(0, 0, 0, 0);
+  const newestTimestamp = new Date(
+    (newestBlock.timestamp as number) * 1000
+  ).setUTCHours(0, 0, 0, 0);
+
+  const timestamps: Record<string, number> = {};
+
+  for (
+    let timestamp = oldestTimestamp;
+    timestamp <= newestTimestamp;
+    timestamp += 86400 * 1000
+  ) {
+    if (timestamp) {
+      const response = await axios.get(
+        `https://coins.llama.fi/block/${llamaId}/${Math.floor(
+          timestamp / 1000
+        )}`
+      );
+      const { height } = response.data;
+      timestamps[height] = timestamp;
+    }
+  }
+  return timestamps;
+};

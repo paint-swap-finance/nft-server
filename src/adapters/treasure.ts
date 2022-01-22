@@ -69,7 +69,7 @@ async function fetchCollection(
     metadata: filteredMetadata,
     statistics,
     chain: Blockchain.Arbitrum,
-    marketplace: Marketplace.PancakeSwap,
+    marketplace: Marketplace.Treasure,
   });
 }
 

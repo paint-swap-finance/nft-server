@@ -42,7 +42,7 @@ export class CurrencyConverter {
         "usd"
       );
       const baseData = await Coingecko.getHistoricalPricesById(
-        COINGECKO_IDS[chain].platform,
+        COINGECKO_IDS[chain].geckoId,
         "usd"
       );
 
