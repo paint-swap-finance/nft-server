@@ -15,7 +15,8 @@ const adapters: String[] = [
   "treasure",
   "jpg-store",
   "nftrade",
-  "paintswap"
+  "paintswap",
+  "defi-kingdoms",
 ];
 
 for (const adapter of adapters) {
