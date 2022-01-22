@@ -87,11 +87,17 @@ export class Sale {
             SK: startOfDay.toString(),
           },
           UpdateExpression: `
-              ADD chain_${chain}_volume :volume,
-                  chain_${chain}_volumeUSD :volumeUSD,
-                  marketplace_${marketplace}_volume :volume,
-                  marketplace_${marketplace}_volumeUSD :volumeUSD
+              ADD #chainvolume :volume,
+                  #chainvolumeUSD :volumeUSD,
+                  #marketplacevolume :volume,
+                  #marketplacevolumeUSD :volumeUSD
             `,
+          ExpressionAttributeNames: {
+            "#chainvolume": `chain_${chain}_volume`,
+            "#chainvolumeUSD": `chain_${chain}_volumeUSD`,
+            "#marketplacevolume": `marketplace_${marketplace}_volume`,
+            "#marketplacevolumeUSD": `marketplace_${marketplace}_volumeUSD`,
+          },
           ExpressionAttributeValues: {
             ":volume": -parseInt(priceBase),
             ":volumeUSD": -parseInt(priceUSD),
@@ -103,11 +109,17 @@ export class Sale {
             SK: startOfDay.toString(),
           },
           UpdateExpression: `
-              ADD chain_${chain}_volume :volume,
-                  chain_${chain}_volumeUSD :volumeUSD,
-                  marketplace_${marketplace}_volume :volume,
-                  marketplace_${marketplace}_volumeUSD :volumeUSD
+              ADD #chainvolume :volume,
+                  #chainvolumeUSD :volumeUSD,
+                  #marketplacevolume :volume,
+                  #marketplacevolumeUSD :volumeUSD
             `,
+          ExpressionAttributeNames: {
+            "#chainvolume": `chain_${chain}_volume`,
+            "#chainvolumeUSD": `chain_${chain}_volumeUSD`,
+            "#marketplacevolume": `marketplace_${marketplace}_volume`,
+            "#marketplacevolumeUSD": `marketplace_${marketplace}_volumeUSD`,
+          },
           ExpressionAttributeValues: {
             ":volume": -parseInt(priceBase),
             ":volumeUSD": -parseInt(priceUSD),
