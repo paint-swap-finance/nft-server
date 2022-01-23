@@ -227,6 +227,11 @@ export class DefiKingdoms {
 
         logs = logs.concat(partLogs);
         currentBlock = nextBlock;
+        
+        if (logs.length >= 100000) {
+          // Get 100k logs at a time
+          break
+        }
       } catch (e) {
         if (blockSpread >= 100) {
           // We got too many results

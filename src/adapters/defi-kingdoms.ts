@@ -169,7 +169,7 @@ async function run(): Promise<void> {
   try {
     while (true) {
       await Promise.all([runCollections(), runSales()]);
-      await sleep(60 * 60);
+      await sleep(60 * 15);
     }
   } catch (e) {
     await handleError(e, "defi-kingdoms-adapter");
