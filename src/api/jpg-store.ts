@@ -64,15 +64,14 @@ export interface JpgStoreCollectionData {
 export class JpgStore {
   public static async getAllCollections(): Promise<JpgStoreCollectionData[]> {
     const url = `https://www.jpg.store/api/collection`;
-    const response = await axios.post(url);
+    const response = await axios.get(url);
     let { collections, cursor } = response.data;
     let newCollections = collections;
 
     while (newCollections && newCollections.length >= 20) {
       newCollections = [];
-      const response = await axios.post(url, {
-        cursor,
-      });
+      const response = await axios.get(`${url}?cursor=${cursor}`);
+
       const data = response.data;
       collections = [...collections, ...data.collections];
       cursor = data.cursor;
