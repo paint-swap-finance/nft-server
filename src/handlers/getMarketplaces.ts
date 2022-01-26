@@ -5,6 +5,7 @@ import {
   IResponse,
 } from "../utils/lambda-response";
 import { Marketplace } from "../types";
+import { MARKETPLACE_CHAINS } from "../constants";
 
 const handler = async (event: any): Promise<IResponse> => {
   try {
@@ -13,6 +14,7 @@ const handler = async (event: any): Promise<IResponse> => {
     const marketplaces = Object.entries(Marketplace).map((marketplace) => ({
       displayName: marketplace[0],
       marketplace: marketplace[1],
+      chains: MARKETPLACE_CHAINS[marketplace[1]],
     }));
 
     const marketplacesData = marketplaces.reduce(
@@ -33,7 +35,8 @@ const handler = async (event: any): Promise<IResponse> => {
             : 0;
         const totalVolumeUSD = globalStatistics.reduce((volume, entry) => {
           return (
-            volume + (entry[`marketplace_${marketplace.marketplace}_volumeUSD`] ?? 0)
+            volume +
+            (entry[`marketplace_${marketplace.marketplace}_volumeUSD`] ?? 0)
           );
         }, 0);
 
