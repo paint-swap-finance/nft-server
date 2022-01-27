@@ -15,6 +15,7 @@ export class CurrencyConverter {
     (token) => token.address.toString()
   );
 
+  private static lastCachedTime: Date = new Date();
   private static tokenAddressPrices: Record<string, number[][]> = {};
 
   public static async getHistoricalPricesByChainAndAddress(
@@ -47,7 +48,7 @@ export class CurrencyConverter {
       );
 
       if (!data.length || !baseData.length) {
-        return []
+        return [];
       }
 
       return data.map((elem) => {
@@ -68,6 +69,14 @@ export class CurrencyConverter {
   public static async fetchTokenAddressPrices(
     sales: any
   ): Promise<Record<string, number[][]>> {
+    // Check if prices need to be fetched again (every hour)
+    const hoursSinceCached =
+      Math.abs(
+        new Date().valueOf() - CurrencyConverter.lastCachedTime.valueOf()
+      ) / 36e5;
+    const updateCache = hoursSinceCached >= 1;
+
+    // Get unique token addresses from sales, excluding native tokens
     const tokenAddressPrices: Record<string, number[][]> = {};
     const tokenAddresses = sales.reduce((tokenAddresses: any[], sale: any) => {
       const flattenedTokenAddresses = tokenAddresses.map(
@@ -89,16 +98,24 @@ export class CurrencyConverter {
       return tokenAddresses;
     }, []);
 
+    // Get prices for native/base tokens
     for (const baseToken of CurrencyConverter.BASE_TOKENS) {
-      if (!(baseToken.address in CurrencyConverter.tokenAddressPrices)) {
+      if (
+        !(baseToken.address in CurrencyConverter.tokenAddressPrices) ||
+        updateCache
+      ) {
         tokenAddressPrices[baseToken.address.toString()] =
           await baseToken.fetch();
       }
     }
 
+    // Get prices for non-native/non-base tokens
     for (const tokenAddress of tokenAddresses) {
       try {
-        if (!(tokenAddress.address in CurrencyConverter.tokenAddressPrices)) {
+        if (
+          !(tokenAddress.address in CurrencyConverter.tokenAddressPrices) ||
+          updateCache
+        ) {
           tokenAddressPrices[tokenAddress.address.toString()] =
             await CurrencyConverter.getHistoricalPricesByChainAndAddress(
               tokenAddress.chain as any,
@@ -111,6 +128,11 @@ export class CurrencyConverter {
           "currency-converter-adapter:fetchTokenAddressPrices"
         );
       }
+    }
+
+    // Update lastCachedTime if prices are refreshed
+    if (updateCache) {
+      CurrencyConverter.lastCachedTime = new Date();
     }
 
     CurrencyConverter.tokenAddressPrices = {
