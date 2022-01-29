@@ -5,7 +5,7 @@ export interface DataAdapter {
   run: () => Promise<void>;
 }
 
-const adapters: String[] = [
+const adapters: string[] = [
   "moralis",
   "pancakeswap",
   "opensea",
@@ -19,16 +19,26 @@ const adapters: String[] = [
   "defi-kingdoms",
 ];
 
-for (const adapter of adapters) {
-  const child = fork(__dirname + "/" + adapter);
-
-  child.on("error", (error) => {
-    console.log(`${adapter}-adapter: exited with error ${error}`);
-  });
+const spawnChildProcess = (adapterName: string, attempt: number = 1) => {
+  const child = fork(__dirname + "/" + adapterName);
 
   child.on("exit", (exitCode) => {
-    console.log(`${adapter}-adapter: returned with code ${exitCode}`);
+    if (attempt > 5) {
+      console.log(
+        `${adapterName}-adapter: returned with code ${exitCode}, stopping after too many attempts.`
+      );
+      return;
+    }
+
+    console.log(
+      `${adapterName}-adapter: returned with code ${exitCode}, restarting with attempt no. ${attempt}.`
+    );
+    spawnChildProcess(adapterName, attempt + 1);
   });
+};
+
+for (const adapter of adapters) {
+  spawnChildProcess(adapter);
 }
 
 export { adapters };
