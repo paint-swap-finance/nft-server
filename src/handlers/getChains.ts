@@ -5,6 +5,7 @@ import {
   IResponse,
 } from "../utils/lambda-response";
 import { Blockchain } from "../types";
+import { CHAIN_MARKETPLACES } from "../constants";
 
 const handler = async (event: any): Promise<IResponse> => {
   try {
@@ -13,6 +14,7 @@ const handler = async (event: any): Promise<IResponse> => {
     const chains = Object.entries(Blockchain).map((chain) => ({
       displayName: chain[0],
       chain: chain[1],
+      marketplaces: CHAIN_MARKETPLACES[chain[1]],
     }));
 
     const chainsData = chains.reduce((data, chain) => {

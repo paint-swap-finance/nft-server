@@ -9,7 +9,7 @@ import {
   Marketplace,
   SaleData,
 } from "../types";
-import { Collection } from "../models/collection";
+import { Collection, HistoricalStatistics } from "../models";
 
 interface RandomEarthTransactionBuyerSeller {
   addr: string;
@@ -81,24 +81,26 @@ export class RandomEarth {
       src: logo,
       description,
       floor_price,
-      volume,
       owners_count: owners,
       items_count,
     } = collection;
 
     const address = addr.toLowerCase();
-
-    /*
-    const { totalVolume: totalVolumeRaw } = await Collection.getTotalVolume(
-      address
-    );
-    const totalVolume = totalVolumeRaw || 0;
-    */
-    const totalVolume = 0;
-
     const slug = getSlug(name);
+
+    const { totalVolume, totalVolumeUSD } =
+      await HistoricalStatistics.getCollectionTotalVolume({
+        slug,
+        marketplace: Marketplace.RandomEarth,
+      });
+
+    const { dailyVolume, dailyVolumeUSD } =
+      await HistoricalStatistics.getCollectionDailyVolume({
+        slug,
+        marketplace: Marketplace.RandomEarth,
+      });
+
     const floor = convertByDecimals(floor_price, 6) || 0;
-    const dailyVolume = convertByDecimals(volume, 6) || 0;
     const marketCap = items_count * floor || 0;
     const website = address
       ? `https://randomearth.io/collections/${address}`
@@ -122,12 +124,12 @@ export class RandomEarth {
       },
       statistics: {
         dailyVolume,
-        dailyVolumeUSD: roundUSD(dailyVolume * lunaInUSD),
+        dailyVolumeUSD,
         owners,
         floor,
         floorUSD: roundUSD(floor * lunaInUSD),
         totalVolume,
-        totalVolumeUSD: roundUSD(totalVolume * lunaInUSD),
+        totalVolumeUSD,
         marketCap,
         marketCapUSD: roundUSD(marketCap * lunaInUSD),
       },

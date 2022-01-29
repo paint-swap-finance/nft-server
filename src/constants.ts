@@ -1,4 +1,4 @@
-import { Blockchain, MoralisChain } from "./types";
+import { Blockchain, Marketplace, MoralisChain } from "./types";
 
 export const ONE_HOUR = 1;
 
@@ -12,7 +12,7 @@ export const DEFAULT_TOKEN_ADDRESSES: Record<Blockchain, string> = {
   [Blockchain.Cardano]: "addr11111111111111111111111111111111",
   [Blockchain.Avalanche]: "avax:0x0000000000000000000000000000000000000000",
   [Blockchain.Fantom]: "ftm:0x0000000000000000000000000000000000000000",
-  [Blockchain.Harmony]: "one:0x0000000000000000000000000000000000000000"
+  [Blockchain.Harmony]: "one:0x0000000000000000000000000000000000000000",
 };
 
 export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
@@ -26,6 +26,32 @@ export const MORALIS_CHAINS: Record<Blockchain, MoralisChain> = {
   [Blockchain.Avalanche]: MoralisChain.None,
   [Blockchain.Ethereum]: MoralisChain.Ethereum,
   [Blockchain.BSC]: MoralisChain.BSC,
+};
+
+export const MARKETPLACE_CHAINS: Record<Marketplace, Blockchain[]> = {
+  [Marketplace.MagicEden]: [Blockchain.Solana],
+  [Marketplace.ImmutableX]: [Blockchain.ImmutableX],
+  [Marketplace.Treasure]: [Blockchain.Arbitrum],
+  [Marketplace.RandomEarth]: [Blockchain.Terra],
+  [Marketplace.JpgStore]: [Blockchain.Cardano],
+  [Marketplace.PaintSwap]: [Blockchain.Fantom],
+  [Marketplace.DefiKingdoms]: [Blockchain.Harmony],
+  [Marketplace.NFTrade]: [Blockchain.Avalanche],
+  [Marketplace.Opensea]: [Blockchain.Ethereum],
+  [Marketplace.PancakeSwap]: [Blockchain.BSC],
+};
+
+export const CHAIN_MARKETPLACES: Record<Blockchain, Marketplace[]> = {
+  [Blockchain.Solana]: [Marketplace.MagicEden],
+  [Blockchain.ImmutableX]: [Marketplace.ImmutableX],
+  [Blockchain.Arbitrum]: [Marketplace.Treasure],
+  [Blockchain.Terra]: [Marketplace.RandomEarth],
+  [Blockchain.Cardano]: [Marketplace.JpgStore],
+  [Blockchain.Fantom]: [Marketplace.PaintSwap],
+  [Blockchain.Harmony]: [Marketplace.DefiKingdoms],
+  [Blockchain.Avalanche]: [Marketplace.NFTrade],
+  [Blockchain.Ethereum]: [Marketplace.Opensea],
+  [Blockchain.BSC]: [Marketplace.PancakeSwap],
 };
 
 export const COINGECKO_IDS: Record<Blockchain, any> = {
@@ -81,12 +107,12 @@ export const COINGECKO_IDS: Record<Blockchain, any> = {
     geckoId: "fantom",
     llamaId: "fantom",
     platform: "fantom",
-    symbol: "ftm"
+    symbol: "ftm",
   },
   [Blockchain.Harmony]: {
     geckoId: "harmony",
     llamaId: "harmony",
     platform: "harmony-shard-0",
-    symbol: "one"
-  }
+    symbol: "one",
+  },
 };

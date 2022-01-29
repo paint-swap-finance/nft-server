@@ -31,8 +31,9 @@ export class Collection {
   }) {
     try {
       const existingCollection = await Collection.get(slug);
+      const currentTime = Date.now();
 
-      // If collection already exists, update statistics only
+      // If collection already exists, update statistics and updatedAt only
       if (existingCollection.length) {
         const updateExpression = `
         SET owners = :owners,
@@ -43,7 +44,8 @@ export class Collection {
             floor = :floor,
             floorUSD = :floorUSD,
             marketCap = :marketCap,
-            marketCapUSD = :marketCapUSD`;
+            marketCapUSD = :marketCapUSD,
+            updatedAt = :updatedAt`;
 
         const expressionAttributeValues = {
           ":owners": statistics.owners,
@@ -55,6 +57,7 @@ export class Collection {
           ":floorUSD": statistics.floorUSD,
           ":marketCap": statistics.marketCap,
           ":marketCapUSD": statistics.marketCapUSD,
+          ":updatedAt": currentTime,
         };
 
         await dynamodb.transactWrite({
@@ -120,6 +123,8 @@ export class Collection {
               category: "collections",
               ...metadata,
               ...statistics,
+              createdAt: currentTime,
+              updatedAt: currentTime,
             },
             {
               PK: `collection#${slug}`,
@@ -127,6 +132,8 @@ export class Collection {
               category: `collections#chain#${chain}`,
               ...metadata,
               ...statistics,
+              createdAt: currentTime,
+              updatedAt: currentTime,
             },
             {
               PK: `collection#${slug}`,
@@ -134,6 +141,8 @@ export class Collection {
               category: `collections#marketplace#${marketplace}`,
               ...metadata,
               ...statistics,
+              createdAt: currentTime,
+              updatedAt: currentTime,
             },
           ],
         });
@@ -154,10 +163,7 @@ export class Collection {
       .then((result) => result.Items);
   }
 
-  static async getStatisticsByChain(
-    slug: string,
-    chain: Blockchain
-  ) {
+  static async getStatisticsByChain(slug: string, chain: Blockchain) {
     return dynamodb
       .query({
         KeyConditionExpression: "PK = :pk and SK = :sk",
