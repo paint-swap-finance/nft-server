@@ -1,6 +1,7 @@
 import axios from "axios";
 import web3 from "web3";
-import { HistoricalStatistics } from "../models";
+import { Block } from "web3-eth";
+import { Log } from "web3-core";
 
 import {
   Blockchain,
@@ -8,6 +9,7 @@ import {
   Marketplace,
   SaleData,
 } from "../types";
+import { Collection, HistoricalStatistics } from "../models";
 import { COINGECKO_IDS } from "../constants";
 import {
   convertByDecimals,
@@ -34,9 +36,14 @@ export interface DefiKingdomsTransactionData {
   transactionLink: string;
 }
 
+export interface SalesFromLogs {
+  sales: SaleData[];
+  latestBlock: number;
+}
+
 export class DefiKingdoms {
   public static async getCollection(
-    collection: any,
+    collection: Collection,
     jewelInUsd: number,
     jewelInOne: number
   ): Promise<CollectionAndStatisticData> {
@@ -119,15 +126,15 @@ export class DefiKingdoms {
     chain,
     marketplace,
   }: {
-    logs: any[];
-    oldestBlock: any;
-    newestBlock: any;
+    logs: Log[];
+    oldestBlock: Block;
+    newestBlock: Block;
     chain: Blockchain;
     marketplace: Marketplace;
-  }) {
+  }): Promise<Record<string, SaleData[]>> {
     if (!logs.length) {
       return {
-        sales: [] as any[],
+        sales: [] as SaleData[],
       };
     }
 
@@ -149,8 +156,8 @@ export class DefiKingdoms {
         // Get the closest block number in timestamps object
         const dayBlockNumber = Object.keys(timestamps).reduce(
           (a: string, b: string) =>
-            Math.abs(parseInt(b) - parseInt(blockNumber)) <
-            Math.abs(parseInt(a) - parseInt(blockNumber))
+            Math.abs(parseInt(b) - blockNumber) <
+            Math.abs(parseInt(a) - blockNumber)
               ? b
               : a
         );
@@ -176,7 +183,7 @@ export class DefiKingdoms {
     }
 
     return {
-      sales: parsedLogs as any[],
+      sales: parsedLogs as SaleData[],
     };
   }
 
@@ -198,7 +205,7 @@ export class DefiKingdoms {
     adapterName?: string;
     fromBlock?: number;
     toBlock?: number;
-  }): Promise<any | undefined> {
+  }): Promise<SalesFromLogs> {
     const provider = new web3(rpc);
     const latestBlock = await provider.eth.getBlockNumber();
 
@@ -207,7 +214,7 @@ export class DefiKingdoms {
       toBlock: toBlock || latestBlock,
     };
 
-    let logs = [] as any;
+    let logs: Log[] = [];
     let blockSpread = params.toBlock - params.fromBlock;
     let currentBlock = params.fromBlock;
 
@@ -227,10 +234,10 @@ export class DefiKingdoms {
 
         logs = logs.concat(partLogs);
         currentBlock = nextBlock;
-        
+
         if (logs.length >= 100000) {
           // Get 100k logs at a time
-          break
+          break;
         }
       } catch (e) {
         if (blockSpread >= 100) {

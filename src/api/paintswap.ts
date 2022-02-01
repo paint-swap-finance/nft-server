@@ -2,6 +2,8 @@
 
 import axios from "axios";
 import web3 from "web3";
+import { Log } from "web3-core";
+
 import { convertByDecimals, getSlug, roundUSD } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
 import { Blockchain, CollectionAndStatisticData, Marketplace } from "../types";
@@ -132,7 +134,7 @@ export class PaintSwap {
       toBlock: latestBlock,
     };
 
-    let logs = [] as any;
+    let logs = [] as Log[];
     let blockSpread = params.toBlock - params.fromBlock;
     let currentBlock = params.fromBlock;
     while (currentBlock < params.toBlock) {
@@ -209,8 +211,8 @@ export class PaintSwap {
         // Get the closest block number in timestamps object
         const dayBlockNumber = Object.keys(timestamps).reduce(
           (a: string, b: string) =>
-            Math.abs(parseInt(b) - parseInt(blockNumber)) <
-            Math.abs(parseInt(a) - parseInt(blockNumber))
+            Math.abs(parseInt(b) - blockNumber) <
+            Math.abs(parseInt(a) - blockNumber)
               ? b
               : a
         );
