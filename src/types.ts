@@ -96,6 +96,7 @@ export interface SaleData {
   txnHash: string;
   timestamp: string; // timestamp in milliseconds
   paymentTokenAddress: string;
+  contractAddress?: string;
   price: number;
   priceBase: number;
   priceUSD: number;

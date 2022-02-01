@@ -8,6 +8,7 @@ export class Sale {
   txnHash: string;
   sellerAddress: string;
   buyerAddress: string;
+  contractAddress?: string;
   marketplace: Marketplace;
   price: number;
   priceBase: number;

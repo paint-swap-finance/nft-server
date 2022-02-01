@@ -1,9 +1,11 @@
 import web3 from "web3";
+import { Block } from "web3-eth";
+import { Log } from "web3-core";
 import axios from "axios";
 import { Marketplace, Blockchain } from "../src/types";
 import { HistoricalStatistics, Collection, Sale } from "../src/models";
 import { CurrencyConverter } from "../src/api/currency-converter";
-import { COINGECKO_IDS, DEFAULT_TOKEN_ADDRESSES } from "../src/constants";
+import { COINGECKO_IDS } from "../src/constants";
 
 /* 
 Used for manually collecting logs from a contract and inserting them as sales
@@ -11,10 +13,10 @@ Used for manually collecting logs from a contract and inserting them as sales
 */
 
 const getTimestampsInBlockSpread = async (
-  oldestBlock: any,
-  newestBlock: any,
+  oldestBlock: Block,
+  newestBlock: Block,
   llamaId: string
-) => {
+): Promise<Record<string, number>> => {
   const oldestTimestamp = new Date(
     (oldestBlock.timestamp as number) * 1000
   ).setUTCHours(0, 0, 0, 0);
@@ -49,15 +51,15 @@ const parseSalesFromLogs = async ({
   chain,
   marketplace,
 }: {
-  logs: any[];
-  oldestBlock: any;
-  newestBlock: any;
+  logs: Log[];
+  oldestBlock: Block;
+  newestBlock: Block;
   chain: Blockchain;
   marketplace: Marketplace;
-}) => {
+}): Promise<Record<string, Sale[]>> => {
   if (!logs.length) {
     return {
-      sales: [] as any[],
+      sales: [] as Sale[],
     };
   }
 
@@ -79,8 +81,8 @@ const parseSalesFromLogs = async ({
       // Get the closest block number in timestamps object
       const dayBlockNumber = Object.keys(timestamps).reduce(
         (a: string, b: string) =>
-          Math.abs(parseInt(b) - parseInt(blockNumber)) <
-          Math.abs(parseInt(a) - parseInt(blockNumber))
+          Math.abs(parseInt(b) - blockNumber) <
+          Math.abs(parseInt(a) - blockNumber)
             ? b
             : a
       );
@@ -89,10 +91,10 @@ const parseSalesFromLogs = async ({
       parsedLogs.push({
         txnHash: transactionHash.toLowerCase(),
         paymentTokenAddress: "0x72cb10c6bfa5624dd07ef608027e366bd690048f", //DEFAULT_TOKEN_ADDRESSES[chain],
+        contractAddress,
         timestamp,
         sellerAddress: "",
         buyerAddress,
-        contractAddress,
         price,
         priceBase: 0,
         priceUSD: 0,
@@ -106,7 +108,7 @@ const parseSalesFromLogs = async ({
   }
 
   return {
-    sales: parsedLogs as any[],
+    sales: parsedLogs as Sale[],
   };
 };
 
@@ -128,7 +130,7 @@ const getSales = async ({
   adapterName?: string;
   fromBlock?: number;
   toBlock?: number;
-}) => {
+}): Promise<Record<string, Sale[]>> => {
   const provider = new web3(rpc);
   const latestBlock = await provider.eth.getBlockNumber();
 
@@ -137,7 +139,7 @@ const getSales = async ({
     toBlock: toBlock || latestBlock,
   };
 
-  let logs = [] as any;
+  let logs: Log[] = [];
   let blockSpread = params.toBlock - params.fromBlock;
   let currentBlock = params.fromBlock;
 
@@ -182,8 +184,8 @@ const getSales = async ({
   });
 
   return {
-    sales
-  }
+    sales,
+  };
 };
 
 const main = async ({
@@ -204,7 +206,7 @@ const main = async ({
   toBlock?: number;
   contractAddress: string;
   topic: string;
-}) => {
+}): Promise<void> => {
   const { data: collections } = await Collection.getSorted({
     marketplace,
   });
@@ -260,14 +262,14 @@ const main = async ({
     });
 
     if (salesInserted) {
-      console.log("Sales successfully inserted")
+      console.log("Sales successfully inserted");
       await HistoricalStatistics.updateStatistics({
         slug,
         chain,
         marketplace,
         sales: convertedSales,
       });
-      console.log("Historical statistics successfully updated")
+      console.log("Historical statistics successfully updated");
     }
   }
 };
