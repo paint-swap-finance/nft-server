@@ -1,5 +1,5 @@
 import { request, gql } from "graphql-request";
-import { HistoricalStatistics } from "../models";
+import { Collection, HistoricalStatistics } from "../models";
 
 import {
   Blockchain,
@@ -69,7 +69,7 @@ const salesQuery = gql`
 
 export class Treasure {
   public static async getCollection(
-    collection: any,
+    collection: Collection,
     magicInUsd: number,
     magicInEth: number
   ): Promise<CollectionAndStatisticData> {
@@ -135,8 +135,9 @@ export class Treasure {
 
     const { listings: transactions } = collection;
 
-    return transactions.map((sale: any) => {
-      if (sale.blockTimestamp * 1000 <= occurredFrom) {
+    return transactions.map((sale: TreasureTransactionData) => {
+      const createdAt = parseInt(sale.blockTimestamp) * 1000
+      if (createdAt <= occurredFrom) {
         return undefined;
       }
 
@@ -144,7 +145,6 @@ export class Treasure {
         transactionLink,
         pricePerItem,
         quantity,
-        blockTimestamp: createdAt,
         buyer,
         seller,
       } = sale;
@@ -160,7 +160,7 @@ export class Treasure {
 
       return {
         txnHash: txnHash.toLowerCase(),
-        timestamp: createdAt * 1000,
+        timestamp: createdAt,
         paymentTokenAddress,
         price,
         priceBase: 0,

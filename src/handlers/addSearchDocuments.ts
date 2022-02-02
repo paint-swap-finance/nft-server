@@ -1,17 +1,23 @@
 import axios from "axios";
+import {
+  DynamoDBStreamHandler,
+  DynamoDBStreamEvent,
+  DynamoDBRecord,
+} from "aws-lambda";
+
 import { handleError } from "../utils";
 
 const OPENSEARCH_DOMAIN = process.env.OPENSEARCH_DOMAIN;
 const OPENSEARCH_USERNAME = process.env.OPENSEARCH_USERNAME;
 const OPENSEARCH_PASSWORD = process.env.OPENSEARCH_PASSWORD;
 
-const handler = async (event: any) => {
+const handler: DynamoDBStreamHandler = async (event: DynamoDBStreamEvent) => {
   try {
-    const records = event.Records || [];
+    const records: DynamoDBRecord[] = event.Records || [];
 
     // Only consider insert or update events for collection overviews
     const collectionRecords = records.filter(
-      (record: any) =>
+      (record: DynamoDBRecord) =>
         (record.eventName === "INSERT" || record.eventName === "MODIFY") &&
         record.dynamodb.NewImage.PK.S.startsWith("collection#") &&
         record.dynamodb.NewImage.SK.S.startsWith("overview")

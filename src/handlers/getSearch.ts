@@ -1,4 +1,6 @@
 import axios from "axios";
+import { APIGatewayProxyEvent } from "aws-lambda";
+
 import {
   successResponse,
   errorResponse,
@@ -9,7 +11,7 @@ const OPENSEARCH_DOMAIN = process.env.OPENSEARCH_DOMAIN;
 const OPENSEARCH_USERNAME = process.env.OPENSEARCH_USERNAME;
 const OPENSEARCH_PASSWORD = process.env.OPENSEARCH_PASSWORD;
 
-const handler = async (event: any): Promise<IResponse> => {
+const handler = async (event: APIGatewayProxyEvent): Promise<IResponse> => {
   try {
     const { query } = event?.queryStringParameters || {};
 

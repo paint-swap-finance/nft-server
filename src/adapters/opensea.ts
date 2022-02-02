@@ -81,7 +81,7 @@ async function fetchCollection(
   });
 }
 
-async function fetchSales(collection: any): Promise<void> {
+async function fetchSales(collection: Collection): Promise<void> {
   let offset = 0;
   const limit = 300;
   const slug = collection.slug;

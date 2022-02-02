@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Block } from "web3-eth";
 
 export const sleep = async (seconds: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -27,7 +28,7 @@ export function getSlug(text: string): string {
 }
 
 export function getSlugFromPK(PK: string): string {
-  return PK.split("#")[1]
+  return PK.split("#")[1];
 }
 
 export function convertByDecimals(value: number, decimals: number): number {
@@ -70,15 +71,15 @@ export async function handleError(error: Error, context: string) {
   console.error(`Error [${context}] - other error: ${error.message}`);
 }
 
-export function filterObject(object: any) {
+export function filterObject(object: Object) {
   return Object.fromEntries(
     Object.entries(object).filter(([_, v]) => v != null)
   );
 }
 
 export const getTimestampsInBlockSpread = async (
-  oldestBlock: any,
-  newestBlock: any,
+  oldestBlock: Block,
+  newestBlock: Block,
   llamaId: string
 ) => {
   const oldestTimestamp = new Date(

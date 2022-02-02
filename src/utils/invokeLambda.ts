@@ -1,6 +1,7 @@
 import aws from "aws-sdk";
+import { APIGatewayProxyEvent } from "aws-lambda";
 
-export default async function invokeLambda(functionName: string, event: any) {
+export default async function invokeLambda(functionName: string, event: APIGatewayProxyEvent) {
   return new Promise((resolve, _reject) => {
     new aws.Lambda().invoke(
       {
