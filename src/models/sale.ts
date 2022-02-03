@@ -1,4 +1,4 @@
-import { Marketplace } from "../types";
+import { Marketplace, SaleData } from "../types";
 import { handleError } from "../utils";
 import dynamodb from "../utils/dynamodb";
 
@@ -8,6 +8,7 @@ export class Sale {
   txnHash: string;
   sellerAddress: string;
   buyerAddress: string;
+  contractAddress?: string;
   marketplace: Marketplace;
   price: number;
   priceBase: number;
@@ -22,7 +23,7 @@ export class Sale {
   }: {
     slug: string;
     marketplace: Marketplace;
-    sales: any[];
+    sales: SaleData[];
   }) {
     try {
       const batchWriteStep = 25;

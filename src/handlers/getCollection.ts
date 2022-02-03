@@ -1,3 +1,4 @@
+import { APIGatewayProxyEvent } from "aws-lambda";
 import { Collection } from "../models";
 import {
   successResponse,
@@ -5,7 +6,7 @@ import {
   IResponse,
 } from "../utils/lambda-response";
 
-const handler = async (event: any): Promise<IResponse> => {
+const handler = async (event: APIGatewayProxyEvent): Promise<IResponse> => {
   try {
     const { slug } = event?.pathParameters || {};
     const collection = await Collection.get(slug);

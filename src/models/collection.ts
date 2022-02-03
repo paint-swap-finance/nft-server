@@ -197,8 +197,8 @@ export class Collection {
     limit = null,
     cursor = null,
   }: {
-    chain?: any;
-    marketplace?: any;
+    chain?: Blockchain;
+    marketplace?: Marketplace;
     limit?: string;
     cursor?: string;
   }) {

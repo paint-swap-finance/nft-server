@@ -28,7 +28,8 @@
     "deploy": "sls deploy --stage prod",
     "dist": "sh ./scripts/dist.sh",
     "lint": "eslint -c .eslintrc.js --ext .ts src",
-    "test": "npx ts-node test/test.ts"
+    "test": "npx ts-node test/test.ts",
+    "ts-node": "ts-node"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.87",

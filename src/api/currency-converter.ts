@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Coingecko } from "../api/coingecko";
 import { DEFAULT_TOKEN_ADDRESSES, COINGECKO_IDS } from "../constants";
-import { Blockchain } from "../types";
+import { Blockchain, SaleData } from "../types";
 import { handleError, getPriceAtDate, roundUSD } from "../utils";
 
 export class CurrencyConverter {
@@ -67,7 +67,7 @@ export class CurrencyConverter {
   }
 
   public static async fetchTokenAddressPrices(
-    sales: any
+    sales: SaleData[]
   ): Promise<Record<string, number[][]>> {
     // Check if prices need to be fetched again (every hour)
     const hoursSinceCached =
@@ -78,7 +78,7 @@ export class CurrencyConverter {
 
     // Get unique token addresses from sales, excluding native tokens
     const tokenAddressPrices: Record<string, number[][]> = {};
-    const tokenAddresses = sales.reduce((tokenAddresses: any[], sale: any) => {
+    const tokenAddresses = sales.reduce((tokenAddresses: Record<string, string>[], sale: SaleData) => {
       const flattenedTokenAddresses = tokenAddresses.map(
         (address) => address.address
       );
@@ -143,7 +143,7 @@ export class CurrencyConverter {
     return CurrencyConverter.tokenAddressPrices;
   }
 
-  public static async convertSales(sales: any) {
+  public static async convertSales(sales: SaleData[]) {
     console.log("Running currency conversions for", sales.length, "sales");
     const tokenAddressPrices = await CurrencyConverter.fetchTokenAddressPrices(
       sales

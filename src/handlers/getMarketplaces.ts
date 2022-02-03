@@ -7,7 +7,7 @@ import {
 import { Marketplace } from "../types";
 import { MARKETPLACE_CHAINS } from "../constants";
 
-const handler = async (event: any): Promise<IResponse> => {
+const handler = async (): Promise<IResponse> => {
   try {
     const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
     const collectionCount = await Collection.getCount();

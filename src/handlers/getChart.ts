@@ -1,11 +1,13 @@
 import { HistoricalStatistics } from "../models";
+import { APIGatewayProxyEvent } from "aws-lambda";
+
 import {
   successResponse,
   errorResponse,
   IResponse,
 } from "../utils/lambda-response";
 
-const handler = async (event: any): Promise<IResponse> => {
+const handler = async (event: APIGatewayProxyEvent): Promise<IResponse> => {
   try {
     const { chain, marketplace, slug } = event?.pathParameters || {};
     const chart = await HistoricalStatistics.getChart({

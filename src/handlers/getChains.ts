@@ -7,7 +7,7 @@ import {
 import { Blockchain } from "../types";
 import { CHAIN_MARKETPLACES } from "../constants";
 
-const handler = async (event: any): Promise<IResponse> => {
+const handler = async (): Promise<IResponse> => {
   try {
     const globalStatistics = await HistoricalStatistics.getGlobalStatistics();
     const collectionCount = await Collection.getCount();
