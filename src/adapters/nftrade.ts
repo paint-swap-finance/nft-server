@@ -9,7 +9,7 @@ import { Blockchain, Marketplace } from "../types";
 import { NFTrade, NFTradeCollectionData } from "../api/nftrade";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
-import { sleep, handleError, filterObject } from "../utils";
+import { sleep, handleError, filterObject, getSalesFromLogs } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 
 async function runCollections(): Promise<void> {
@@ -90,12 +90,20 @@ async function fetchSales(
   lastSyncedBlockNumber: number
 ): Promise<void> {
   try {
-    const { sales, latestBlock } = await NFTrade.getSales(
-      lastSyncedBlockNumber
-    );
+    const { sales, latestBlock } = await getSalesFromLogs({
+      adapterName: "NFTrade",
+      rpc: "https://api.avax.network/ext/bc/C/rpc",
+      topic:
+        "0x6869791f0a34781b29882982cc39e882768cf2c96995c2a110c577c53bc932d5",
+      contractAddress: "0xcFB6Ee27d82beb1B0f3aD501B968F01CD7Cc5961",
+      fromBlock: lastSyncedBlockNumber,
+      marketplace: Marketplace.NFTrade,
+      chain: Blockchain.Avalanche,
+      parser: NFTrade.parseSalesFromLogs,
+    });
 
     if (!sales.length) {
-      console.log("No new sales for NFTrade collections")
+      console.log("No new sales for NFTrade collections");
       return;
     }
 
