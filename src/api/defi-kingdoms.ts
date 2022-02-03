@@ -131,11 +131,9 @@ export class DefiKingdoms {
     newestBlock: Block;
     chain: Blockchain;
     marketplace: Marketplace;
-  }): Promise<Record<string, SaleData[]>> {
+  }): Promise<SaleData[]> {
     if (!logs.length) {
-      return {
-        sales: [] as SaleData[],
-      };
+      return [] as SaleData[];
     }
 
     const timestamps = await getTimestampsInBlockSpread(
@@ -165,7 +163,7 @@ export class DefiKingdoms {
 
         parsedLogs.push({
           txnHash: transactionHash.toLowerCase(),
-          paymentTokenAddress: "0x72cb10c6bfa5624dd07ef608027e366bd690048f", //DEFAULT_TOKEN_ADDRESSES[chain],
+          paymentTokenAddress: "0x72cb10c6bfa5624dd07ef608027e366bd690048f",
           timestamp,
           sellerAddress: "",
           buyerAddress,
@@ -182,90 +180,6 @@ export class DefiKingdoms {
       }
     }
 
-    return {
-      sales: parsedLogs as SaleData[],
-    };
-  }
-
-  public static async getSales({
-    rpc,
-    topic,
-    contractAddress,
-    adapterName,
-    chain,
-    marketplace,
-    fromBlock,
-    toBlock,
-  }: {
-    rpc: string;
-    topic: string;
-    contractAddress: string;
-    chain: Blockchain;
-    marketplace: Marketplace;
-    adapterName?: string;
-    fromBlock?: number;
-    toBlock?: number;
-  }): Promise<SalesFromLogs> {
-    const provider = new web3(rpc);
-    const latestBlock = await provider.eth.getBlockNumber();
-
-    const params = {
-      fromBlock: fromBlock || 0,
-      toBlock: toBlock || latestBlock,
-    };
-
-    let logs: Log[] = [];
-    let blockSpread = params.toBlock - params.fromBlock;
-    let currentBlock = params.fromBlock;
-
-    while (currentBlock < params.toBlock) {
-      const nextBlock = Math.min(params.toBlock, currentBlock + blockSpread);
-      try {
-        const partLogs = await provider.eth.getPastLogs({
-          fromBlock: currentBlock,
-          toBlock: nextBlock,
-          address: contractAddress,
-          topics: [topic],
-        });
-
-        console.log(
-          `Fetched sales for ${adapterName} from block number ${currentBlock} --> ${nextBlock}`
-        );
-
-        logs = logs.concat(partLogs);
-        currentBlock = nextBlock;
-
-        if (logs.length >= 100000) {
-          // Get 100k logs at a time
-          break;
-        }
-      } catch (e) {
-        if (blockSpread >= 100) {
-          // We got too many results
-          // We could chop it up into 2K block spreads as that is guaranteed to always return but then we'll have to make a lot of queries (easily >1000), so instead we'll keep dividing the block spread by two until we make it
-          blockSpread = Math.floor(blockSpread / 2);
-        } else {
-          throw e;
-        }
-      }
-    }
-
-    const oldestBlock = await provider.eth.getBlock(logs[0].blockNumber);
-    const newestBlock = await provider.eth.getBlock(
-      logs.slice(-1)[0].blockNumber
-    );
-
-    const { sales } = await DefiKingdoms.parseSalesFromLogs({
-      logs,
-      oldestBlock,
-      newestBlock,
-      chain,
-      marketplace,
-    });
-
-    return {
-      sales,
-      latestBlock: params.toBlock,
-    };
+    return parsedLogs as SaleData[];
   }
 }
