@@ -85,6 +85,7 @@ export interface StatisticData {
   totalVolumeUSD?: number;
   marketCap: number;
   marketCapUSD: number;
+  fromSales?: boolean;
 }
 
 export interface CollectionAndStatisticData {

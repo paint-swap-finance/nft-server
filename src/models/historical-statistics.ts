@@ -41,10 +41,134 @@ export class HistoricalStatistics {
     marketplace: Marketplace;
     volumes: any;
   }) {
+    const overviewStatistics = await Collection.getStatisticsByMarketplace(
+      slug,
+      marketplace
+    );
+
+    if (overviewStatistics) {
+      const { fromSales } = overviewStatistics;
+
+      if (!fromSales) {
+        const { totalVolume, totalVolumeUSD } =
+          await HistoricalStatistics.getCollectionTotalVolume({
+            slug,
+            marketplace,
+          });
+
+        await dynamodb.transactWrite({
+          updateItems: [
+            {
+              Key: {
+                PK: `collection#${slug}`,
+                SK: "overview",
+              },
+              UpdateExpression: `
+                SET fromSales = :fromSales,
+                    totalVolume = :totalVolume,
+                    totalVolumeUSD = :totalVolumeUSD`,
+              ExpressionAttributeValues: {
+                ":fromSales": true,
+                ":totalVolume": totalVolume,
+                ":totalVolumeUSD": totalVolumeUSD,
+              },
+            },
+            {
+              Key: {
+                PK: `collection#${slug}`,
+                SK: `chain#${chain}`,
+              },
+              UpdateExpression: `
+                SET fromSales = :fromSales,
+                    totalVolume = :totalVolume,
+                    totalVolumeUSD = :totalVolumeUSD`,
+              ExpressionAttributeValues: {
+                ":fromSales": true,
+                ":totalVolume": totalVolume,
+                ":totalVolumeUSD": totalVolumeUSD,
+              },
+            },
+            {
+              Key: {
+                PK: `collection#${slug}`,
+                SK: `marketplace#${marketplace}`,
+              },
+              UpdateExpression: `
+                SET fromSales = :fromSales,
+                    totalVolume = :totalVolume,
+                    totalVolumeUSD = :totalVolumeUSD`,
+              ExpressionAttributeValues: {
+                ":fromSales": true,
+                ":totalVolume": totalVolume,
+                ":totalVolumeUSD": totalVolumeUSD,
+              },
+            },
+          ],
+        });
+        await dynamodb.update({
+          Key: {
+            PK: `collection#${slug}`,
+            SK: "overview",
+          },
+          UpdateExpression: `
+          SET fromSales = :fromSales,
+              totalVolume = :totalVolume,
+              totalVolumeUSD = :totalVolumeUSD`,
+          ExpressionAttributeValues: {
+            ":fromSales": true,
+            ":totalVolume": totalVolume,
+            ":totalVolumeUSD": totalVolumeUSD,
+          },
+        });
+      }
+    }
+
     for (const timestamp in volumes) {
       const { volume, volumeUSD } = volumes[timestamp];
       await dynamodb.transactWrite({
         updateItems: [
+          {
+            Key: {
+              PK: `collection#${slug}`,
+              SK: "overview",
+            },
+            UpdateExpression: `
+              ADD totalVolume :volume,
+                  totalVolumeUSD  :volumeUSD
+            `,
+            ExpressionAttributeValues: {
+              ":volume": volume,
+              ":volumeUSD": volumeUSD,
+            },
+          },
+          {
+            Key: {
+              PK: `collection#${slug}`,
+              SK: `chain#${chain}`,
+            },
+            UpdateExpression: `
+              ADD totalVolume :volume,
+                  totalVolumeUSD  :volumeUSD
+            `,
+            ExpressionAttributeValues: {
+              ":volume": volume,
+              ":volumeUSD": volumeUSD,
+            },
+          },
+          {
+            Key: {
+              PK: `collection#${slug}`,
+              SK: `marketplace#${marketplace}`,
+            },
+            UpdateExpression: `
+              ADD totalVolume :volume,
+                  totalVolumeUSD  :volumeUSD
+            `,
+            ExpressionAttributeValues: {
+              ":volume": volume,
+              ":volumeUSD": volumeUSD,
+            },
+          },
           {
             Key: {
               PK: `statistics#${slug}`,
@@ -223,22 +347,25 @@ export class HistoricalStatistics {
     slug: string;
     marketplace: Marketplace;
   }) {
-    /*
+    // If total volumes are already being calculated from real sales and not
+    // from fetched from marketplace APIs, return total volumes
     const overviewStatistics = await Collection.getStatisticsByMarketplace(
       slug,
       marketplace
     );
 
     if (overviewStatistics) {
-      const { totalVolume, totalVolumeUSD } = overviewStatistics;
-      if (totalVolume !== -1 && totalVolumeUSD !== -1) {
+      const { totalVolume, totalVolumeUSD, fromSales } = overviewStatistics;
+
+      if (fromSales) {
         return {
           totalVolume,
           totalVolumeUSD,
         };
       }
-    }*/
+    }
 
+    // Otherwise, calculate manually and return volumes
     const historicalStatistics =
       await HistoricalStatistics.getCollectionStatistics(slug);
 
