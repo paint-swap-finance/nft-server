@@ -201,6 +201,13 @@ export const getSalesFromLogs = async ({
     logs.slice(-1)[0].blockNumber
   );
 
+  if (!oldestBlock || !newestBlock) {
+    return {
+      sales: [],
+      latestBlock: params.fromBlock,
+    };
+  }
+
   const sales = await parser({
     logs,
     oldestBlock,
