@@ -13,6 +13,7 @@ import {
   LowVolumeError,
   Marketplace,
 } from "../types";
+import { HistoricalStatistics } from "../models";
 
 const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY;
 const SECONDARY_OPENSEA_API_KEY = process.env.SECONDARY_OPENSEA_API_KEY;
@@ -41,10 +42,9 @@ export class Opensea {
     } = collection;
     const { symbol } = collection.primary_asset_contracts[0] || {};
     const {
-      one_day_volume,
       num_owners,
-      floor_price,
       total_volume,
+      floor_price,
       market_cap,
     } = collection.stats;
 
@@ -53,6 +53,19 @@ export class Opensea {
         `Collection ${name} has volume ${total_volume} < ${VOLUME_THRESHOLD}`
       );
     }
+
+    const { totalVolume, totalVolumeUSD } =
+      await HistoricalStatistics.getCollectionTotalVolume({
+        slug,
+        marketplace: Marketplace.Opensea,
+      });
+      
+    const { dailyVolume, dailyVolumeUSD } =
+      await HistoricalStatistics.getCollectionDailyVolume({
+        slug,
+        marketplace: Marketplace.Opensea,
+      });
+
     return {
       metadata: {
         address,
@@ -70,13 +83,13 @@ export class Opensea {
         marketplaces: [Marketplace.Opensea],
       },
       statistics: {
-        dailyVolume: one_day_volume,
-        dailyVolumeUSD: roundUSD(one_day_volume * ethInUSD),
+        dailyVolume,
+        dailyVolumeUSD,
         owners: num_owners,
         floor: floor_price || 0,
         floorUSD: roundUSD(floor_price * ethInUSD),
-        totalVolume: total_volume,
-        totalVolumeUSD: roundUSD(total_volume * ethInUSD),
+        totalVolume,
+        totalVolumeUSD,
         marketCap: market_cap,
         marketCapUSD: roundUSD(market_cap * ethInUSD),
       },
