@@ -105,21 +105,6 @@ export class HistoricalStatistics {
             },
           ],
         });
-        await dynamodb.update({
-          Key: {
-            PK: `collection#${slug}`,
-            SK: "overview",
-          },
-          UpdateExpression: `
-          SET fromSales = :fromSales,
-              totalVolume = :totalVolume,
-              totalVolumeUSD = :totalVolumeUSD`,
-          ExpressionAttributeValues: {
-            ":fromSales": true,
-            ":totalVolume": totalVolume,
-            ":totalVolumeUSD": totalVolumeUSD,
-          },
-        });
       }
     }
 
