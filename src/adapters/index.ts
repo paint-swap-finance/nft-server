@@ -10,7 +10,7 @@ const adapters: string[] = [
   "pancakeswap",
   "opensea",
   "random-earth",
-  "magic-eden",
+  //"magic-eden",
   "immutablex",
   "treasure",
   "jpg-store",
