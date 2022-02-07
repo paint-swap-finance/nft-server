@@ -39,6 +39,13 @@ export const MARKETPLACE_CHAINS: Record<Marketplace, Blockchain[]> = {
   [Marketplace.NFTrade]: [Blockchain.Avalanche],
   [Marketplace.Opensea]: [Blockchain.Ethereum],
   [Marketplace.PancakeSwap]: [Blockchain.BSC],
+  [Marketplace.NFTKEY]: [
+    Blockchain.Fantom,
+    Blockchain.BSC,
+    Blockchain.Harmony,
+    Blockchain.Avalanche,
+    Blockchain.Ethereum,
+  ],
 };
 
 export const CHAIN_MARKETPLACES: Record<Blockchain, Marketplace[]> = {
@@ -47,11 +54,11 @@ export const CHAIN_MARKETPLACES: Record<Blockchain, Marketplace[]> = {
   [Blockchain.Arbitrum]: [Marketplace.Treasure],
   [Blockchain.Terra]: [Marketplace.RandomEarth],
   [Blockchain.Cardano]: [Marketplace.JpgStore],
-  [Blockchain.Fantom]: [Marketplace.PaintSwap],
-  [Blockchain.Harmony]: [Marketplace.DefiKingdoms],
-  [Blockchain.Avalanche]: [Marketplace.NFTrade],
-  [Blockchain.Ethereum]: [Marketplace.Opensea],
-  [Blockchain.BSC]: [Marketplace.PancakeSwap],
+  [Blockchain.Fantom]: [Marketplace.PaintSwap, Marketplace.NFTKEY],
+  [Blockchain.Harmony]: [Marketplace.DefiKingdoms, Marketplace.NFTKEY],
+  [Blockchain.Avalanche]: [Marketplace.NFTrade, Marketplace.NFTKEY],
+  [Blockchain.Ethereum]: [Marketplace.Opensea, Marketplace.NFTKEY],
+  [Blockchain.BSC]: [Marketplace.PancakeSwap, Marketplace.NFTKEY],
 };
 
 export const COINGECKO_IDS: Record<Blockchain, any> = {
