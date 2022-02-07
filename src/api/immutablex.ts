@@ -10,7 +10,7 @@ import {
   Blockchain,
   Marketplace,
 } from "../types";
-import { Collection } from "../models/collection";
+import { Collection, HistoricalStatistics } from "../models";
 
 export interface ImmutableXCollectionData {
   address: string;
@@ -125,42 +125,39 @@ export class ImmutableX {
     ethInUSD: number
   ): Promise<StatisticData> {
     console.log("Fetching statistics for IMX collection:", collection.name);
+    const slug = getSlug(collection.name);
+
+    const { totalVolume, totalVolumeUSD } =
+      await HistoricalStatistics.getCollectionTotalVolume({
+        slug,
+        marketplace: Marketplace.ImmutableX,
+      });
+      
+    const { dailyVolume, dailyVolumeUSD } =
+      await HistoricalStatistics.getCollectionDailyVolume({
+        slug,
+        marketplace: Marketplace.ImmutableX,
+      });
 
     const activeOrders = await this.getAllOrders(
       collection.address,
       ImmutableXOrderStatus.ACTIVE
     );
-    const filledOrders = await this.getAllOrders(
-      collection.address,
-      ImmutableXOrderStatus.FILLED
-    );
-
-    // TODO optimize
-    const dailyVolume = filledOrders.reduce((a, b) => {
-      if (isSameDay(new Date(b.timestamp), new Date())) {
-        return a + convertByDecimals(parseFloat(b?.buy?.data?.quantity), 18);
-      }
-      return a + 0;
-    }, 0);
     const activeOrderPrices = activeOrders.map((order) =>
       convertByDecimals(parseFloat(order?.buy?.data?.quantity), 18)
     );
     const floor = activeOrderPrices.length && Math.min(...activeOrderPrices);
-    const totalVolume = filledOrders.reduce(
-      (a, b) => a + convertByDecimals(parseFloat(b?.buy?.data?.quantity), 18),
-      0
-    );
     const marketCap =
       activeOrderPrices.length && activeOrderPrices.length * floor; // TODO replace with total token number
 
     return {
       dailyVolume,
-      dailyVolumeUSD: roundUSD(dailyVolume * ethInUSD),
+      dailyVolumeUSD,
       owners: 0, //TODO get owners
       floor,
       floorUSD: roundUSD(floor * ethInUSD),
       totalVolume,
-      totalVolumeUSD: roundUSD(totalVolume * ethInUSD),
+      totalVolumeUSD,
       marketCap,
       marketCapUSD: roundUSD(marketCap * ethInUSD),
     };

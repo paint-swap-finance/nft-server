@@ -9,6 +9,7 @@ import {
 } from "../types";
 import { roundUSD, getSlug } from "../utils";
 import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
+import { HistoricalStatistics } from "../models";
 
 export interface PancakeSwapCollectionBanner {
   large: string;
@@ -129,9 +130,8 @@ export class PancakeSwap {
 
     const { name, symbol, description, banner } = collection;
     const {
-      collection: { totalVolumeBNB: totalVolume, dayData, numberTokensListed },
+      collection: { numberTokensListed },
     } = collectionData;
-    const { dailyVolumeBNB: dailyVolume } = dayData[0];
 
     const { nfts } = floorData;
     const { currentAskPrice } = nfts[0];
@@ -139,6 +139,18 @@ export class PancakeSwap {
     const marketCap = floor * parseInt(numberTokensListed);
     const slug = getSlug(name);
     const logo = banner.small;
+
+    const { totalVolume, totalVolumeUSD } =
+      await HistoricalStatistics.getCollectionTotalVolume({
+        slug,
+        marketplace: Marketplace.PancakeSwap,
+      });
+
+    const { dailyVolume, dailyVolumeUSD } =
+      await HistoricalStatistics.getCollectionDailyVolume({
+        slug,
+        marketplace: Marketplace.PancakeSwap,
+      });
 
     return {
       metadata: {
@@ -157,13 +169,13 @@ export class PancakeSwap {
         marketplaces: [Marketplace.PancakeSwap],
       },
       statistics: {
-        dailyVolume: parseFloat(dailyVolume),
-        dailyVolumeUSD: roundUSD(dailyVolume * bnbInUsd),
+        dailyVolume,
+        dailyVolumeUSD,
         owners: 0,
         floor,
         floorUSD: roundUSD(floor * bnbInUsd),
-        totalVolume: parseFloat(totalVolume),
-        totalVolumeUSD: roundUSD(totalVolume * bnbInUsd),
+        totalVolume,
+        totalVolumeUSD,
         marketCap,
         marketCapUSD: roundUSD(marketCap * bnbInUsd),
       },

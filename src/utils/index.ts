@@ -189,10 +189,24 @@ export const getSalesFromLogs = async ({
     }
   }
 
+  if (logs.length === 0) {
+    return {
+      sales: [],
+      latestBlock: params.toBlock,
+    };
+  }
+
   const oldestBlock = await provider.eth.getBlock(logs[0].blockNumber);
   const newestBlock = await provider.eth.getBlock(
     logs.slice(-1)[0].blockNumber
   );
+
+  if (!oldestBlock || !newestBlock) {
+    return {
+      sales: [],
+      latestBlock: params.fromBlock,
+    };
+  }
 
   const sales = await parser({
     logs,

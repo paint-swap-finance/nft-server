@@ -9,7 +9,7 @@ import {
   Marketplace,
   SaleData,
 } from "../types";
-import { Collection } from "../models/collection";
+import { Collection, HistoricalStatistics } from "../models";
 
 interface MagicEdenParsedTransaction {
   txType: string;
@@ -80,9 +80,19 @@ export class MagicEden {
     const address =
       collection.candyMachineIds?.length && collection.candyMachineIds[0]; //TODO Fix
     const floor = convertByDecimals(floor_price, 9) || 0;
-    const dailyVolume = convertByDecimals(one_day_volume, 9) || 0;
-    const totalVolume = convertByDecimals(total_volume, 9) || 0;
     const marketCap = convertByDecimals(market_cap, 9) || 0;
+
+    const { totalVolume, totalVolumeUSD } =
+      await HistoricalStatistics.getCollectionTotalVolume({
+        slug,
+        marketplace: Marketplace.MagicEden,
+      });
+      
+    const { dailyVolume, dailyVolumeUSD } =
+      await HistoricalStatistics.getCollectionDailyVolume({
+        slug,
+        marketplace: Marketplace.MagicEden,
+      });
 
     return {
       metadata: {
@@ -102,12 +112,12 @@ export class MagicEden {
       },
       statistics: {
         dailyVolume,
-        dailyVolumeUSD: roundUSD(dailyVolume * solInUSD),
+        dailyVolumeUSD,
         owners: 0, // TODO add owners, data is not available from Magic Eden
         floor,
         floorUSD: roundUSD(floor * solInUSD),
         totalVolume,
-        totalVolumeUSD: roundUSD(totalVolume * solInUSD),
+        totalVolumeUSD,
         marketCap,
         marketCapUSD: roundUSD(marketCap * solInUSD),
       },
