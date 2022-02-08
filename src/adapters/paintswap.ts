@@ -9,7 +9,7 @@ import { Blockchain, Marketplace } from "../types";
 import { PaintSwap, PaintSwapCollectionData } from "../api/paintswap";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
-import { sleep, handleError, filterObject } from "../utils";
+import { sleep, handleError, filterObject, getSalesFromLogs } from "../utils";
 import { COINGECKO_IDS } from "../constants";
 
 async function runCollections(): Promise<void> {
@@ -96,9 +96,17 @@ async function fetchSales(
   lastSyncedBlockNumber: number
 ): Promise<void> {
   try {
-    const { sales, latestBlock } = await PaintSwap.getSales(
-      lastSyncedBlockNumber
-    );
+    const { sales, latestBlock } = await getSalesFromLogs({
+      adapterName: "Paintswap",
+      rpc: "https://rpc.ftm.tools",
+      topic:
+        "0x0cda439d506dbc3b73fe10f062cf285c4e75fe85d310decf4b8239841879ed61",
+      contractAddress: "0x6125fd14b6790d5f66509b7aa53274c93dae70b9",
+      fromBlock: lastSyncedBlockNumber,
+      marketplace: Marketplace.PaintSwap,
+      chain: Blockchain.Fantom,
+      parser: PaintSwap.parseSalesFromLogs,
+    });
 
     if (!sales.length) {
       console.log("No new sales for PaintSwap collections")

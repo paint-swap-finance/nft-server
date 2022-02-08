@@ -2,9 +2,17 @@
 
 import axios from "axios";
 import web3 from "web3";
-import { getSlug } from "../utils";
-import { DEFAULT_TOKEN_ADDRESSES } from "../constants";
-import { Blockchain, CollectionAndStatisticData, Marketplace } from "../types";
+import { Block } from "web3-eth";
+import { Log } from "web3-core";
+
+import { getSlug, getTimestampsInBlockSpread } from "../utils";
+import { COINGECKO_IDS, DEFAULT_TOKEN_ADDRESSES } from "../constants";
+import {
+  Blockchain,
+  CollectionAndStatisticData,
+  Marketplace,
+  SaleData,
+} from "../types";
 import { HistoricalStatistics } from "../models";
 
 export interface NFTradeCollectionData {
@@ -108,78 +116,28 @@ export class NFTrade {
     };
   }
 
-  public static async getSales(lastSyncedBlockNumber: number) {
-    const provider = new web3("https://api.avax.network/ext/bc/C/rpc");
-    const latestBlock = await provider.eth.getBlockNumber();
-
-    const params = {
-      fromBlock: lastSyncedBlockNumber,
-      toBlock: latestBlock,
-    };
-
-    let logs = [] as any;
-    let blockSpread = params.toBlock - params.fromBlock;
-    let currentBlock = params.fromBlock;
-    while (currentBlock < params.toBlock) {
-      const nextBlock = Math.min(params.toBlock, currentBlock + blockSpread);
-      try {
-        const partLogs = await provider.eth.getPastLogs({
-          fromBlock: currentBlock,
-          toBlock: nextBlock,
-          address: "0xcFB6Ee27d82beb1B0f3aD501B968F01CD7Cc5961",
-          topics: [
-            "0x6869791f0a34781b29882982cc39e882768cf2c96995c2a110c577c53bc932d5",
-          ],
-        });
-        console.log(
-          `Fetched sales for NFTrade collections from block number ${currentBlock} --> ${nextBlock}`
-        );
-        logs = logs.concat(partLogs);
-        currentBlock = nextBlock;
-      } catch (e) {
-        if (blockSpread >= 1000) {
-          // We got too many results
-          // We could chop it up into 2K block spreads as that is guaranteed to always return but then we'll have to make a lot of queries (easily >1000), so instead we'll keep dividing the block spread by two until we make it
-          blockSpread = Math.floor(blockSpread / 2);
-        } else {
-          throw e;
-        }
-      }
-    }
-
+  public static async parseSalesFromLogs({
+    logs,
+    oldestBlock,
+    newestBlock,
+    chain,
+    marketplace,
+  }: {
+    logs: Log[];
+    oldestBlock: Block;
+    newestBlock: Block;
+    chain: Blockchain;
+    marketplace: Marketplace;
+  }): Promise<SaleData[]> {
     if (!logs.length) {
-      return {
-        sales: [],
-        latestBlock,
-      };
+      return [] as SaleData[];
     }
 
-    const oldestBlock = await provider.eth.getBlock(logs[0].blockNumber);
-    const newestBlock = await provider.eth.getBlock(
-      logs.slice(-1)[0].blockNumber
+    const timestamps = await getTimestampsInBlockSpread(
+      oldestBlock,
+      newestBlock,
+      COINGECKO_IDS[chain].llamaId
     );
-    const oldestTimestamp = new Date(
-      (oldestBlock.timestamp as number) * 1000
-    ).setUTCHours(0, 0, 0, 0);
-    const newestTimestamp = new Date(
-      (newestBlock.timestamp as number) * 1000
-    ).setUTCHours(0, 0, 0, 0);
-
-    const timestamps: Record<string, number> = {};
-
-    for (
-      let timestamp = oldestTimestamp;
-      timestamp <= newestTimestamp;
-      timestamp += 86400 * 1000
-    ) {
-      if (timestamp) {
-        const response = await axios.get(
-          `https://coins.llama.fi/block/avax/${Math.floor(timestamp / 1000)}`
-        );
-        const { height } = response.data;
-        timestamps[height] = timestamp;
-      }
-    }
 
     const parsedLogs = [];
     for (const log of logs) {
@@ -194,8 +152,8 @@ export class NFTrade {
         // Get the closest block number in timestamps object
         const dayBlockNumber = Object.keys(timestamps).reduce(
           (a: string, b: string) =>
-            Math.abs(parseInt(b) - parseInt(blockNumber)) <
-            Math.abs(parseInt(a) - parseInt(blockNumber))
+            Math.abs(parseInt(b) - blockNumber) <
+            Math.abs(parseInt(a) - blockNumber)
               ? b
               : a
         );
@@ -203,7 +161,7 @@ export class NFTrade {
 
         parsedLogs.push({
           txnHash: transactionHash.toLowerCase(),
-          paymentTokenAddress: DEFAULT_TOKEN_ADDRESSES[Blockchain.Avalanche],
+          paymentTokenAddress: DEFAULT_TOKEN_ADDRESSES[chain],
           timestamp,
           sellerAddress,
           buyerAddress,
@@ -211,8 +169,8 @@ export class NFTrade {
           price,
           priceBase: 0,
           priceUSD: 0,
-          chain: Blockchain.Avalanche,
-          marketplace: Marketplace.NFTrade,
+          chain,
+          marketplace,
         });
       } catch (e) {
         console.log(e);
@@ -220,6 +178,6 @@ export class NFTrade {
       }
     }
 
-    return { sales: parsedLogs, latestBlock };
+    return parsedLogs as SaleData[];
   }
 }

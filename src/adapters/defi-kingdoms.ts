@@ -8,8 +8,8 @@ import {
   HistoricalStatistics,
   AdapterState,
 } from "../models";
-import { sleep, handleError, filterObject } from "../utils";
-import { Blockchain, Marketplace } from "../types";
+import { sleep, handleError, filterObject, getSalesFromLogs } from "../utils";
+import { Blockchain, Marketplace, SaleData } from "../types";
 
 async function runCollections(): Promise<void> {
   const { data: collections } = await Collection.getSorted({
@@ -68,7 +68,7 @@ async function runSales(): Promise<void> {
 }
 
 async function fetchCollection(
-  collection: any,
+  collection: Collection,
   jewelInUsd: number,
   jewelInOne: number
 ): Promise<void> {
@@ -99,7 +99,7 @@ async function fetchSales(
   lastSyncedBlockNumber: number
 ): Promise<void> {
   try {
-    const { sales, latestBlock } = await DefiKingdoms.getSales({
+    const { sales, latestBlock } = await getSalesFromLogs({
       adapterName: "Defi Kingdoms",
       rpc: "https://harmony-0-rpc.gateway.pokt.network",
       topic:
@@ -108,6 +108,7 @@ async function fetchSales(
       fromBlock: lastSyncedBlockNumber,
       marketplace: Marketplace.DefiKingdoms,
       chain: Blockchain.Harmony,
+      parser: DefiKingdoms.parseSalesFromLogs,
     });
 
     if (!sales.length) {
@@ -125,7 +126,7 @@ async function fetchSales(
         collection.name
       );
       const salesByCollection = sales.filter(
-        (sale: any) => sale.contractAddress === collection.address
+        (sale: SaleData) => sale.contractAddress === collection.address
       );
 
       if (!salesByCollection.length) {

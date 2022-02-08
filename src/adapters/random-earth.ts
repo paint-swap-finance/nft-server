@@ -1,6 +1,6 @@
 import { DataAdapter } from ".";
 import { Collection, Sale, HistoricalStatistics } from "../models";
-import { Blockchain, Marketplace } from "../types";
+import { Blockchain, Marketplace, SaleData } from "../types";
 import { RandomEarth, RandomEarthCollectionData } from "../api/random-earth";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
@@ -72,7 +72,7 @@ async function fetchCollection(
   });
 }
 
-async function fetchSales(collection: any): Promise<void> {
+async function fetchSales(collection: Collection): Promise<void> {
   const slug = collection.slug;
   const lastSaleTime = await Sale.getLastSaleTime({
     slug,
@@ -81,7 +81,7 @@ async function fetchSales(collection: any): Promise<void> {
 
   try {
     const sales = await RandomEarth.getSales(collection, lastSaleTime);
-    const filteredSales = sales.filter((sale: any) => sale);
+    const filteredSales = sales.filter((sale: SaleData) => sale);
 
     if (sales.length === 0) {
       return;

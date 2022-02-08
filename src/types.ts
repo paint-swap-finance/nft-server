@@ -86,6 +86,7 @@ export interface StatisticData {
   totalVolumeUSD?: number;
   marketCap: number;
   marketCapUSD: number;
+  fromSales?: boolean;
 }
 
 export interface CollectionAndStatisticData {
@@ -97,10 +98,12 @@ export interface SaleData {
   txnHash: string;
   timestamp: string; // timestamp in milliseconds
   paymentTokenAddress: string;
+  contractAddress?: string;
   price: number;
   priceBase: number;
   priceUSD: number;
   sellerAddress: string;
   buyerAddress: string;
   marketplace: Marketplace;
+  chain: Blockchain;
 }

@@ -101,6 +101,12 @@ export class JpgStore {
       medium_link,
     } = collection;
 
+    const { totalVolume, totalVolumeUSD } =
+      await HistoricalStatistics.getCollectionTotalVolume({
+        slug,
+        marketplace: Marketplace.JpgStore,
+      });
+      
     const { dailyVolume, dailyVolumeUSD } =
       await HistoricalStatistics.getCollectionDailyVolume({
         slug,
@@ -109,7 +115,6 @@ export class JpgStore {
 
     const logo = `https://d3exlhvlmmfsby.cloudfront.net/photos/hero-image/${slug}.webp`;
     const floor = convertByDecimals(parseInt(floor_price), 6) || 0;
-    const totalVolume = convertByDecimals(parseInt(total_volume), 6) || 0;
     const marketCap = items * floor || 0;
     const twitter_username = twitter_link
       ? twitter_link.split("/").slice(-1)[0]
@@ -141,7 +146,7 @@ export class JpgStore {
         floor,
         floorUSD: roundUSD(floor * adaInUSD),
         totalVolume,
-        totalVolumeUSD: roundUSD(totalVolume * adaInUSD),
+        totalVolumeUSD,
         marketCap,
         marketCapUSD: roundUSD(marketCap * adaInUSD),
       },

@@ -67,7 +67,7 @@ async function fetchCollection(
   }
 }
 
-async function fetchSales(collection: any): Promise<void> {
+async function fetchSales(collection: Collection): Promise<void> {
   const slug = collection.slug;
   const lastSaleTime = await Sale.getLastSaleTime({
     slug,
