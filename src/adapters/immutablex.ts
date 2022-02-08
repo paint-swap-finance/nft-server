@@ -1,6 +1,6 @@
 import { DataAdapter } from ".";
 import { Collection, Sale, HistoricalStatistics } from "../models";
-import { Blockchain, Marketplace } from "../types";
+import { Blockchain, CollectionData, Marketplace } from "../types";
 import { ImmutableX, ImmutableXCollectionData } from "../api/immutablex";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
@@ -48,7 +48,7 @@ async function fetchCollection(
     ethInUSD
   );
 
-  const filteredMetadata = filterObject(metadata);
+  const filteredMetadata = filterObject(metadata) as CollectionData;
   const slug = filteredMetadata.slug as string;
 
   await Collection.upsert({

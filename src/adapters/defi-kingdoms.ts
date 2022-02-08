@@ -9,7 +9,7 @@ import {
   AdapterState,
 } from "../models";
 import { sleep, handleError, filterObject, getSalesFromLogs } from "../utils";
-import { Blockchain, Marketplace, SaleData } from "../types";
+import { Blockchain, CollectionData, Marketplace, SaleData } from "../types";
 
 async function runCollections(): Promise<void> {
   const { data: collections } = await Collection.getSorted({
@@ -78,7 +78,7 @@ async function fetchCollection(
     jewelInOne
   );
 
-  const filteredMetadata = filterObject(metadata);
+  const filteredMetadata = filterObject(metadata) as CollectionData;
   const slug = filteredMetadata.slug as string;
 
   if (!slug) {

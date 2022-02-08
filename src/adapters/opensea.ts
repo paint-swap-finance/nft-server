@@ -6,7 +6,7 @@ import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
 import { COINGECKO_IDS } from "../constants";
 import { sleep, handleError, filterObject } from "../utils";
-import { Blockchain, LowVolumeError, Marketplace } from "../types";
+import { Blockchain, CollectionData, LowVolumeError, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
   const collections = await Contract.getAll(Blockchain.Ethereum);
@@ -70,7 +70,7 @@ async function fetchCollection(
     slug || fetchedSlug,
     ethInUSD
   );
-  const filteredMetadata = filterObject(metadata);
+  const filteredMetadata = filterObject(metadata) as CollectionData;
 
   await Collection.upsert({
     slug: slug || fetchedSlug,
