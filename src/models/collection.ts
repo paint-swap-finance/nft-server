@@ -128,12 +128,15 @@ export class Collection {
 
     const existingChains = collection
       .filter((item: any) => item.SK.startsWith("chain"))
-      .map((item: any) => item.split("#")[1]);
+      .map((item: any) => item.SK.split("#")[1]);
 
+    // If new chain, initialize chain attribute values with marketplace data
     if (!existingChains.includes(chain)) {
-      // Initialize chain attribute values with marketplace data
       chainAttributeValues = marketplaceAttributeValues;
-    } else {
+    }
+
+    // If chain already exists, add all marketplaces on that chain
+    else {
       const marketplaces = CHAIN_MARKETPLACES[chain];
       const chainData = collection.reduce(
         (totals: any, item: any) => {
@@ -171,7 +174,6 @@ export class Collection {
                 : marketCapUSDArr,
             };
           }
-
           return totals;
         },
         {
