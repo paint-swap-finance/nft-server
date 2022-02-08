@@ -61,6 +61,14 @@ export const CHAIN_MARKETPLACES: Record<Blockchain, Marketplace[]> = {
   [Blockchain.BSC]: [Marketplace.PancakeSwap, Marketplace.NFTKEY],
 };
 
+export const CHAIN_IDS: Record<number, Blockchain> = {
+  1: Blockchain.Ethereum,
+  56: Blockchain.BSC,
+  43114: Blockchain.Avalanche,
+  250: Blockchain.Fantom,
+  1666600000: Blockchain.Harmony,
+};
+
 export const COINGECKO_IDS: Record<Blockchain, any> = {
   [Blockchain.Ethereum]: {
     geckoId: "ethereum",
