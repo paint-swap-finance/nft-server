@@ -33,8 +33,19 @@ export class Collection {
       const existingCollection = await Collection.get(slug);
       const currentTime = Date.now();
 
-      // If collection already exists, update statistics and updatedAt only
+      // If collection already exists
       if (existingCollection.length) {
+        const { chains: existingChains, marketplaces: existingMarketplaces } =
+          existingCollection[0];
+
+        const chains = existingChains.includes(chain)
+          ? existingChains
+          : [...existingChains, chain];
+
+        const marketplaces = existingMarketplaces.includes(marketplace)
+          ? existingMarketplaces
+          : [...existingMarketplaces, marketplace];
+
         const updateExpression = `
         SET owners = :owners,
             totalVolume = :totalVolume,
@@ -45,7 +56,9 @@ export class Collection {
             floorUSD = :floorUSD,
             marketCap = :marketCap,
             marketCapUSD = :marketCapUSD,
-            updatedAt = :updatedAt`;
+            updatedAt = :updatedAt,
+            chains = :chains,
+            marketplaces = :marketplaces`;
 
         const expressionAttributeValues = {
           ":owners": statistics.owners,
@@ -58,6 +71,8 @@ export class Collection {
           ":marketCap": statistics.marketCap,
           ":marketCapUSD": statistics.marketCapUSD,
           ":updatedAt": currentTime,
+          ":chains": chains,
+          ":marketplaces": marketplaces,
         };
 
         await dynamodb.transactWrite({
