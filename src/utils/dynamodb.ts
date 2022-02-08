@@ -53,7 +53,7 @@ const dynamodb = {
     updateItems = [],
     deleteItems = [],
   }: {
-    putItems?: Omit<AWS.DynamoDB.DocumentClient.PutItemInput, "TableName">[];
+    putItems?: Omit<AWS.DynamoDB.DocumentClient.PutItemInputAttributeMap, "TableName">[];
     updateItems?: Omit<
       AWS.DynamoDB.DocumentClient.UpdateItemInput,
       "TableName"
