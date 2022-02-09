@@ -12,23 +12,28 @@ import { CurrencyConverter } from "../api/currency-converter";
 import { sleep, handleError, filterObject, getSalesFromLogs } from "../utils";
 import { CHAIN_IDS, COINGECKO_IDS } from "../constants";
 
+const adapterChains = [
+  Blockchain.Harmony,
+  Blockchain.Fantom,
+  Blockchain.Ethereum,
+  Blockchain.Avalanche,
+  Blockchain.BSC,
+];
+
 async function runCollections(): Promise<void> {
   const collections = await NFTKEY.getAllCollections();
+  const prices: Partial<Record<Blockchain, number>> = {};
 
-  const { usd: avaxInUSD } = await Coingecko.getPricesById(
-    COINGECKO_IDS[Blockchain.Avalanche].geckoId
-  );
+  for (const chain of adapterChains) {
+    const { usd } = await Coingecko.getPricesById(COINGECKO_IDS[chain].geckoId);
+    prices[chain] = usd;
+  }
 
   console.log("Fetching metadata for NFTKEY collections:", collections.length);
-
   for (const collection of collections) {
     try {
-      if (CHAIN_IDS[collection.chain_id] !== Blockchain.Avalanche) {
-        continue;
-      }
-
       console.log("Fetching metadata for NFTKEY collection:", collection.name);
-      await fetchCollection(collection, avaxInUSD);
+      await fetchCollection(collection, prices);
     } catch (e) {
       await handleError(e, "nftkey-adapter:runCollections");
     }
@@ -66,11 +71,14 @@ async function runCollections(): Promise<void> {
 
 async function fetchCollection(
   collection: NFTKEYCollectionData,
-  avaxInUSD: number
+  prices: Partial<Record<Blockchain, number>>
 ): Promise<void> {
+  const chain = CHAIN_IDS[collection.chain_id]
+  const price = prices[chain]
+
   const { metadata, statistics } = await NFTKEY.getCollection(
     collection,
-    avaxInUSD
+    price
   );
 
   const filteredMetadata = filterObject(metadata) as CollectionData;
@@ -84,7 +92,7 @@ async function fetchCollection(
     slug,
     metadata: filteredMetadata,
     statistics,
-    chain: Blockchain.Avalanche,
+    chain,
     marketplace: Marketplace.NFTKEY,
   });
 }

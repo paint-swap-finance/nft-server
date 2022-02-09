@@ -43,7 +43,7 @@ export class NFTKEY {
 
   public static async getCollection(
     collection: NFTKEYCollectionData,
-    avaxInUSD: number
+    price: number
   ): Promise<CollectionAndStatisticData> {
     const {
       name,
@@ -83,19 +83,17 @@ export class NFTKEY {
         telegram_url: null,
         twitter_username: null,
         medium_username: null,
-        chains: [Blockchain.Avalanche],
-        marketplaces: [Marketplace.NFTKEY],
       },
       statistics: {
         dailyVolume,
         dailyVolumeUSD,
         owners: 0,
         floor,
-        floorUSD: roundUSD(floor * avaxInUSD),
+        floorUSD: roundUSD(floor * price),
         totalVolume,
         totalVolumeUSD,
         marketCap,
-        marketCapUSD: roundUSD(marketCap * avaxInUSD),
+        marketCapUSD: roundUSD(marketCap * price),
       },
     };
   }

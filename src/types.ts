@@ -72,8 +72,8 @@ export interface CollectionData {
   telegram_url: string;
   twitter_username: string;
   medium_username: string;
-  chains: Blockchain[];
-  marketplaces: Marketplace[];
+  chains?: Blockchain[];
+  marketplaces?: Marketplace[];
 }
 
 export interface StatisticData {
