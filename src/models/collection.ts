@@ -181,11 +181,13 @@ export class Collection {
           totalVolumeUSD: statistics.totalVolumeUSD,
           dailyVolume: statistics.dailyVolume,
           dailyVolumeUSD: statistics.dailyVolumeUSD,
-          ownersArr: [statistics.owners || 0],
-          floorArr: [statistics.floor || 0],
-          floorUSDArr: [statistics.floorUSD || 0],
-          marketCapArr: [statistics.marketCap || 0],
-          marketCapUSDArr: [statistics.marketCapUSD || 0],
+          ownersArr: statistics.owners ? [statistics.owners] : [],
+          floorArr: statistics.floor ? [statistics.floor] : [],
+          floorUSDArr: statistics.floorUSD ? [statistics.floorUSD] : [],
+          marketCapArr: statistics.marketCap ? [statistics.marketCap] : [],
+          marketCapUSDArr: statistics.marketCapUSD
+            ? [statistics.marketCapUSD]
+            : [],
         }
       );
 
@@ -195,16 +197,20 @@ export class Collection {
         ":totalVolumeUSD": chainData.totalVolumeUSD,
         ":dailyVolume": chainData.dailyVolume,
         ":dailyVolumeUSD": chainData.dailyVolumeUSD,
-        ":owners": Math.max(chainData.ownersArr),
-        ":floor": chainData.floorArr.length ? Math.min(chainData.floorArr) : 0,
+        ":owners": chainData.ownersArr.length
+          ? Math.max(...chainData.ownersArr)
+          : 0,
+        ":floor": chainData.floorArr.length
+          ? Math.min(...chainData.floorArr)
+          : 0,
         ":floorUSD": chainData.floorUSDArr.length
-          ? Math.min(chainData.floorUSDArr)
+          ? Math.min(...chainData.floorUSDArr)
           : 0,
         ":marketCap": chainData.marketCapArr.length
-          ? Math.min(chainData.marketCapArr)
+          ? Math.min(...chainData.marketCapArr)
           : 0,
         ":marketCapUSD": chainData.marketCapUSDArr.length
-          ? Math.min(chainData.marketCapUSDArr)
+          ? Math.min(...chainData.marketCapUSDArr)
           : 0,
         ":updatedAt": currentTime,
       };
@@ -254,11 +260,11 @@ export class Collection {
         totalVolumeUSD: statistics.totalVolumeUSD,
         dailyVolume: statistics.dailyVolume,
         dailyVolumeUSD: statistics.dailyVolumeUSD,
-        ownersArr: [statistics.owners || 0],
-        floorArr: [statistics.floor || 0],
-        floorUSDArr: [statistics.floorUSD || 0],
-        marketCapArr: [statistics.marketCap || 0],
-        marketCapUSDArr: [statistics.marketCapUSD || 0],
+        ownersArr: statistics.owners ? [statistics.owners] : [],
+        floorArr: statistics.floor ? [statistics.floor] : [],
+        floorUSDArr: statistics.floorUSD ? [statistics.floorUSD] : [],
+        marketCapArr: statistics.marketCap ? [statistics.marketCap] : [],
+        marketCapUSDArr: statistics.marketCap ? [statistics.marketCapUSD] : [],
       }
     );
 
@@ -268,18 +274,20 @@ export class Collection {
       ":totalVolumeUSD": overviewData.totalVolumeUSD,
       ":dailyVolume": overviewData.dailyVolume,
       ":dailyVolumeUSD": overviewData.dailyVolumeUSD,
-      ":owners": Math.max(overviewData.ownersArr),
+      ":owners": overviewData.ownersArr.length
+        ? Math.max(...overviewData.ownersArr)
+        : 0,
       ":floor": overviewData.floorArr.length
-        ? Math.min(overviewData.floorArr)
+        ? Math.min(...overviewData.floorArr)
         : 0,
       ":floorUSD": overviewData.floorUSDArr.length
-        ? Math.min(overviewData.floorUSDArr)
+        ? Math.min(...overviewData.floorUSDArr)
         : 0,
       ":marketCap": overviewData.marketCapArr.length
-        ? Math.min(overviewData.marketCapArr)
+        ? Math.min(...overviewData.marketCapArr)
         : 0,
       ":marketCapUSD": overviewData.marketCapUSDArr.length
-        ? Math.min(overviewData.marketCapUSDArr)
+        ? Math.min(...overviewData.marketCapUSDArr)
         : 0,
       ":updatedAt": currentTime,
     };
