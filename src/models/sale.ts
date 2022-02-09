@@ -149,9 +149,9 @@ export class Sale {
       .then((result) => {
         const results = result.Items;
         if (results.length) {
-          return results[0]?.SK?.split("#")[0];
+          return parseInt(results[0]?.SK?.split("#")[0]);
         }
-        return "0";
+        return 0;
       });
   }
 }

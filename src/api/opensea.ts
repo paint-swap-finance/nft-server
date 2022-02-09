@@ -141,7 +141,7 @@ export class Opensea {
   ): Promise<(SaleData | undefined)[]> {
     const params: Record<string, string> = {
       asset_contract_address: address,
-      occurred_after: occurredAfter.toString(),
+      occurred_after: (occurredAfter + 1).toString(),
       offset: offset.toString(),
       limit: limit.toString(),
       event_type: "successful",
