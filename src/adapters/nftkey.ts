@@ -10,7 +10,7 @@ import { NFTKEY, NFTKEYCollectionData } from "../api/nftkey";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
 import { sleep, handleError, filterObject, getSalesFromLogs } from "../utils";
-import { COINGECKO_IDS } from "../constants";
+import { CHAIN_IDS, COINGECKO_IDS } from "../constants";
 
 async function runCollections(): Promise<void> {
   const collections = await NFTKEY.getAllCollections();
@@ -23,6 +23,10 @@ async function runCollections(): Promise<void> {
 
   for (const collection of collections) {
     try {
+      if (CHAIN_IDS[collection.chain_id] !== Blockchain.Avalanche) {
+        continue;
+      }
+
       console.log("Fetching metadata for NFTKEY collection:", collection.name);
       await fetchCollection(collection, avaxInUSD);
     } catch (e) {
