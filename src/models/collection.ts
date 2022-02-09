@@ -141,7 +141,7 @@ export class Collection {
       const chainData = collection.reduce(
         (totals: any, item: any) => {
           if (
-            marketplaces.includes(item.SK) &&
+            marketplaces.includes(item.SK.split("#")[1]) &&
             item.SK !== `marketplace#${marketplace}`
           ) {
             const {
@@ -181,11 +181,11 @@ export class Collection {
           totalVolumeUSD: statistics.totalVolumeUSD,
           dailyVolume: statistics.dailyVolume,
           dailyVolumeUSD: statistics.dailyVolumeUSD,
-          ownersArr: [statistics.owners],
-          floorArr: [statistics.floor],
-          floorUSDArr: [statistics.floorUSD],
-          marketCapArr: [statistics.marketCap],
-          marketCapUSDArr: [statistics.marketCapUSD],
+          ownersArr: [statistics.owners || 0],
+          floorArr: [statistics.floor || 0],
+          floorUSDArr: [statistics.floorUSD || 0],
+          marketCapArr: [statistics.marketCap || 0],
+          marketCapUSDArr: [statistics.marketCapUSD || 0],
         }
       );
 
@@ -254,11 +254,11 @@ export class Collection {
         totalVolumeUSD: statistics.totalVolumeUSD,
         dailyVolume: statistics.dailyVolume,
         dailyVolumeUSD: statistics.dailyVolumeUSD,
-        ownersArr: [statistics.owners],
-        floorArr: [statistics.floor],
-        floorUSDArr: [statistics.floorUSD],
-        marketCapArr: [statistics.marketCap],
-        marketCapUSDArr: [statistics.marketCapUSD],
+        ownersArr: [statistics.owners || 0],
+        floorArr: [statistics.floor || 0],
+        floorUSDArr: [statistics.floorUSD || 0],
+        marketCapArr: [statistics.marketCap || 0],
+        marketCapUSDArr: [statistics.marketCapUSD || 0],
       }
     );
 
