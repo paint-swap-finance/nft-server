@@ -103,7 +103,7 @@ export const COINGECKO_IDS: Record<Blockchain, any> = {
   },
   [Blockchain.BSC]: {
     geckoId: "binancecoin",
-    llamaId: "",
+    llamaId: "bsc",
     platform: "binance-smart-chain",
     symbol: "bnb",
   },
