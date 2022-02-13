@@ -184,7 +184,9 @@ export const getSalesFromLogs = async ({
         // We could chop it up into 2K block spreads as that is guaranteed to always return but then we'll have to make a lot of queries (easily >1000), so instead we'll keep dividing the block spread by two until we make it
         blockSpread = Math.floor(blockSpread / 2);
       } else {
-        throw e;
+        // TODO: Retry
+        console.log(e);
+        continue
       }
     }
   }
