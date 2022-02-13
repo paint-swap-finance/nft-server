@@ -69,6 +69,13 @@ export const CHAIN_IDS: Record<number, Blockchain> = {
   1666600000: Blockchain.Harmony,
 };
 
+export const CHAIN_RPCS: Partial<Record<Blockchain, string>> = {
+  [Blockchain.Avalanche]: "https://api.avax.network/ext/bc/C/rpc",
+  [Blockchain.Harmony]: "https://harmony-0-rpc.gateway.pokt.network",
+  [Blockchain.Fantom]: "https://rpc.ftm.tools",
+  [Blockchain.BSC]: "https://bsc-dataseed1.binance.org",
+};
+
 export const COINGECKO_IDS: Record<Blockchain, any> = {
   [Blockchain.Ethereum]: {
     geckoId: "ethereum",
