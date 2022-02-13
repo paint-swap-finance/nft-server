@@ -49,8 +49,8 @@ export class NFTKEY {
       name,
       address,
       description,
-      floor,
-      total_supply,
+      floor: floorRaw,
+      total_supply: total_supply_raw,
       website_url: website,
       thumbnail_url: logo,
     } = collection;
@@ -68,11 +68,13 @@ export class NFTKEY {
         marketplace: Marketplace.NFTKEY,
       });
 
+    const floor = floorRaw || 0;
+    const total_supply = total_supply_raw || 0;
     const marketCap = floor * total_supply;
 
     return {
       metadata: {
-        address,
+        address: address.toLowerCase(),
         name,
         slug,
         description,
@@ -125,10 +127,10 @@ export class NFTKEY {
     for (const log of logs) {
       try {
         const { topics, data, blockNumber, transactionHash } = log;
-        const sellerAddress = "0x" + topics[1].slice(26);
-        const buyerAddress = "0x" + data.slice(282, 322);
-        const contractAddress = "0x" + data.slice(802, 842);
-        const priceWei = Number("0x" + data.slice(450, 514));
+        const contractAddress = "0x" + topics[1].slice(26);
+        const buyerAddress = "0x" + topics[3].slice(26);
+        const sellerAddress = "0x" + data.slice(154, 194);
+        const priceWei = Number("0x" + data.slice(66, 130));
         const price = priceWei / Math.pow(10, 18);
 
         // Get the closest block number in timestamps object

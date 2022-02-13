@@ -10,15 +10,41 @@ import { NFTKEY, NFTKEYCollectionData } from "../api/nftkey";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
 import { sleep, handleError, filterObject, getSalesFromLogs } from "../utils";
-import { CHAIN_IDS, COINGECKO_IDS } from "../constants";
+import { CHAIN_IDS, CHAIN_RPCS, COINGECKO_IDS } from "../constants";
+
+const adapterMarketplace = Marketplace.NFTKEY;
 
 const adapterChains = [
-  Blockchain.Harmony,
-  Blockchain.Fantom,
-  Blockchain.Ethereum,
   Blockchain.Avalanche,
+  Blockchain.Fantom,
   Blockchain.BSC,
+  Blockchain.Harmony,
+  Blockchain.Ethereum,
 ];
+
+interface AdapterContractAddress {
+  address: string;
+  blockCreated: number;
+}
+
+const adapterAddresses: Partial<Record<Blockchain, AdapterContractAddress>> = {
+  [Blockchain.BSC]: {
+    address: "0x55E53B5e38Decb925A26cA5F38BddE68F373Bba8",
+    blockCreated: 12099839,
+  },
+  [Blockchain.Fantom]: {
+    address: "0x1A7d6ed890b6C284271AD27E7AbE8Fb5211D0739",
+    blockCreated: 20324850,
+  },
+  [Blockchain.Harmony]: {
+    address: "0x42813a05ec9c7e17aF2d1499F9B0a591B7619aBF",
+    blockCreated: 20758264,
+  },
+  [Blockchain.Avalanche]: {
+    address: "0x1A7d6ed890b6C284271AD27E7AbE8Fb5211D0739",
+    blockCreated: 6421617,
+  },
+};
 
 async function runCollections(): Promise<void> {
   const collections = await NFTKEY.getAllCollections();
@@ -40,41 +66,52 @@ async function runCollections(): Promise<void> {
   }
 }
 
-// async function runSales(): Promise<void> {
-//   const { data: collections } = await Collection.getSorted({
-//     marketplace: Marketplace.NFTKEY,
-//   });
+async function runSales(): Promise<void> {
+  for (const chain of adapterChains) {
+    if (chain === Blockchain.Ethereum) {
+      continue;
+    }
 
-//   if (!collections.length) {
-//     return;
-//   }
+    const { data: collections } = await Collection.getSorted({
+      marketplace: adapterMarketplace,
+    });
 
-//   let adapterState = await AdapterState.getSalesAdapterState(
-//     Marketplace.NFTKEY
-//   );
+    if (!collections.length) {
+      return;
+    }
 
-//   if (!adapterState) {
-//     adapterState = await AdapterState.createSalesAdapterState(
-//       Marketplace.NFTKEY
-//     );
-//   }
+    let adapterState = await AdapterState.getSalesAdapterState(
+      adapterMarketplace,
+      chain,
+      true
+    );
 
-//   const { lastSyncedBlockNumber } = adapterState;
+    if (!adapterState) {
+      adapterState = await AdapterState.createSalesAdapterState(
+        adapterMarketplace,
+        chain,
+        adapterAddresses[chain].blockCreated,
+        true
+      );
+    }
 
-//   console.log(
-//     "Fetching sales for NFTKEY collections from block number",
-//     lastSyncedBlockNumber
-//   );
+    const { lastSyncedBlockNumber } = adapterState;
 
-//   await fetchSales(collections, parseInt(lastSyncedBlockNumber));
-// }
+    console.log(
+      `Fetching sales for ${chain} NFTKEY collections from block number`,
+      lastSyncedBlockNumber
+    );
+
+    await fetchSales(chain, collections, parseInt(lastSyncedBlockNumber));
+  }
+}
 
 async function fetchCollection(
   collection: NFTKEYCollectionData,
   prices: Partial<Record<Blockchain, number>>
 ): Promise<void> {
-  const chain = CHAIN_IDS[collection.chain_id]
-  const price = prices[chain]
+  const chain = CHAIN_IDS[collection.chain_id];
+  const price = prices[chain];
 
   const { metadata, statistics } = await NFTKEY.getCollection(
     collection,
@@ -93,79 +130,92 @@ async function fetchCollection(
     metadata: filteredMetadata,
     statistics,
     chain,
-    marketplace: Marketplace.NFTKEY,
+    marketplace: adapterMarketplace,
   });
 }
 
-// async function fetchSales(
-//   collections: Collection[],
-//   lastSyncedBlockNumber: number
-// ): Promise<void> {
-//   try {
-//     const { sales, latestBlock } = await getSalesFromLogs({
-//       adapterName: "NFTKEY",
-//       rpc: "https://api.avax.network/ext/bc/C/rpc",
-//       topic:
-//         "0x6869791f0a34781b29882982cc39e882768cf2c96995c2a110c577c53bc932d5",
-//       contractAddress: "0xcFB6Ee27d82beb1B0f3aD501B968F01CD7Cc5961",
-//       fromBlock: lastSyncedBlockNumber,
-//       marketplace: Marketplace.NFTKEY,
-//       chain: Blockchain.Avalanche,
-//       parser: NFTKEY.parseSalesFromLogs,
-//     });
+async function fetchSales(
+  chain: Blockchain,
+  collections: Collection[],
+  lastSyncedBlockNumber: number
+): Promise<void> {
+  try {
+    const { sales, latestBlock } = await getSalesFromLogs({
+      adapterName: `NFTKEY ${chain}`,
+      rpc: CHAIN_RPCS[chain],
+      topic:
+        "0x50a3cf2b1df7bd2994e752563ce6f85769fb50da66bbb9a9912d2d6066a6b4da",
+      contractAddress: adapterAddresses[chain].address,
+      fromBlock: lastSyncedBlockNumber,
+      marketplace: adapterMarketplace,
+      chain,
+      parser: NFTKEY.parseSalesFromLogs,
+    });
 
-//     if (!sales.length) {
-//       console.log("No new sales for NFTKEY collections");
-//       return;
-//     }
+    if (!sales.length) {
+      console.log(`No new sales for NFTKEY ${chain} collections`);
+      return;
+    }
 
-//     console.log("Matching sales to NFTKEY collections:", collections.length);
-//     for (const collection of collections) {
-//       console.log("Matching sales for NFTKEY collection:", collection.name);
-//       const salesByCollection = sales.filter(
-//         (sale) => sale.contractAddress === collection.address
-//       );
+    console.log(
+      `Matching sales to NFTKEY collections:`,
+      collections.length
+    );
 
-//       if (!salesByCollection.length) {
-//         console.log("No sales found for NFTKEY collection", collection.name);
-//         continue;
-//       }
+    for (const collection of collections) {
+      console.log(
+        `Matching sales for NFTKEY collection:`,
+        collection.name,
+      );
+      const salesByCollection = sales.filter(
+        (sale) => sale.contractAddress === collection.address
+      );
 
-//       const convertedSales = await CurrencyConverter.convertSales(
-//         salesByCollection
-//       );
+      if (!salesByCollection.length) {
+        console.log(
+          `No sales found for NFTKEY collection`,
+          collection.name
+        );
+        continue;
+      }
 
-//       const slug = collection.slug;
-//       const salesInserted = await Sale.insert({
-//         slug,
-//         marketplace: Marketplace.NFTKEY,
-//         sales: convertedSales,
-//       });
+      const convertedSales = await CurrencyConverter.convertSales(
+        salesByCollection
+      );
 
-//       if (salesInserted) {
-//         await HistoricalStatistics.updateStatistics({
-//           slug,
-//           chain: Blockchain.Avalanche,
-//           marketplace: Marketplace.NFTKEY,
-//           sales: convertedSales,
-//         });
-//         await AdapterState.updateSalesLastSyncedBlockNumber(
-//           Marketplace.NFTKEY,
-//           latestBlock
-//         );
-//       }
-//     }
-//   } catch (e) {
-//     await handleError(e, "nftkey-adapter:fetchSales");
-//   }
-// }
+      const slug = collection.slug;
+      const salesInserted = await Sale.insert({
+        slug,
+        marketplace: adapterMarketplace,
+        sales: convertedSales,
+      });
+
+      if (salesInserted) {
+        await HistoricalStatistics.updateStatistics({
+          slug,
+          chain,
+          marketplace: adapterMarketplace,
+          sales: convertedSales,
+        });
+        await AdapterState.updateSalesLastSyncedBlockNumber(
+          adapterMarketplace,
+          latestBlock,
+          chain,
+          true
+        );
+      }
+    }
+  } catch (e) {
+    await handleError(e, "nftkey-adapter:fetchSales");
+  }
+}
 
 async function run(): Promise<void> {
   try {
     while (true) {
       await Promise.all([
-        runCollections(),
-        // runSales([Blockchain.Avalanche])
+        //runCollections(),
+        runSales(),
       ]);
       await sleep(60 * 60);
     }
