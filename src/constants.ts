@@ -1,4 +1,5 @@
 import { Blockchain, Marketplace, MoralisChain } from "./types";
+import { AVALANCHE_RPC, HARMONY_RPC, BSC_RPC, FANTOM_RPC } from "../env";
 
 export const ONE_HOUR = 1;
 
@@ -70,10 +71,10 @@ export const CHAIN_IDS: Record<number, Blockchain> = {
 };
 
 export const CHAIN_RPCS: Partial<Record<Blockchain, string>> = {
-  [Blockchain.Avalanche]: "https://api.avax.network/ext/bc/C/rpc",
-  [Blockchain.Harmony]: "https://harmony-0-rpc.gateway.pokt.network",
-  [Blockchain.Fantom]: "https://rpc.ftm.tools",
-  [Blockchain.BSC]: "https://bsc-dataseed1.binance.org",
+  [Blockchain.Avalanche]: AVALANCHE_RPC,
+  [Blockchain.Harmony]: HARMONY_RPC,
+  [Blockchain.Fantom]: FANTOM_RPC,
+  [Blockchain.BSC]: BSC_RPC,
 };
 
 export const COINGECKO_IDS: Record<Blockchain, any> = {
