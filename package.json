@@ -24,7 +24,7 @@
   "scripts": {
     "dev": "serverless offline start --httpPort 3001",
     "build": "tsc",
-    "start": "node dist/src/adapters/index.js",
+    "start": "node dist/adapters/index.js",
     "deploy": "sls deploy --stage prod",
     "dist": "sh ./scripts/dist.sh",
     "lint": "eslint -c .eslintrc.js --ext .ts src",

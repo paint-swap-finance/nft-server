@@ -1,5 +1,6 @@
 import { Blockchain, Marketplace, MoralisChain } from "./types";
-import { AVALANCHE_RPC, HARMONY_RPC, BSC_RPC, FANTOM_RPC } from "../env";
+
+require('dotenv').config()
 
 export const ONE_HOUR = 1;
 
@@ -71,10 +72,10 @@ export const CHAIN_IDS: Record<number, Blockchain> = {
 };
 
 export const CHAIN_RPCS: Partial<Record<Blockchain, string>> = {
-  [Blockchain.Avalanche]: AVALANCHE_RPC,
-  [Blockchain.Harmony]: HARMONY_RPC,
-  [Blockchain.Fantom]: FANTOM_RPC,
-  [Blockchain.BSC]: BSC_RPC,
+  [Blockchain.Avalanche]: process.env.AVALANCHE_RPC,
+  [Blockchain.Harmony]: process.env.HARMONY_RPC,
+  [Blockchain.Fantom]: process.env.FANTOM_RPC,
+  [Blockchain.BSC]: process.env.BSC_RPC,
 };
 
 export const COINGECKO_IDS: Record<Blockchain, any> = {
