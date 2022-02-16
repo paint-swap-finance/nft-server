@@ -214,7 +214,7 @@ async function run(): Promise<void> {
   try {
     while (true) {
       await Promise.all([
-        //runCollections(),
+        runCollections(),
         runSales(),
       ]);
       await sleep(60 * 60);
