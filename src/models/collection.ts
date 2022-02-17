@@ -109,6 +109,14 @@ export class Collection {
   }) {
     const currentTime = Date.now();
 
+    const existingChains = collection
+      .filter((item: any) => item.SK.startsWith("chain"))
+      .map((item: any) => item.SK.split("#")[1]);
+
+    const existingMarketplaces = collection
+      .filter((item: any) => item.SK.startsWith("marketplace"))
+      .map((item: any) => item.SK.split("#")[1]);
+
     // Set marketplace attribute values
     const marketplaceAttributeValues = {
       ":owners": statistics.owners,
@@ -121,14 +129,12 @@ export class Collection {
       ":marketCap": statistics.marketCap,
       ":marketCapUSD": statistics.marketCapUSD,
       ":updatedAt": currentTime,
+      ":chains": existingChains,
+      ":marketplaces": existingMarketplaces
     };
 
     // Calculate chain data
     let chainAttributeValues = {};
-
-    const existingChains = collection
-      .filter((item: any) => item.SK.startsWith("chain"))
-      .map((item: any) => item.SK.split("#")[1]);
 
     // If new chain, initialize chain attribute values with marketplace data
     if (!existingChains.includes(chain)) {
@@ -213,6 +219,8 @@ export class Collection {
           ? Math.min(...chainData.marketCapUSDArr)
           : 0,
         ":updatedAt": currentTime,
+        ":chains": existingChains,
+        ":marketplaces": existingMarketplaces
       };
     }
 
@@ -290,6 +298,8 @@ export class Collection {
         ? Math.min(...overviewData.marketCapUSDArr)
         : 0,
       ":updatedAt": currentTime,
+      ":chains": existingChains,
+      ":marketplaces": existingMarketplaces
     };
 
     // Update items
@@ -303,7 +313,9 @@ export class Collection {
         floorUSD = :floorUSD,
         marketCap = :marketCap,
         marketCapUSD = :marketCapUSD,
-        updatedAt = :updatedAt`;
+        updatedAt = :updatedAt,
+        chains = :chains,
+        marketplaces = :marketplaces`;
 
     await dynamodb.transactWrite({
       updateItems: [
