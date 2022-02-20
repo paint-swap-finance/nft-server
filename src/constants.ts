@@ -1,5 +1,7 @@
 import { Blockchain, Marketplace, MoralisChain } from "./types";
 
+require('dotenv').config()
+
 export const ONE_HOUR = 1;
 
 export const DEFAULT_TOKEN_ADDRESSES: Record<Blockchain, string> = {
@@ -39,6 +41,13 @@ export const MARKETPLACE_CHAINS: Record<Marketplace, Blockchain[]> = {
   [Marketplace.NFTrade]: [Blockchain.Avalanche],
   [Marketplace.Opensea]: [Blockchain.Ethereum],
   [Marketplace.PancakeSwap]: [Blockchain.BSC],
+  [Marketplace.NFTKEY]: [
+    Blockchain.Fantom,
+    Blockchain.BSC,
+    Blockchain.Harmony,
+    Blockchain.Avalanche,
+    Blockchain.Ethereum,
+  ],
 };
 
 export const CHAIN_MARKETPLACES: Record<Blockchain, Marketplace[]> = {
@@ -47,11 +56,26 @@ export const CHAIN_MARKETPLACES: Record<Blockchain, Marketplace[]> = {
   [Blockchain.Arbitrum]: [Marketplace.Treasure],
   [Blockchain.Terra]: [Marketplace.RandomEarth],
   [Blockchain.Cardano]: [Marketplace.JpgStore],
-  [Blockchain.Fantom]: [Marketplace.PaintSwap],
-  [Blockchain.Harmony]: [Marketplace.DefiKingdoms],
-  [Blockchain.Avalanche]: [Marketplace.NFTrade],
-  [Blockchain.Ethereum]: [Marketplace.Opensea],
-  [Blockchain.BSC]: [Marketplace.PancakeSwap],
+  [Blockchain.Fantom]: [Marketplace.PaintSwap, Marketplace.NFTKEY],
+  [Blockchain.Harmony]: [Marketplace.DefiKingdoms, Marketplace.NFTKEY],
+  [Blockchain.Avalanche]: [Marketplace.NFTrade, Marketplace.NFTKEY],
+  [Blockchain.Ethereum]: [Marketplace.Opensea, Marketplace.NFTKEY],
+  [Blockchain.BSC]: [Marketplace.PancakeSwap, Marketplace.NFTKEY],
+};
+
+export const CHAIN_IDS: Record<number, Blockchain> = {
+  1: Blockchain.Ethereum,
+  56: Blockchain.BSC,
+  43114: Blockchain.Avalanche,
+  250: Blockchain.Fantom,
+  1666600000: Blockchain.Harmony,
+};
+
+export const CHAIN_RPCS: Partial<Record<Blockchain, string>> = {
+  [Blockchain.Avalanche]: process.env.AVALANCHE_RPC,
+  [Blockchain.Harmony]: process.env.HARMONY_RPC,
+  [Blockchain.Fantom]: process.env.FANTOM_RPC,
+  [Blockchain.BSC]: process.env.BSC_RPC,
 };
 
 export const COINGECKO_IDS: Record<Blockchain, any> = {
@@ -81,7 +105,7 @@ export const COINGECKO_IDS: Record<Blockchain, any> = {
   },
   [Blockchain.BSC]: {
     geckoId: "binancecoin",
-    llamaId: "",
+    llamaId: "bsc",
     platform: "binance-smart-chain",
     symbol: "bnb",
   },

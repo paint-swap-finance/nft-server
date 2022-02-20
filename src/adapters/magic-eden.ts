@@ -1,6 +1,6 @@
 import { DataAdapter } from ".";
 import { Collection, HistoricalStatistics, Sale } from "../models";
-import { Blockchain, Marketplace } from "../types";
+import { Blockchain, CollectionData, Marketplace } from "../types";
 import { MagicEden, MagicEdenCollectionData } from "../api/magic-eden";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
@@ -53,7 +53,7 @@ async function fetchCollection(
     solInUSD
   );
 
-  const filteredMetadata = filterObject(metadata);
+  const filteredMetadata = filterObject(metadata) as CollectionData;
   const slug = metadata.slug as string;
 
   if (slug) {

@@ -34,7 +34,8 @@ export enum Marketplace {
   JpgStore = "jpgstore",
   NFTrade = "nftrade",
   PaintSwap = "paintswap",
-  DefiKingdoms = "defi-kingdoms"
+  DefiKingdoms = "defi-kingdoms",
+  NFTKEY = "nftkey",
 }
 
 export const MarketplaceReverseLookup = new Map<
@@ -71,8 +72,8 @@ export interface CollectionData {
   telegram_url: string;
   twitter_username: string;
   medium_username: string;
-  chains: Blockchain[];
-  marketplaces: Marketplace[];
+  chains?: Blockchain[];
+  marketplaces?: Marketplace[];
 }
 
 export interface StatisticData {

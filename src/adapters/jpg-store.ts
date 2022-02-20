@@ -1,6 +1,6 @@
 import { DataAdapter } from ".";
 import { Collection, Sale, HistoricalStatistics } from "../models";
-import { Blockchain, Marketplace, SaleData } from "../types";
+import { Blockchain, CollectionData, Marketplace, SaleData } from "../types";
 import { JpgStore, JpgStoreCollectionData } from "../api/jpg-store";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
@@ -53,7 +53,7 @@ async function fetchCollection(
     adaInUSD
   );
 
-  const filteredMetadata = filterObject(metadata);
+  const filteredMetadata = filterObject(metadata) as CollectionData;
   const slug = filteredMetadata.slug as string;
 
   if (!slug) {

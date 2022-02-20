@@ -17,6 +17,7 @@ const adapters: string[] = [
   "nftrade",
   "paintswap",
   "defi-kingdoms",
+  "nftkey",
 ];
 
 const spawnChildProcess = (adapterName: string, attempt: number = 1) => {

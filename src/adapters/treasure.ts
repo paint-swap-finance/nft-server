@@ -5,7 +5,7 @@ import { CurrencyConverter } from "../api/currency-converter";
 import { HistoricalStatistics } from "../models/historical-statistics";
 import { Collection, Sale } from "../models";
 import { sleep, handleError, filterObject } from "../utils";
-import { Blockchain, Marketplace } from "../types";
+import { Blockchain, CollectionData, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
   const { data: collections } = await Collection.getSorted({
@@ -57,7 +57,7 @@ async function fetchCollection(
     magicInEth
   );
 
-  const filteredMetadata = filterObject(metadata);
+  const filteredMetadata = filterObject(metadata) as CollectionData;
   const slug = filteredMetadata.slug as string;
 
   if (!slug) {

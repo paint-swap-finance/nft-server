@@ -130,6 +130,38 @@ export class Sale {
     });
   }
 
+  static async getAll({
+    slug,
+    marketplace,
+    cursor = null,
+  }: {
+    slug: string;
+    marketplace: Marketplace;
+    cursor?: string;
+  }) {
+    return dynamodb
+      .query({
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: {
+          ":pk": `sales#${slug}#marketplace#${marketplace}`,
+        },
+        ...(cursor && { ExclusiveStartKey: JSON.parse(cursor) }),
+      })
+      .then((result) => {
+        const { Items, LastEvaluatedKey } = result;
+        return {
+          data: Items.map((item) => ({
+            ...item,
+            timestamp: item.SK.split("#")[0],
+            txnHash: item.SK.split("#")[2],
+          })) as SaleData[],
+          ...(LastEvaluatedKey && {
+            cursor: LastEvaluatedKey as unknown as string,
+          }),
+        };
+      });
+  }
+
   static async getLastSaleTime({
     slug,
     marketplace,

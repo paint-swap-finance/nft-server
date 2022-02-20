@@ -5,7 +5,7 @@ import {
   HistoricalStatistics,
   AdapterState,
 } from "../models";
-import { Blockchain, Marketplace } from "../types";
+import { Blockchain, CollectionData, Marketplace } from "../types";
 import { PaintSwap, PaintSwapCollectionData } from "../api/paintswap";
 import { Coingecko } from "../api/coingecko";
 import { CurrencyConverter } from "../api/currency-converter";
@@ -75,7 +75,7 @@ async function fetchCollection(
     ftmInUSD
   );
 
-  const filteredMetadata = filterObject(metadata);
+  const filteredMetadata = filterObject(metadata) as CollectionData;
   const slug = filteredMetadata.slug as string;
 
   if (!slug) {

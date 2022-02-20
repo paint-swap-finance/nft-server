@@ -5,7 +5,7 @@ import { PancakeSwap, PancakeSwapCollectionData } from "../api/pancakeswap";
 import { Collection, Sale, HistoricalStatistics } from "../models";
 import { sleep, handleError, filterObject } from "../utils";
 import { COINGECKO_IDS } from "../constants";
-import { Blockchain, Marketplace } from "../types";
+import { Blockchain, CollectionData, Marketplace } from "../types";
 
 async function runCollections(): Promise<void> {
   const collections = await PancakeSwap.getAllCollections();
@@ -55,7 +55,7 @@ async function fetchCollection(
     bnbInUsd
   );
 
-  const filteredMetadata = filterObject(metadata);
+  const filteredMetadata = filterObject(metadata) as CollectionData;
   const slug = filteredMetadata.slug as string;
 
   if (!slug) {

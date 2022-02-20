@@ -50,19 +50,57 @@ export class AdapterState {
     });
   }
 
-  static async createSalesAdapterState(marketplace: Marketplace) {
+  static async createSalesAdapterState(
+    marketplace: Marketplace,
+    chain: Blockchain = null,
+    startBlock: number = 0,
+    isMultiChain: boolean = false
+  ) {
+    if (isMultiChain) {
+      await dynamodb.put({
+        PK: `adapterState`,
+        SK: `sales#chain#${chain}#marketplace#${marketplace}`,
+        lastSyncedBlockNumber: startBlock,
+      });
+
+      return {
+        lastSyncedBlockNumber: startBlock,
+      };
+    }
+
     await dynamodb.put({
       PK: `adapterState`,
       SK: `sales#${marketplace}`,
-      lastSyncedBlockNumber: 0,
+      lastSyncedBlockNumber: startBlock,
     });
 
     return {
-      lastSyncedBlockNumber: 0,
+      lastSyncedBlockNumber: startBlock,
     };
   }
 
-  static async getSalesAdapterState(marketplace: Marketplace) {
+  static async getSalesAdapterState(
+    marketplace: Marketplace,
+    chain: Blockchain = null,
+    isMultiChain: boolean = false
+  ) {
+    if (isMultiChain) {
+      return dynamodb
+        .query({
+          KeyConditionExpression: "PK = :pk and SK = :sk",
+          ExpressionAttributeValues: {
+            ":pk": "adapterState",
+            ":sk": `sales#chain#${chain}#marketplace#${marketplace}`,
+          },
+        })
+        .then((result) => {
+          const results = result.Items;
+          if (results.length) {
+            return results[0];
+          }
+        });
+    }
+
     return dynamodb
       .query({
         KeyConditionExpression: "PK = :pk and SK = :sk",
@@ -81,8 +119,23 @@ export class AdapterState {
 
   static async updateSalesLastSyncedBlockNumber(
     marketplace: Marketplace,
-    blockNumber: number
+    blockNumber: number,
+    chain: Blockchain = null,
+    isMultiChain: boolean = false
   ) {
+    if (isMultiChain) {
+      return dynamodb.update({
+        Key: {
+          PK: `adapterState`,
+          SK: `sales#chain#${chain}#marketplace#${marketplace}`,
+        },
+        UpdateExpression: "SET lastSyncedBlockNumber = :blockNumber",
+        ExpressionAttributeValues: {
+          ":blockNumber": blockNumber,
+        },
+      });
+    }
+
     return dynamodb.update({
       Key: {
         PK: `adapterState`,
