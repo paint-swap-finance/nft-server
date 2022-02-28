@@ -8,7 +8,7 @@ export interface DataAdapter {
 const adapters: string[] = [
   "moralis",
   "pancakeswap",
-  "opensea",
+  //"opensea",
   "random-earth",
   //"magic-eden",
   "immutablex",
